@@ -1,0 +1,27 @@
+{
+  "name": "@loshu-sdlc/plugin",
+  "version": "0.1.0",
+  "description": "Claude Code plugin for AI-Native SDLC",
+  "license": "MIT",
+  "type": "module",
+  "main": "./.claude-plugin/plugin.json",
+  "files": [
+    ".claude-plugin/",
+    "commands/",
+    "skills/",
+    "agents/",
+    "hooks/",
+    "schemas/"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "test": "echo \"plugin has no runtime tests\" && exit 0",
+    "typecheck": "echo \"plugin is markdown/JSON, no typecheck\" && exit 0",
+    "build": "echo \"plugin is markdown/JSON, no build\" && exit 0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

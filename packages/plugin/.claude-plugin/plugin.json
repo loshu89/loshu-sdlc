@@ -1,0 +1,19 @@
+{
+  "name": "loshu-sdlc",
+  "version": "0.1.0",
+  "description": "AI-Native SDLC: Plan → Design → Build → Test → Deploy → Maintain",
+  "author": {
+    "name": "loshu-sdlc contributors"
+  },
+  "license": "MIT",
+  "keywords": [
+    "sdlc",
+    "ai-native",
+    "claude-code",
+    "planning",
+    "design",
+    "testing",
+    "deployment",
+    "monitoring"
+  ]
+}
