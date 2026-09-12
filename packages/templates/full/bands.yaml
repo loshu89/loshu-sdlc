@@ -1,0 +1,34 @@
+version: 1
+project: <%= projectName %>
+generated: <%= date %>
+
+metrics:
+  - name: error_rate
+    baseline: 0.01
+    sigma_1: 0.015
+    sigma_2: 0.02
+    sigma_3: 0.03
+    unit: ratio
+    window: 1h
+
+  - name: p95_latency_ms
+    baseline: 200
+    sigma_1: 250
+    sigma_2: 350
+    sigma_3: 500
+    unit: ms
+    window: 5m
+
+  - name: deploy_frequency
+    baseline: 3
+    sigma_1: 5
+    sigma_2: 8
+    sigma_3: 12
+    unit: per_day
+    window: 24h
+
+evaluation:
+  interval: 5m
+  on_3sigma: block_maintain_exit
+  on_2sigma: warn
+  on_1sigma: log

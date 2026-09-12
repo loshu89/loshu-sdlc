@@ -1,0 +1,29 @@
+name: deploy-gate
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+
+jobs:
+  review-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check REVIEW.md
+        run: |
+          if [ ! -f REVIEW.md ]; then
+            echo "::error::REVIEW.md not found. Run /sdlc-deploy first."
+            exit 1
+          fi
+
+          # Status must not be 'fail' in any section
+          if grep -E '^Status: fail' REVIEW.md; then
+            echo "::error::REVIEW.md has status:fail. Fix findings and re-run /sdlc-deploy."
+            exit 1
+          fi
+
+      - name: Validate REVIEW.md schema
+        run: |
+          npx --yes @loshu-sdlc/cli validate review REVIEW.md --strict

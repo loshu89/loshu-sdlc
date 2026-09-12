@@ -1,0 +1,21 @@
+{
+  "name": "@loshu-sdlc/templates",
+  "version": "0.1.0",
+  "description": "Starter project templates for loshu-sdlc",
+  "license": "MIT",
+  "files": [
+    "minimal/",
+    "full/"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "test": "echo \"templates have no tests\" && exit 0",
+    "typecheck": "echo \"templates are markdown/yaml, no typecheck\" && exit 0",
+    "build": "echo \"templates are static, no build\" && exit 0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
