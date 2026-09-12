@@ -1,0 +1,47 @@
+{
+  "name": "@loshu-sdlc/cli",
+  "version": "0.1.0",
+  "description": "Scaffolder and maintenance CLI for loshu-sdlc",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "create-loshu-sdlc-app": "./dist/bin/create-loshu-sdlc-app.js",
+    "loshu-sdlc": "./dist/bin/loshu-sdlc.js"
+  },
+  "main": "./dist/index.js",
+  "files": [
+    "dist/",
+    "templates/"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@loshu-sdlc/templates": "workspace:*",
+    "ajv": "^8.12.0",
+    "ajv-formats": "^3.0.0",
+    "chalk": "^5.3.0",
+    "ejs": "^3.1.9",
+    "execa": "^8.0.0",
+    "fs-extra": "^11.2.0",
+    "inquirer": "^9.2.0",
+    "yaml": "^2.4.0"
+  },
+  "devDependencies": {
+    "@types/ejs": "^3.1.5",
+    "@types/fs-extra": "^11.0.0",
+    "@types/inquirer": "^9.0.0",
+    "@vitest/coverage-v8": "^1.6.0",
+    "vitest": "^1.6.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
