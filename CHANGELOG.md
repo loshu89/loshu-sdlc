@@ -5,15 +5,70 @@ All notable changes to loshu-sdlc will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased] — v0.1.1
+## [Unreleased]
 
-<!-- v0.1.1 entries will be added below -->
+<!-- v0.3.0 entries will be added below -->
 
 ### Added
-<!-- v0.1.1 entries will be added below -->
+<!-- v0.3.0 entries will be added below -->
+
+### Changed
+<!-- v0.3.0 entries will be added below -->
 
 ### Fixed
-<!-- v0.1.1 entries will be added below -->
+<!-- v0.3.0 entries will be added below -->
+
+---
+
+## [0.2.0] - 2026-09-14
+
+Reorganize package scope to `@loshu89/*` to match the GitHub org owner and ship through GitHub Packages.
+
+### Changed
+- **Breaking:** All npm package scopes renamed `@loshu-sdlc/*` → `@loshu89/*` (third rename — see `docs/internal/` for history). This aligns scope with the GitHub org owner so `publish-ghcr.yml` can publish with `GHCR_TOKEN` (PAT).
+- Repository moved from `maxsun1989/loshu-sdlc` → `loshu89/loshu-sdlc` (transferred to the `loshu89` GitHub org).
+- Removed redundant `pnpm/action-setup` `version:` field — the action now reads `packageManager` from `package.json` (fixes `ERR_PNPM_BAD_PM_VERSION`).
+- Removed obsolete `release.yml` (superseded by `publish-ghcr.yml`).
+- README rewritten with design philosophy, project structure, troubleshooting, and Tier-1/2/3 dependency model. Chinese version added at `README.zh-CN.md`.
+
+### Added
+- `LICENSE-THIRD-PARTY.md` documenting borrowed content provenance (ui-ux-pro-max, ecc).
+- Troubleshooting section in README.
+
+### Fixed
+- 18 lint errors (10 `no-fallthrough`, 5 `no-unsafe-*`, 2 `no-unused-vars`, 1 `no-useless-escape`).
+
+---
+
+## [0.1.3] - 2026-09-14
+
+### Fixed
+- Removed redundant `pnpm version` from `pnpm/action-setup` — the action now reads `packageManager` from `package.json`.
+
+---
+
+## [0.1.2] - 2026-09-14
+
+### Changed
+- **Breaking:** Renamed packages `@loshu-sdlc/*` → `@maxsun1989/*` for GitHub Packages scope alignment.
+
+---
+
+## [0.1.1] - 2026-09-14
+
+### Added
+- **7 new CLI subcommands**: `lint`, `rules list|check`, `status`, `coverage`, `logs`, `upgrade`, `telemetry` (in addition to `create`, `validate`, `doctor`, `bands`).
+- **Eval suite** with ~30 user stories covering all six SDLC stages (`pnpm test:eval`, `pnpm test:eval:strict`, `pnpm test:eval:json`, `pnpm test:eval:record`).
+- **Hooks path fix** — `create` scaffolder creates a `.claude/hooks` symlink so user projects resolve hooks from the bundled plugin location.
+- **CI workflow** (`.github/workflows/ci.yml`) — runs typecheck + test + build + lint on every push/PR.
+- **Release workflow** (`.github/workflows/release.yml`, later superseded) — tag-push publishes to npm registry.
+- `scripts/release.mjs` — local release helper that bumps versions in all three packages and runs the gauntlet.
+- `scripts/copy-plugin.mjs` — bundles the plugin source into the CLI package at build time.
+
+### Fixed
+- 18 lint errors blocking the release gauntlet (10 `no-fallthrough`, 5 `no-unsafe-*`, 2 `no-unused-vars`, 1 `no-useless-escape`).
+
+---
 
 ## [0.1.0] - 2026-09-14
 
@@ -22,39 +77,38 @@ Initial release of loshu-sdlc, an AI-Native SDLC plugin for Claude Code.
 ### Added
 
 **Plugin (Claude Code plugin)**
-- Plugin package skeleton with marketplace-ready layout (manifest, hooks, skills, agents, commands, schemas)
-- 7 SDLC artifact schemas: `intent`, `spec`, `plan`, `claude-md`, `review`, `bands`, `policy`
-- 9 slash commands: `/sdlc-plan`, `/sdlc-design`, `/sdlc-build`, `/sdlc-test`, `/sdlc-deploy`, `/sdlc-maintain`, `/sdlc-status`, `/sdlc-init`, `/sdlc-help`
-- 5 SDLC-specific agents and 5 authoring skills
-- 3 policy skills: `policy-default`, `policy-template`, `ui-ux-baseline`
-- Tiered hook scripts for all six SDLC stages (`plan-exit`, `design-exit`, `build-exit`, `test-exit`, `deploy-exit`, `maintain-exit`) plus a `protect-artifacts` safety hook
-- Provenance headers on all skill files
+- Plugin package skeleton with marketplace-ready layout (manifest, hooks, skills, agents, commands, schemas).
+- 7 SDLC artifact schemas: `intent`, `spec`, `plan`, `claude-md`, `review`, `bands`, `policy`.
+- 9 slash commands: `/sdlc-plan`, `/sdlc-design`, `/sdlc-build`, `/sdlc-test`, `/sdlc-deploy`, `/sdlc-maintain`, `/sdlc-status`, `/sdlc-init`, `/sdlc-help`.
+- 5 SDLC-specific agents and 5 authoring skills.
+- 3 policy skills: `policy-default`, `policy-template`, `ui-ux-baseline`.
+- Tiered hook scripts for all six SDLC stages (`plan-exit`, `design-exit`, `build-exit`, `test-exit`, `deploy-exit`, `maintain-exit`) plus a `protect-artifacts` safety hook.
+- Provenance headers on all skill files.
 
 **CLI (`loshu-sdlc` command)**
-- CLI package skeleton (`create-loshu-sdlc-app`)
-- `create` scaffolder command that copies templates and bundles the plugin into a user project
-- `validate` command with Ajv-based schema validation for all 7 SDLC artifacts
-- `doctor` command for project health checks
+- CLI package skeleton (`create-loshu-sdlc-app`).
+- `create` scaffolder command that copies templates and bundles the plugin into a user project.
+- `validate` command with Ajv-based schema validation for all 7 SDLC artifacts.
+- `doctor` command for project health checks.
 
 **Templates**
-- `minimal` starter template (intent + spec + plan + scaffold)
-- `full` starter template (all artifacts + ui-ux-baseline + ECC)
+- `minimal` starter template (intent + spec + plan + scaffold).
+- `full` starter template (all artifacts + ui-ux-baseline + ECC).
 
 **Infrastructure**
-- pnpm monorepo workspace (CLI + plugin + templates)
-- TypeScript strict mode (`tsconfig.base.json`)
-- ESLint + Prettier configuration
-- Vitest test runner setup
-- Changesets-based versioning
+- pnpm monorepo workspace (CLI + plugin + templates).
+- TypeScript strict mode (`tsconfig.base.json`).
+- ESLint + Prettier configuration.
+- Vitest test runner setup.
+- Changesets-based versioning.
 
 **Tests & Documentation**
-- Integration test suite covering scaffolder, validate, and doctor flows
-- Getting-started guide and installation docs
+- Integration test suite covering scaffolder, validate, and doctor flows.
+- Getting-started guide and installation docs.
 
 ### Fixed
-
-- Corrected `$LATENT_INTENT` → `$LATEST_INTENT` typo in `maintain-exit` hook
-- Added missing `license` field to 4 `ui-ux-baseline` provenance headers
-- Downgraded ESLint to `^8.56.0` for `@typescript-eslint` v7 compatibility
-- Allowed template `.loshu-sdlc/` directories in `.gitignore`
-- Addressed whole-branch review findings (must-fix and should-fix blockers)
+- Corrected `$LATENT_INTENT` → `$LATEST_INTENT` typo in `maintain-exit` hook.
+- Added missing `license` field to 4 `ui-ux-baseline` provenance headers.
+- Downgraded ESLint to `^8.56.0` for `@typescript-eslint` v7 compatibility.
+- Allowed template `.loshu-sdlc/` directories in `.gitignore`.
+- Addressed whole-branch review findings (must-fix and should-fix blockers).
