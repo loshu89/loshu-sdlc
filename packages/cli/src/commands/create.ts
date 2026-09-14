@@ -102,7 +102,7 @@ export async function create(args: CreateArgs): Promise<void> {
   if (!pluginSrc) {
     throw new Error(
       `Plugin source not found at ${candidates.join(' or ')}. ` +
-        `Install via /plugin marketplace add maxsun1989/loshu-sdlc && /plugin install loshu-sdlc@loshu-sdlc`,
+        `Install via /plugin marketplace add loshu89/loshu-sdlc && /plugin install loshu-sdlc@loshu-sdlc`,
     );
   }
   await bundlePlugin(pluginSrc, targetPath);

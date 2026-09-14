@@ -34,17 +34,17 @@ This installs loshu-sdlc into an existing repo without scaffolding. Run `/sdlc-p
 If you want just the plugin without the scaffolder:
 
 ```bash
-/plugin marketplace add maxsun1989/loshu-sdlc
+/plugin marketplace add loshu89/loshu-sdlc
 /plugin install loshu-sdlc@loshu-sdlc
 ```
 
 ## Install from GitHub Packages
 
-The `@maxsun1989/*` packages are published to GitHub Packages. To install them via npm, configure your npm scope:
+The `@loshu-sdlc/*` packages are published to GitHub Packages. To install them via npm, configure your npm scope:
 
 ```bash
-# Tell npm to use GitHub Packages for the @maxsun1989 scope
-echo "@maxsun1989:registry=https://npm.pkg.github.com" >> ~/.npmrc
+# Tell npm to use GitHub Packages for the @loshu-sdlc scope
+echo "@loshu-sdlc:registry=https://npm.pkg.github.com" >> ~/.npmrc
 
 # Authenticate with a GitHub personal access token (needs `read:packages` scope)
 npm login --registry=https://npm.pkg.github.com
@@ -53,13 +53,13 @@ npm login --registry=https://npm.pkg.github.com
 Then install:
 
 ```bash
-npm install -g @maxsun1989/cli
+npm install -g @loshu-sdlc/cli
 ```
 
 Or one-off:
 
 ```bash
-npx --yes @maxsun1989/cli --help
+npx --yes @loshu-sdlc/cli --help
 ```
 
 ## Required external plugins

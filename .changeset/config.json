@@ -4,7 +4,7 @@
   "commit": false,
   "fixed": [],
   "linked": [
-    ["@maxsun1989/plugin", "@maxsun1989/cli", "@maxsun1989/templates"]
+    ["@loshu-sdlc/plugin", "@loshu-sdlc/cli", "@loshu-sdlc/templates"]
   ],
   "access": "public",
   "baseBranch": "main",

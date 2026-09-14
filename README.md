@@ -1,7 +1,7 @@
 # loshu-sdlc
 
-[![CI](https://github.com/maxsun1989/loshu-sdlc/actions/workflows/ci.yml/badge.svg)](https://github.com/maxsun1989/loshu-sdlc/actions/workflows/ci.yml)
-[![Release](https://github.com/maxsun1989/loshu-sdlc/actions/workflows/release.yml/badge.svg)](https://github.com/maxsun1989/loshu-sdlc/actions/workflows/release.yml)
+[![CI](https://github.com/loshu89/loshu-sdlc/actions/workflows/ci.yml/badge.svg)](https://github.com/loshu89/loshu-sdlc/actions/workflows/ci.yml)
+[![Release](https://github.com/loshu89/loshu-sdlc/actions/workflows/release.yml/badge.svg)](https://github.com/loshu89/loshu-sdlc/actions/workflows/release.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 AI-Native SDLC plugin for Claude Code.
@@ -26,7 +26,7 @@ v0.1.1 — released.
 
 ```bash
 # 1. Add the loshu-sdlc marketplace
-claude plugin marketplace add maxsun1989/loshu-sdlc
+claude plugin marketplace add loshu89/loshu-sdlc
 
 # 2. Install the plugin into your Claude Code session
 claude plugin install loshu-sdlc@loshu-sdlc
@@ -45,10 +45,10 @@ cd my-app
 
 ### Install via GitHub Packages
 
-The npm packages are published to GitHub Packages under the `@maxsun1989` scope:
+The npm packages are published to GitHub Packages under the `@loshu-sdlc` scope:
 
 ```bash
-npm install -g @maxsun1989/cli --registry=https://npm.pkg.github.com
+npm install -g @loshu-sdlc/cli --registry=https://npm.pkg.github.com
 ```
 
 Authenticate first if needed (see `docs/installation.md` for details).

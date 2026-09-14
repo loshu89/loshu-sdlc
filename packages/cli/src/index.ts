@@ -1,4 +1,4 @@
-// Public API for @maxsun1989/cli
+// Public API for @loshu-sdlc/cli
 export { create } from './commands/create.js';
 export type { CreateArgs } from './commands/create.js';
 export { renderEjs, renderFile } from './lib/render.js';

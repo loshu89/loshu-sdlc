@@ -44,7 +44,7 @@ importers:
 
   packages/cli:
     dependencies:
-      '@maxsun1989/templates':
+      '@loshu-sdlc/templates':
         specifier: workspace:*
         version: link:../templates
       ajv:

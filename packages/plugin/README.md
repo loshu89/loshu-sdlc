@@ -1,4 +1,4 @@
-# @maxsun1989/plugin
+# @loshu-sdlc/plugin
 
 Claude Code plugin for the AI-Native Software Development Lifecycle.
 

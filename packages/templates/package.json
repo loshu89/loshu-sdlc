@@ -1,5 +1,5 @@
 {
-  "name": "@maxsun1989/templates",
+  "name": "@loshu-sdlc/templates",
   "version": "0.1.3",
   "description": "Starter project templates for loshu-sdlc",
   "license": "MIT",
@@ -20,6 +20,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/maxsun1989/loshu-sdlc.git"
+    "url": "https://github.com/loshu89/loshu-sdlc.git"
   }
 }
