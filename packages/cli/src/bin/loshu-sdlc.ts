@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 import { parseArgs } from 'node:util';
+import { resolve } from 'node:path';
 import { validate } from '../commands/validate.js';
+import { doctor } from '../commands/doctor.js';
 
 const { values, positionals } = parseArgs({
   options: {
@@ -44,6 +46,11 @@ switch (command) {
       strict: values.strict,
       verbose: values.verbose,
     });
+    process.exit(code);
+  }
+  case 'doctor': {
+    const targetPath = positionals[1] ?? '.';
+    const code = await doctor({ path: resolve(targetPath), fix: false, json: values.json });
     process.exit(code);
   }
   default:
