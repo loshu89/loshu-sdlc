@@ -12,6 +12,7 @@ import { coverage } from '../commands/coverage.js';
 import { logs } from '../commands/logs.js';
 import { upgrade } from '../commands/upgrade.js';
 import { telemetry } from '../commands/telemetry.js';
+import { cycle as cycleCmd } from '../commands/cycle.js';
 
 const { values, positionals } = parseArgs({
   options: {
@@ -33,6 +34,14 @@ const { values, positionals } = parseArgs({
     metric: { type: 'string' },
     value: { type: 'string' },
     'observations-json': { type: 'string' },
+    title: { type: 'string' },
+    state: { type: 'string' },
+    gate: { type: 'string' },
+    since: { type: 'string' },
+    origin: { type: 'string' },
+    sha: { type: 'string' },
+    artifact: { type: 'string' },
+    'append-event': { type: 'boolean' },
   },
   allowPositionals: true,
 });
@@ -56,6 +65,12 @@ Commands:
   logs [--tail] [--cycle N] [--stage N]  View logs
   upgrade [path] [--to <version>]        Bump plugin version
   telemetry enable|disable|status        Opt-in telemetry toggle
+  cycle status [path]                    Show cycle state (cycle.json)
+  cycle log [path] [--tail N]            Show recent gate events (gates.jsonl)
+  cycle new <title> [path]               Start a new cycle
+  cycle set <stage> <state> [path]      Update a stage's state
+  cycle archive [path]                   Archive current cycle
+  cycle append-event --gate ...          Append a gate event (for hooks)
   help [command]                         Show help for a command
   version                                Show version`);
   process.exit(0);
@@ -234,6 +249,109 @@ switch (command) {
     }
     const code = await telemetry({
       subcommand: sub,
+      ...(values.json !== undefined ? { json: values.json } : {}),
+    });
+    process.exit(code);
+    // falls through
+  }
+  case 'cycle': {
+    const sub = positionals[1];
+    if (!sub) {
+      console.error(
+        'Usage: loshu-sdlc cycle <status|log|new|set|archive|append-event> [args]',
+      );
+      process.exit(2);
+    }
+    if (
+      sub !== 'status' &&
+      sub !== 'log' &&
+      sub !== 'new' &&
+      sub !== 'set' &&
+      sub !== 'archive' &&
+      sub !== 'append-event'
+    ) {
+      console.error(`Unknown cycle subcommand: ${sub}`);
+      process.exit(2);
+    }
+    if (sub === 'new') {
+      const title = positionals[2];
+      const targetPath = positionals[3] ?? '.';
+      if (!title) {
+        console.error('Usage: loshu-sdlc cycle new <title> [path]');
+        process.exit(2);
+      }
+      const code = await cycleCmd({
+        subcommand: 'new',
+        title,
+        path: resolve(targetPath),
+        ...(values.origin !== undefined ? { origin: values.origin } : {}),
+        ...(values.json !== undefined ? { json: values.json } : {}),
+      });
+      process.exit(code);
+      // falls through
+    }
+    if (sub === 'set') {
+      const stage = positionals[2];
+      const stateVal = positionals[3];
+      const targetPath = positionals[4] ?? '.';
+      if (!stage || !stateVal) {
+        console.error('Usage: loshu-sdlc cycle set <stage> <state> [path]');
+        process.exit(2);
+      }
+      const code = await cycleCmd({
+        subcommand: 'set',
+        stage,
+        state: stateVal,
+        path: resolve(targetPath),
+        ...(values.json !== undefined ? { json: values.json } : {}),
+      });
+      process.exit(code);
+      // falls through
+    }
+    if (sub === 'append-event') {
+      const targetPath = positionals[2] ?? '.';
+      const code = await cycleCmd({
+        subcommand: 'append-event',
+        path: resolve(targetPath),
+        ...(values.gate !== undefined ? { gateName: values.gate } : {}),
+        ...(values.stage !== undefined ? { stage: values.stage } : {}),
+        ...(values.transition !== undefined ? { result: values.transition } : {}),
+        ...(values.cycle !== undefined ? { cycle: Number(values.cycle) } : {}),
+        ...(values.artifact !== undefined ? { artifact: values.artifact } : {}),
+        ...(values.sha !== undefined ? { sha: values.sha } : {}),
+        ...(values.json !== undefined ? { json: values.json } : {}),
+      });
+      process.exit(code);
+      // falls through
+    }
+    if (sub === 'status') {
+      const targetPath = positionals[2] ?? '.';
+      const code = await cycleCmd({
+        subcommand: 'status',
+        path: resolve(targetPath),
+        ...(values.json !== undefined ? { json: values.json } : {}),
+      });
+      process.exit(code);
+      // falls through
+    }
+    if (sub === 'log') {
+      const targetPath = positionals[2] ?? '.';
+      const code = await cycleCmd({
+        subcommand: 'log',
+        path: resolve(targetPath),
+        ...(values.tail !== undefined ? { tail: Number(values.tail) } : {}),
+        ...(values.gate !== undefined ? { gate: values.gate } : {}),
+        ...(values.since !== undefined ? { since: values.since } : {}),
+        ...(values.json !== undefined ? { json: values.json } : {}),
+      });
+      process.exit(code);
+      // falls through
+    }
+    // archive
+    const targetPath = positionals[2] ?? '.';
+    const code = await cycleCmd({
+      subcommand: 'archive',
+      path: resolve(targetPath),
       ...(values.json !== undefined ? { json: values.json } : {}),
     });
     process.exit(code);
