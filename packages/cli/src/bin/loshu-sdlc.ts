@@ -7,6 +7,7 @@ import { bands } from '../commands/bands.js';
 import { lint } from '../commands/lint.js';
 import { rules } from '../commands/rules.js';
 import { status } from '../commands/status.js';
+import { state as stateCmd } from '../commands/state.js';
 import { coverage } from '../commands/coverage.js';
 import { logs } from '../commands/logs.js';
 import { upgrade } from '../commands/upgrade.js';
@@ -25,6 +26,9 @@ const { values, positionals } = parseArgs({
     stage: { type: 'string' },
     diff: { type: 'string' },
     to: { type: 'string' },
+    transition: { type: 'string' },
+    validate: { type: 'boolean' },
+    path: { type: 'string' },
     'dry-run': { type: 'boolean' },
     metric: { type: 'string' },
     value: { type: 'string' },
@@ -39,6 +43,10 @@ if (values.help) {
 Commands:
   doctor [path] [--fix] [--json]        Diagnose project health
   validate <artifact> [path] [--strict]  Run JSON schema validator
+  state show [path]                     Print artifact states for all 6 stages
+  state <stage> <file>                  Read file's current state
+  state <stage> <file> --transition <s> Attempt state transition (reject if not in DAG)
+  state <stage> <file> --validate       Check whether file can transition to 'accepted'
   bands evaluate <file> [--metric=NAME --value=N]  Evaluate bands against an observation
   lint [path] [--fix]                    Lint artifacts against policy-default
   rules list                             List all active rules
@@ -138,6 +146,50 @@ switch (command) {
     const targetPath = positionals[1] ?? '.';
     const code = await status({
       path: resolve(targetPath),
+      ...(values.json !== undefined ? { json: values.json } : {}),
+    });
+    process.exit(code);
+    // falls through
+  }
+  case 'state': {
+    const sub = positionals[1];
+    if (!sub) {
+      console.error('Usage: loshu-sdlc state <show|<stage> <file>> [--transition <s>] [--validate]');
+      process.exit(2);
+    }
+    if (sub === 'show') {
+      const targetPath = positionals[2] ?? '.';
+      const code = await stateCmd({
+        subcommand: 'show',
+        path: resolve(targetPath),
+        ...(values.json !== undefined ? { json: values.json } : {}),
+      });
+      process.exit(code);
+      // falls through
+    }
+    // <stage> <file> form
+    const stage = sub;
+    const file = positionals[2];
+    if (!file) {
+      console.error('Usage: loshu-sdlc state <stage> <file> [--transition <state>] [--validate]');
+      process.exit(2);
+    }
+    const code = await stateCmd({
+      stage,
+      filePath: resolve(file),
+      ...(values.transition !== undefined
+        ? {
+            to: values.transition as
+              | 'draft'
+              | 'accepted'
+              | 'iterating'
+              | 'blocked'
+              | 'rejected'
+              | 'archived',
+          }
+        : {}),
+      ...(values.validate !== undefined ? { validate: values.validate } : {}),
+      ...(values.path !== undefined ? { path: values.path } : {}),
       ...(values.json !== undefined ? { json: values.json } : {}),
     });
     process.exit(code);
