@@ -1,0 +1,47 @@
+{
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "/sdlc-(plan|design|build|test|deploy|maintain|init)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'echo \"[loshu-sdlc] Running $CLAUDE_PROMPT\" >&2'"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/protect-artifacts.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'path=\"$CLAUDE_TOOL_RESULT_PATH\"; case \"$path\" in *intent.md) bash .claude/hooks/plan-exit.sh .;; *spec.md) bash .claude/hooks/design-exit.sh .;; *plan.md) bash .claude/hooks/build-exit.sh .;; *REVIEW.md) bash .claude/hooks/deploy-exit.sh .;; *bands.yaml) bash .claude/hooks/maintain-exit.sh .;; esac'"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash .claude/hooks/test-exit.sh ."
+          }
+        ]
+      }
+    ]
+  }
+}
