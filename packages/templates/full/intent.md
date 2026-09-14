@@ -1,8 +1,14 @@
 ---
+title: <%= projectName %>
 status: draft
-date: <%= date %>
 cycle: 1
-projectName: <%= projectName %>
+problem: "[What's broken or missing]"
+proposedOutcome: "[Ideal end state]"
+affectedUsersAndSystems:
+  - "[Scope of impact]"
+constraints:
+  - "[Hard limits — security, compliance, etc.]"
+openQuestions: []
 ---
 
 # Intent: <%= projectName %>
