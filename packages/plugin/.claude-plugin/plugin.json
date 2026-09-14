@@ -4,7 +4,7 @@
   "description": "AI-Native SDLC: Plan → Design → Build → Test → Deploy → Maintain",
   "author": {
     "name": "loshu-sdlc contributors",
-    "url": "https://github.com/maxsun1989/loshu-sdlc"
+    "url": "https://github.com/maxsun1989"
   },
   "homepage": "https://github.com/maxsun1989/loshu-sdlc",
   "repository": {
@@ -12,6 +12,7 @@
     "url": "https://github.com/maxsun1989/loshu-sdlc.git"
   },
   "license": "MIT",
+  "npmPackageName": "@maxsun1989/plugin",
   "keywords": [
     "sdlc",
     "ai-native",

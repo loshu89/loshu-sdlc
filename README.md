@@ -18,7 +18,7 @@ v0.1.1 — released.
 - **Eval suite** — ~30 user stories covering every SDLC stage, runnable via `pnpm test:eval` (and `pnpm test:eval:strict` for gate enforcement).
 - **Hooks path fix** — `create` scaffolder now creates the `.claude/hooks` symlink so user projects resolve hooks from the bundled plugin instead of the wrong location.
 - **CI workflow** — GitHub Actions run typecheck + test + build + lint on every push / PR.
-- **Release workflow** — Tag-push workflow that publishes to npm and creates a GitHub Release via changesets.
+- **Release workflow** — Tag-push workflow that publishes to GitHub Packages and creates a GitHub Release via changesets.
 
 ## Quickstart
 
@@ -42,6 +42,16 @@ npx create-loshu-sdlc-app my-app --with-ux --with-ecc
 cd my-app
 /sdlc-plan
 ```
+
+### Install via GitHub Packages
+
+The npm packages are published to GitHub Packages under the `@maxsun1989` scope:
+
+```bash
+npm install -g @maxsun1989/cli --registry=https://npm.pkg.github.com
+```
+
+Authenticate first if needed (see `docs/installation.md` for details).
 
 ## CLI commands at a glance
 

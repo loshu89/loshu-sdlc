@@ -30,7 +30,7 @@ Options:
   --help, -h                     Show this help
 `;
 
-const LOSHU_PACKAGES = ['@loshu-sdlc/plugin', '@loshu-sdlc/cli', '@loshu-sdlc/templates'];
+const LOSHU_PACKAGES = ['@maxsun1989/plugin', '@maxsun1989/cli', '@maxsun1989/templates'];
 
 /**
  * Upgrade a project's pinned loshu-sdlc packages to `to`. Only edits the

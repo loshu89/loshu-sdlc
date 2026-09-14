@@ -26,4 +26,4 @@ jobs:
 
       - name: Validate REVIEW.md schema
         run: |
-          npx --yes @loshu-sdlc/cli validate review REVIEW.md --strict
+          npx --yes @maxsun1989/cli validate review REVIEW.md --strict

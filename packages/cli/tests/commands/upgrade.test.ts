@@ -21,9 +21,9 @@ async function makeProject(deps: Record<string, string>): Promise<string> {
 describe('upgrade command', () => {
   it('bumps loshu-sdlc deps and preserves user customizations', async () => {
     const tmp = await makeProject({
-      '@loshu-sdlc/plugin': '0.0.9',
-      '@loshu-sdlc/cli': '0.0.9',
-      '@loshu-sdlc/templates': '0.0.9',
+      '@maxsun1989/plugin': '0.0.9',
+      '@maxsun1989/cli': '0.0.9',
+      '@maxsun1989/templates': '0.0.9',
       lodash: '^4.0.0',
     });
     try {
@@ -34,9 +34,9 @@ describe('upgrade command', () => {
         devDependencies: Record<string, string>;
         scripts: Record<string, string>;
       };
-      expect(pkg.dependencies['@loshu-sdlc/plugin']).toBe('0.2.0');
-      expect(pkg.dependencies['@loshu-sdlc/cli']).toBe('0.2.0');
-      expect(pkg.dependencies['@loshu-sdlc/templates']).toBe('0.2.0');
+      expect(pkg.dependencies['@maxsun1989/plugin']).toBe('0.2.0');
+      expect(pkg.dependencies['@maxsun1989/cli']).toBe('0.2.0');
+      expect(pkg.dependencies['@maxsun1989/templates']).toBe('0.2.0');
       expect(pkg.dependencies['lodash']).toBe('^4.0.0');
       expect(pkg.devDependencies['vitest']).toBe('^1.0.0');
       expect(pkg.scripts['test']).toBe('echo');
@@ -46,14 +46,14 @@ describe('upgrade command', () => {
   });
 
   it('does not write files with --dry-run', async () => {
-    const tmp = await makeProject({ '@loshu-sdlc/plugin': '0.0.9' });
+    const tmp = await makeProject({ '@maxsun1989/plugin': '0.0.9' });
     try {
       const code = await upgrade({ path: tmp, to: '0.2.0', dryRun: true });
       expect(code).toBe(0);
       const pkg = (await readJson(join(tmp, 'package.json'))) as {
         dependencies: Record<string, string>;
       };
-      expect(pkg.dependencies['@loshu-sdlc/plugin']).toBe('0.0.9');
+      expect(pkg.dependencies['@maxsun1989/plugin']).toBe('0.0.9');
     } finally {
       await rm(tmp, { recursive: true, force: true });
     }

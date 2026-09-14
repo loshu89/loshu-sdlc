@@ -17,7 +17,7 @@ SCHEMA="$ROOT/.claude/plugins/loshu-sdlc/packages/plugin/schemas/intent.schema.j
 if [ ! -f "$SCHEMA" ]; then
   # Try alternate locations
   for candidate in \
-    "$ROOT/node_modules/@loshu-sdlc/plugin/schemas/intent.schema.json" \
+    "$ROOT/node_modules/@maxsun1989/plugin/schemas/intent.schema.json" \
     "$ROOT/.claude/plugins/loshu-sdlc/schemas/intent.schema.json"; do
     if [ -f "$candidate" ]; then
       SCHEMA="$candidate"

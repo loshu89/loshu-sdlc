@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* eslint-env node */
 // Copies packages/plugin/ into packages/cli/plugin/ so the published
-// @loshu-sdlc/cli npm package contains the plugin source at dist/../plugin/.
+// @maxsun1989/cli npm package contains the plugin source at dist/../plugin/.
 // Used as a post-build step. Idempotent: removes the destination first.
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';

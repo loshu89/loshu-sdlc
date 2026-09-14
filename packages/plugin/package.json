@@ -1,5 +1,5 @@
 {
-  "name": "@loshu-sdlc/plugin",
+  "name": "@maxsun1989/plugin",
   "version": "0.1.1",
   "description": "Claude Code plugin for AI-Native SDLC",
   "license": "MIT",
@@ -23,5 +23,9 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/maxsun1989/loshu-sdlc.git"
   }
 }

@@ -9,9 +9,9 @@
 //   2. Runs the full CI gauntlet (typecheck + test + build + lint + eval strict).
 //      Aborts on any failure.
 //   3. Bumps `version` in all three workspace packages:
-//        - packages/plugin/package.json  (@loshu-sdlc/plugin)
-//        - packages/cli/package.json     (@loshu-sdlc/cli)
-//        - packages/templates/package.json (@loshu-sdlc/templates)
+//        - packages/plugin/package.json  (@maxsun1989/plugin)
+//        - packages/cli/package.json     (@maxsun1989/cli)
+//        - packages/templates/package.json (@maxsun1989/templates)
 //   4. Runs `pnpm install --lockfile-only` so the workspace lockfile tracks the
 //      new version pins.
 //   5. Creates a commit:  chore: release v<version>
@@ -29,9 +29,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
 
 const PACKAGES = [
-  { name: '@loshu-sdlc/plugin', file: 'packages/plugin/package.json' },
-  { name: '@loshu-sdlc/cli', file: 'packages/cli/package.json' },
-  { name: '@loshu-sdlc/templates', file: 'packages/templates/package.json' },
+  { name: '@maxsun1989/plugin', file: 'packages/plugin/package.json' },
+  { name: '@maxsun1989/cli', file: 'packages/cli/package.json' },
+  { name: '@maxsun1989/templates', file: 'packages/templates/package.json' },
 ];
 
 const SEMVER_RE = /^\d+\.\d+\.\d+(?:[-+][0-9A-Za-z.-]+)?$/;
