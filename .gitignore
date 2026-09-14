@@ -13,6 +13,9 @@ coverage/
 .loshu-sdlc/
 .superpowers/
 
+# Build artifact: copy-plugin populates this dir at build time
+packages/cli/plugin/
+
 # Allow template .loshu-sdlc/ directories (used by scaffolder)
 !packages/templates/
 !packages/templates/*/

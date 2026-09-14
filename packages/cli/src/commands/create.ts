@@ -90,8 +90,20 @@ export async function create(args: CreateArgs): Promise<void> {
     await writeFile(configPath, rendered);
   }
 
-  // Bundle plugin
-  const pluginSrc = fileURLToPath(new URL('../../../plugin/', import.meta.url));
+  // Bundle plugin. In the published npm package, `plugin/` sits at the same
+  // level as `dist/`. In the monorepo, the plugin source lives at
+  // `../../../plugin/` relative to `dist/commands/create.js`. We try both.
+  const candidates = [
+    fileURLToPath(new URL('../../plugin/', import.meta.url)),
+    fileURLToPath(new URL('../../../plugin/', import.meta.url)),
+  ];
+  const pluginSrc = candidates.find((p) => existsSync(p));
+  if (!pluginSrc) {
+    throw new Error(
+      `Plugin source not found at ${candidates.join(' or ')}. ` +
+        `Install via /plugin marketplace add loshu-sdlc/loshu-sdlc && /plugin install loshu-sdlc@loshu-sdlc`,
+    );
+  }
   await bundlePlugin(pluginSrc, targetPath);
 
   // Install plugins if requested

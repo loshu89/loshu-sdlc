@@ -1,8 +1,14 @@
 ---
-status: draft
+title: <First feature>
 spec: spec.md
 plan: plan.md
 date: <%= date %>
+bugs:
+  status: pending
+security:
+  status: pending
+compliance:
+  status: pending
 ---
 
 # Review: <First feature>

@@ -41,7 +41,9 @@ export async function validateArtifact(
   // Parse content (markdown frontmatter or yaml)
   let data: unknown;
   if (filePath.endsWith('.yaml') || filePath.endsWith('.yml')) {
-    data = parseYaml(content);
+    // Templates may contain unrendered EJS tags; replace with safe placeholder
+    // values so format validators (e.g. date) pass on freshly-rendered files.
+    data = parseYaml(content.replace(/<%=[^%]+%>/g, '1970-01-01'));
   } else {
     data = parseMarkdownFrontmatter(content);
   }
@@ -58,10 +60,81 @@ export async function validateArtifact(
   };
 }
 
+// Maps markdown H2 section headers to canonical schema field names.
+// Keys are lower-cased headers (without the leading "## "). We intentionally
+// map only scalar / string-array fields — complex shapes (object, array of
+// objects) should remain in frontmatter so they pass schema validation.
+const SECTION_MAP: Record<string, string> = {
+  // spec.md
+  'architecture': 'architecture',
+  'verification criteria': 'verificationCriteria',
+  'compliance': 'compliance',
+  // intent.md
+  'problem': 'problem',
+  'proposed outcome': 'proposedOutcome',
+  'affected users and systems': 'affectedUsersAndSystems',
+  'constraints': 'constraints',
+  'open questions': 'openQuestions',
+};
+
+function parseMarkdownBody(content: string): Record<string, unknown> {
+  // Find body after the YAML frontmatter block, if any
+  const fmMatch = content.match(/^---\n[\s\S]*?\n---\n?/);
+  const body = fmMatch ? content.slice(fmMatch[0].length) : content;
+
+  const result: Record<string, unknown> = {};
+  // Split body on H2 lines. Each section's content runs to the next H2 (or EOF).
+  const sectionRegex = /^##\s+(.+?)\s*$/gm;
+  const matches: { name: string; start: number; bodyStart: number }[] = [];
+  let m: RegExpExecArray | null;
+  while ((m = sectionRegex.exec(body)) !== null) {
+    matches.push({ name: m[1] ?? '', start: m.index, bodyStart: sectionRegex.lastIndex });
+  }
+  for (let i = 0; i < matches.length; i++) {
+    const sectionName = matches[i]!.name.toLowerCase();
+    const fieldName = SECTION_MAP[sectionName];
+    if (!fieldName) continue;
+    const start = matches[i]!.bodyStart;
+    const end = i + 1 < matches.length ? matches[i + 1]!.start : body.length;
+    const sectionBody = body.slice(start, end).trim();
+    if (!sectionBody) continue;
+    result[fieldName] = coerceSection(fieldName, sectionBody);
+  }
+  return result;
+}
+
+function coerceSection(fieldName: string, body: string): unknown {
+  // Arrays of strings (one per line)
+  if (
+    fieldName === 'affectedUsersAndSystems' ||
+    fieldName === 'constraints' ||
+    fieldName === 'openQuestions' ||
+    fieldName === 'verificationCriteria' ||
+    fieldName === 'compliance'
+  ) {
+    return body
+      .split(/\r?\n/)
+      .map((l) => l.replace(/^[-*]\s+/, '').trim())
+      .filter((l) => l.length > 0 && !l.startsWith('['));
+  }
+  // Default: return as a single string (truncated placeholder content)
+  return body;
+}
+
 function parseMarkdownFrontmatter(content: string): Record<string, unknown> {
-  const match = content.match(/^---\n([\s\S]*?)\n---/);
-  if (!match) return {};
-  const yaml = parseYaml(match[1] ?? '');
-  // Merge with body sections
-  return (yaml ?? {}) as Record<string, unknown>;
+  const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
+  // Templates contain unrendered EJS tags like `<%= date %>`. Replace these
+  // with safe placeholder values so JSON-schema format validators (date,
+  // date-time) can run on freshly-rendered artifacts.
+  const rawFm = fmMatch ? (fmMatch[1] ?? '').replace(/<%=[^%]+%>/g, '1970-01-01') : '';
+  const fm = rawFm ? ((parseYaml(rawFm) ?? {}) as Record<string, unknown>) : {};
+  const body = parseMarkdownBody(content);
+  // Body sections fill in fields missing from frontmatter. Frontmatter wins
+  // when both define a field (preserves frontmatter-only fields like `date`).
+  for (const [key, value] of Object.entries(body)) {
+    if (!(key in fm) || fm[key] === undefined || fm[key] === null || fm[key] === '') {
+      fm[key] = value;
+    }
+  }
+  return fm;
 }

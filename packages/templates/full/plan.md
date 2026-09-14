@@ -1,7 +1,16 @@
 ---
+title: <First feature>
 status: draft
 spec: spec.md
 date: <%= date %>
+tasks:
+  - id: task-1
+    title: TBD
+verification:
+  build: pnpm build
+  test: pnpm test
+  lint: pnpm lint
+  typecheck: pnpm typecheck
 ---
 
 # Plan: <First feature>

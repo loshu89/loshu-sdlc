@@ -2,7 +2,12 @@
   "root": true,
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "project": ["./packages/*/tsconfig.json", "./tsconfig.json"],
+    "project": [
+      "./packages/*/tsconfig.json",
+      "./packages/*/tsconfig.test.json",
+      "./tsconfig.json",
+      "./scripts/tsconfig.json"
+    ],
     "tsconfigRootDir": "."
   },
   "plugins": ["@typescript-eslint"],
@@ -17,5 +22,5 @@
     "@typescript-eslint/no-floating-promises": "error",
     "no-console": "off"
   },
-  "ignorePatterns": ["node_modules/", "dist/", "coverage/", "*.config.js"]
+  "ignorePatterns": ["node_modules/", "dist/", "coverage/", "*.config.js", "*.mjs"]
 }

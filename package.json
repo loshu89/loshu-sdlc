@@ -16,7 +16,7 @@
     "build": "pnpm -r build",
     "test": "vitest run",
     "test:coverage": "pnpm -r test:coverage",
-    "lint": "eslint . --ext .ts,.js",
+    "lint": "eslint . --ext .ts,.js,.mjs",
     "format": "prettier --write \"**/*.{ts,js,json,md,yml,yaml,sh}\"",
     "format:check": "prettier --check \"**/*.{ts,js,json,md,yml,yaml,sh}\"",
     "typecheck": "pnpm -r typecheck",

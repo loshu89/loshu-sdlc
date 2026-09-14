@@ -16,8 +16,14 @@ if ! npx --no-install loshu-sdlc validate bands "$BANDS" --strict 2>/dev/null; t
   exit 2
 fi
 
-# Evaluate metrics
-TRIPPED=$(npx --no-install loshu-sdlc bands evaluate "$BANDS" --json 2>/dev/null || echo '{"incidents":[]}')
+# Evaluate metrics — current values come from $ROOT/.sdlc/metrics.json sidecar
+# (written by observability stack). If absent, we cannot evaluate; allow.
+METRICS_FILE="$ROOT/.sdlc/metrics.json"
+TRIPPED='{"incidents":[]}'
+if [ -f "$METRICS_FILE" ]; then
+  OBS_JSON=$(cat "$METRICS_FILE")
+  TRIPPED=$(npx --no-install loshu-sdlc bands evaluate "$BANDS" --observations-json "$OBS_JSON" 2>/dev/null || echo '{"incidents":[]}')
+fi
 
 # If any 3σ incident and no new intent.md, block
 if echo "$TRIPPED" | grep -q '"tier":\s*"3sigma"'; then

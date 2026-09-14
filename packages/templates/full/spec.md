@@ -1,7 +1,11 @@
 ---
+title: <First feature>
 status: draft
 intent: intent.md
 date: <%= date %>
+architecture: TBD
+verificationCriteria:
+  - TBD
 ---
 
 # Spec: <First feature>

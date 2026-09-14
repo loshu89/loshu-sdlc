@@ -11,13 +11,15 @@
   "main": "./dist/index.js",
   "files": [
     "dist/",
-    "templates/"
+    "templates/",
+    "plugin/"
   ],
   "engines": {
     "node": ">=20.0.0"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && pnpm run copy-plugin",
+    "copy-plugin": "node ../../scripts/copy-plugin.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
