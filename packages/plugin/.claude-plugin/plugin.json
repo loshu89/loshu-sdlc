@@ -12,7 +12,7 @@
     "url": "https://github.com/loshu89/loshu-sdlc.git"
   },
   "license": "MIT",
-  "npmPackageName": "@loshu-sdlc/plugin",
+  "npmPackageName": "@loshu89/plugin",
   "keywords": [
     "sdlc",
     "ai-native",

@@ -40,11 +40,11 @@ If you want just the plugin without the scaffolder:
 
 ## Install from GitHub Packages
 
-The `@loshu-sdlc/*` packages are published to GitHub Packages. To install them via npm, configure your npm scope:
+The `@loshu89/*` packages are published to GitHub Packages. To install them via npm, configure your npm scope:
 
 ```bash
-# Tell npm to use GitHub Packages for the @loshu-sdlc scope
-echo "@loshu-sdlc:registry=https://npm.pkg.github.com" >> ~/.npmrc
+# Tell npm to use GitHub Packages for the @loshu89 scope
+echo "@loshu89:registry=https://npm.pkg.github.com" >> ~/.npmrc
 
 # Authenticate with a GitHub personal access token (needs `read:packages` scope)
 npm login --registry=https://npm.pkg.github.com
@@ -53,13 +53,13 @@ npm login --registry=https://npm.pkg.github.com
 Then install:
 
 ```bash
-npm install -g @loshu-sdlc/cli
+npm install -g @loshu89/cli
 ```
 
 Or one-off:
 
 ```bash
-npx --yes @loshu-sdlc/cli --help
+npx --yes @loshu89/cli --help
 ```
 
 ## Required external plugins

@@ -45,10 +45,10 @@ cd my-app
 
 ### Install via GitHub Packages
 
-The npm packages are published to GitHub Packages under the `@loshu-sdlc` scope:
+The npm packages are published to GitHub Packages under the `@loshu89` scope:
 
 ```bash
-npm install -g @loshu-sdlc/cli --registry=https://npm.pkg.github.com
+npm install -g @loshu89/cli --registry=https://npm.pkg.github.com
 ```
 
 Authenticate first if needed (see `docs/installation.md` for details).
