@@ -1,10 +1,12 @@
 import { Ajv2020 } from 'ajv/dist/2020.js';
 // ajv-formats is a CJS module; its default export is the formatsPlugin function.
 // Cast through unknown to satisfy TS's NodeNext namespace typing.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 import addFormatsImport from 'ajv-formats';
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const addFormats = (addFormatsImport as any).default ?? addFormatsImport;
+type FormatsPlugin = (ajv: Ajv2020) => Ajv2020;
+const addFormats = (
+  (addFormatsImport as unknown as { default?: FormatsPlugin }).default ??
+  (addFormatsImport as unknown as FormatsPlugin)
+);
 import fsExtra from 'fs-extra';
 const { readFile } = fsExtra;
 import { parse as parseYaml } from 'yaml';
@@ -35,7 +37,7 @@ export async function validateArtifact(
     throw new Error(`Unknown artifact: ${artifact}. Valid: ${Object.keys(SCHEMAS).join(', ')}`);
   }
 
-  const schema = JSON.parse(await readFile(schemaPath, 'utf8'));
+  const schema = JSON.parse(await readFile(schemaPath, 'utf8')) as Record<string, unknown>;
   const content = await readFile(filePath, 'utf8');
 
   // Parse content (markdown frontmatter or yaml)

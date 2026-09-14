@@ -1,6 +1,6 @@
 import chalk from 'chalk';
 import fsExtra from 'fs-extra';
-const { readFile, stat } = fsExtra;
+const { stat } = fsExtra;
 import { resolve, join } from 'node:path';
 
 export interface RulesArgs {

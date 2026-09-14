@@ -107,7 +107,7 @@ export function tokenize(text: string): string[] {
     .replace(/<!--[\s\S]*?-->/g, ' ') // strip HTML comments
     .replace(/<[^>]+>/g, ' ') // strip remaining tags
     .replace(/^---[\s\S]*?---/m, ' ') // strip frontmatter
-    .replace(/^[#*_>\-]+\s*/gm, ' ') // strip heading / list markers line-by-line
+    .replace(/^[#*_>-]+\s*/gm, ' ') // strip heading / list markers line-by-line
     .replace(/[#*_>]/g, ' ')
     .replace(/[^\p{L}\p{N}\s]/gu, ' ')
     .split(/\s+/)

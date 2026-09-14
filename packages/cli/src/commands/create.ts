@@ -30,7 +30,7 @@ export async function create(args: CreateArgs): Promise<void> {
 
   // Detect existing repo
   const existingRepo = await isGitRepo(targetPath).catch(() => false);
-  const filesPresent = existsSync(join(targetPath, 'package.json'));
+  void existsSync(join(targetPath, 'package.json'));
 
   if (existingRepo && !args.existing) {
     const msg = 'Error: target is an existing git repo. Use --existing to install into it.';

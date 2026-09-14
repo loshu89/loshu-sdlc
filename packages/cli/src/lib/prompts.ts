@@ -12,7 +12,7 @@ export interface ScaffoldOptions {
 }
 
 export async function runPrompts(defaultName: string): Promise<ScaffoldOptions> {
-  const answers = await inquirer.prompt([
+  const answers = (await inquirer.prompt([
     {
       type: 'input',
       name: 'projectName',
@@ -62,6 +62,6 @@ export async function runPrompts(defaultName: string): Promise<ScaffoldOptions> 
       message: 'Enable strict eval mode?',
       default: false,
     },
-  ]);
-  return answers as ScaffoldOptions;
+  ])) as ScaffoldOptions;
+  return answers;
 }

@@ -73,11 +73,13 @@ switch (command) {
       verbose: values.verbose,
     });
     process.exit(code);
+    // falls through
   }
   case 'doctor': {
     const targetPath = positionals[1] ?? '.';
     const code = await doctor({ path: resolve(targetPath), fix: false, json: values.json });
     process.exit(code);
+    // falls through
   }
   case 'bands': {
     const sub = positionals[1];
@@ -101,6 +103,7 @@ switch (command) {
       ...(values.json !== undefined ? { json: values.json } : {}),
     });
     process.exit(code);
+    // falls through
   }
   case 'lint': {
     const targetPath = positionals[1] ?? '.';
@@ -110,6 +113,7 @@ switch (command) {
       ...(values.json !== undefined ? { json: values.json } : {}),
     });
     process.exit(code);
+    // falls through
   }
   case 'rules': {
     const sub = positionals[1];
@@ -128,6 +132,7 @@ switch (command) {
       ...(values.json !== undefined ? { json: values.json } : {}),
     });
     process.exit(code);
+    // falls through
   }
   case 'status': {
     const targetPath = positionals[1] ?? '.';
@@ -136,6 +141,7 @@ switch (command) {
       ...(values.json !== undefined ? { json: values.json } : {}),
     });
     process.exit(code);
+    // falls through
   }
   case 'coverage': {
     const targetPath = positionals[1] ?? '.';
@@ -145,6 +151,7 @@ switch (command) {
       ...(values.json !== undefined ? { json: values.json } : {}),
     });
     process.exit(code);
+    // falls through
   }
   case 'logs': {
     const code = await logs({
@@ -154,6 +161,7 @@ switch (command) {
       ...(values.json !== undefined ? { json: values.json } : {}),
     });
     process.exit(code);
+    // falls through
   }
   case 'upgrade': {
     const targetPath = positionals[1] ?? '.';
@@ -164,6 +172,7 @@ switch (command) {
       ...(values.json !== undefined ? { json: values.json } : {}),
     });
     process.exit(code);
+    // falls through
   }
   case 'telemetry': {
     const sub = positionals[1];
@@ -176,6 +185,7 @@ switch (command) {
       ...(values.json !== undefined ? { json: values.json } : {}),
     });
     process.exit(code);
+    // falls through
   }
   default:
     console.error(`Unknown command: ${command}`);
