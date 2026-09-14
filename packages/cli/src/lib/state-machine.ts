@@ -75,12 +75,12 @@ export function canTransition(
 }
 
 /**
- * Returns the set of states reachable from `from` via a single DAG edge.
- * Always includes `from` itself (no-op).
+ * Returns the set of target states reachable from `from` via a single
+ * DAG edge. Does NOT include `from` itself.
  */
 export function nextStates(from: ArtifactState): ArtifactState[] {
   const transitions = loadTransitions();
-  const out = new Set<ArtifactState>([from]);
+  const out = new Set<ArtifactState>();
   for (const t of transitions) {
     if (t.from === from) out.add(t.to);
   }

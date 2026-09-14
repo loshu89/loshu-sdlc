@@ -206,9 +206,10 @@ async function showCommand(args: StateArgs): Promise<number> {
     const allowed =
       row.state === 'missing' || row.state === 'pending'
         ? 'draft'
-        : nextStates(row.state as ArtifactState).join(',');
+        : nextStates(row.state).join(',');
+    const allowedDisplay = allowed.length > 0 ? allowed : '—';
     console.log(
-      `│ ${row.stage.padEnd(8)} │ ${row.artifact.padEnd(10)} │ ${row.state.padEnd(9)} │ ${row.updated.padEnd(10)} │ ${allowed.padEnd(10)} │`,
+      `│ ${row.stage.padEnd(8)} │ ${row.artifact.padEnd(10)} │ ${row.state.padEnd(9)} │ ${row.updated.padEnd(10)} │ ${allowedDisplay.padEnd(10)} │`,
     );
   }
   console.log(
@@ -236,7 +237,7 @@ async function readStateCommand(args: StateArgs): Promise<number> {
   console.log(`  state:   ${st}`);
   console.log(`  updated: ${mtime ?? '—'}`);
   if (st !== 'missing' && st !== 'pending') {
-    console.log(`  allowed transitions: ${nextStates(st as ArtifactState).join(', ')}`);
+    console.log(`  allowed transitions: ${nextStates(st).join(', ')}`);
   }
   return 0;
 }
@@ -265,7 +266,7 @@ async function transitionCommand(args: StateArgs): Promise<number> {
     return 2;
   }
   const { fm, body } = splitFrontmatterAndBody(content);
-  const from = (fm.state ?? fm.status) as ArtifactState | string | undefined;
+  const from: unknown = fm.state ?? fm.status;
   const fromState: ArtifactState | 'pending' =
     typeof from === 'string' && (ARTIFACT_STATES as readonly string[]).includes(from)
       ? (from as ArtifactState)

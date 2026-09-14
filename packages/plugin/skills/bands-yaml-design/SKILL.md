@@ -10,6 +10,7 @@ A good `bands.yaml` defines statistical thresholds for production metrics.
 ## Structure (per bands.schema.json)
 
 ```yaml
+state: draft                # ← DAG state, updated by maintain-exit hook
 metrics:
   - name: <metric_name>
     baseline: <1σ value>
@@ -40,3 +41,18 @@ evaluation:
 - 3σ = mean + 3 std dev
 - For latency: p95 or p99, not mean
 - For error rates: ratio (0.0 - 1.0)
+
+## State management
+
+The `state:` field at the top of `bands.yaml` participates in the
+artifact DAG (see `packages/plugin/state-machines/artifact.json`):
+
+- `draft` / `iterating` → `maintain-exit` validates schema, then
+  transitions to `accepted` — but only after `REVIEW.md` (deploy
+  stage) is already `accepted`.
+- `rejected` / `archived` → allow re-validation.
+- `blocked` → refuse to advance.
+
+A 3σ incident (`block_maintain_exit`) flips the file to `blocked` so
+that downstream processes cannot silently re-accept the bands without
+investigating the incident.
