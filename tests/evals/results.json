@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-09-14T08:41:23.718Z",
-  "mode": "loose",
+  "generatedAt": "2026-09-14T08:49:07.966Z",
+  "mode": "strict",
   "threshold": 0.85,
   "totalCases": 30,
   "pass": 30,
