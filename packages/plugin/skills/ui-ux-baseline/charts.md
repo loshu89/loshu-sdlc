@@ -1,6 +1,7 @@
 ---
 provenance:
   source: ui-ux-pro-max
+  license: MIT (assumed)
   borrowed_at: 2026-09-11
 ---
 
