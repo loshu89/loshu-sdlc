@@ -1,4 +1,8 @@
-// Placeholder until Task 16-18 implement the CLI. Required so tsc finds at
-// least one input file (TypeScript 5.x emits TS18003 and exits 2 on empty
-// include patterns). Replaced by real entry point during CLI implementation.
-export {};
+// Public API for @loshu-sdlc/cli
+export { create } from './commands/create.js';
+export type { CreateArgs } from './commands/create.js';
+export { renderEjs, renderFile } from './lib/render.js';
+export { initGit, isGitRepo } from './lib/git.js';
+export { bundlePlugin } from './lib/plugin-bundler.js';
+export { runPrompts } from './lib/prompts.js';
+export type { ScaffoldOptions } from './lib/prompts.js';

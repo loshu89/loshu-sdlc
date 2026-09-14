@@ -2,9 +2,10 @@
 status: draft
 date: <%= date %>
 cycle: 1
+projectName: <%= projectName %>
 ---
 
-# Intent: <First feature>
+# Intent: <%= projectName %>
 
 ## Problem
 
