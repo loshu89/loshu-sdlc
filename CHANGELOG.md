@@ -20,6 +20,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.3.0] - 2026-09-14
+
+Replace file-existence-based stage inference with a formal DAG state machine for every SDLC artifact.
+
+### Added
+
+- **`state` field on all 6 artifact schemas** (`intent`, `spec`, `plan`, `claude-md`, `review`, `bands`) with enum `[draft, accepted, iterating, blocked, rejected, archived]`.
+- **`packages/plugin/state-machines/artifact.json`** — formal DAG definition with 6 states, 12 transitions, `stage_order`, `stage_artifacts`, and the cross-stage rule.
+- **`loshu-sdlc state` CLI command** with four subcommands:
+  - `loshu-sdlc state show [path]` — print artifact states for all 6 stages.
+  - `loshu-sdlc state <stage> <file>` — read file's current state.
+  - `loshu-sdlc state <stage> <file> --transition <state>` — attempt transition; rejects if no DAG edge exists; enforces cross-stage rule for transitions to `accepted`.
+  - `loshu-sdlc state <stage> <file> --validate` — schema + cross-stage check, suitable for CI.
+- **`packages/cli/src/lib/state-machine.ts`** library — `loadTransitions`, `canTransition`, `nextStates`, `transitionEvent`, `validateCrossStage`, `previousStage`, `stageArtifact`.
+- **18 unit + integration tests** in `packages/cli/tests/commands/state.test.ts` covering the library, the command, and the hook integration.
+- **State management sections** added to 5 authoring skills: `intent-md-authoring`, `spec-md-authoring`, `plan-md-authoring`, `review-md-authoring`, `bands-yaml-design`.
+- **`/sdlc-status` slash command** rewritten to invoke `loshu-sdlc state show .` and render its table.
+
+### Changed
+
+- **`plan-exit.sh`**, **`design-exit.sh`**, **`build-exit.sh`**, **`deploy-exit.sh`**, **`maintain-exit.sh`** hooks now:
+  - Read the current `state` field from the artifact's frontmatter.
+  - Allow re-validation without blocking when state is `rejected` or `archived`.
+  - Enforce the cross-stage rule (refuse to advance when previous stage is not `accepted`).
+  - On schema-valid artifacts in `draft`/`iterating`, call `loshu-sdlc state <stage> <file> --transition accepted` to persist the DAG transition.
+
+---
+
 ## [0.2.0] - 2026-09-14
 
 Reorganize package scope to `@loshu89/*` to match the GitHub org owner and ship through GitHub Packages.
