@@ -4,6 +4,13 @@ import { resolve } from 'node:path';
 import { validate } from '../commands/validate.js';
 import { doctor } from '../commands/doctor.js';
 import { bands } from '../commands/bands.js';
+import { lint } from '../commands/lint.js';
+import { rules } from '../commands/rules.js';
+import { status } from '../commands/status.js';
+import { coverage } from '../commands/coverage.js';
+import { logs } from '../commands/logs.js';
+import { upgrade } from '../commands/upgrade.js';
+import { telemetry } from '../commands/telemetry.js';
 
 const { values, positionals } = parseArgs({
   options: {
@@ -12,6 +19,13 @@ const { values, positionals } = parseArgs({
     strict: { type: 'boolean' },
     help: { type: 'boolean', short: 'h' },
     version: { type: 'boolean' },
+    fix: { type: 'boolean' },
+    tail: { type: 'string' },
+    cycle: { type: 'string' },
+    stage: { type: 'string' },
+    diff: { type: 'string' },
+    to: { type: 'string' },
+    'dry-run': { type: 'boolean' },
     metric: { type: 'string' },
     value: { type: 'string' },
     'observations-json': { type: 'string' },
@@ -26,7 +40,14 @@ Commands:
   doctor [path] [--fix] [--json]        Diagnose project health
   validate <artifact> [path] [--strict]  Run JSON schema validator
   bands evaluate <file> [--metric=NAME --value=N]  Evaluate bands against an observation
+  lint [path] [--fix]                    Lint artifacts against policy-default
+  rules list                             List all active rules
+  rules check <name> [path]              Run a specific rule
   status [path] [--json]                 Show current cycle state
+  coverage [path] [--diff <sha>]         Run coverage tests
+  logs [--tail] [--cycle N] [--stage N]  View logs
+  upgrade [path] [--to <version>]        Bump plugin version
+  telemetry enable|disable|status        Opt-in telemetry toggle
   help [command]                         Show help for a command
   version                                Show version`);
   process.exit(0);
@@ -77,6 +98,81 @@ switch (command) {
       ...(values['observations-json'] !== undefined
         ? { observationsJson: values['observations-json'] }
         : {}),
+      ...(values.json !== undefined ? { json: values.json } : {}),
+    });
+    process.exit(code);
+  }
+  case 'lint': {
+    const targetPath = positionals[1] ?? '.';
+    const code = await lint({
+      path: resolve(targetPath),
+      ...(values.fix !== undefined ? { fix: values.fix } : {}),
+      ...(values.json !== undefined ? { json: values.json } : {}),
+    });
+    process.exit(code);
+  }
+  case 'rules': {
+    const sub = positionals[1];
+    if (!sub) {
+      console.error('Usage: loshu-sdlc rules <list|check> [args]');
+      process.exit(2);
+    }
+    if (sub !== 'list' && sub !== 'check') {
+      console.error(`Unknown rules subcommand: ${sub}`);
+      process.exit(2);
+    }
+    const code = await rules({
+      subcommand: sub,
+      ...(sub === 'check' ? { name: positionals[2] } : {}),
+      ...(positionals[3] !== undefined ? { path: resolve(positionals[3]) } : {}),
+      ...(values.json !== undefined ? { json: values.json } : {}),
+    });
+    process.exit(code);
+  }
+  case 'status': {
+    const targetPath = positionals[1] ?? '.';
+    const code = await status({
+      path: resolve(targetPath),
+      ...(values.json !== undefined ? { json: values.json } : {}),
+    });
+    process.exit(code);
+  }
+  case 'coverage': {
+    const targetPath = positionals[1] ?? '.';
+    const code = await coverage({
+      path: resolve(targetPath),
+      ...(values.diff !== undefined ? { diff: values.diff } : {}),
+      ...(values.json !== undefined ? { json: values.json } : {}),
+    });
+    process.exit(code);
+  }
+  case 'logs': {
+    const code = await logs({
+      ...(values.tail !== undefined ? { tail: Number(values.tail) } : {}),
+      ...(values.cycle !== undefined ? { cycle: Number(values.cycle) } : {}),
+      ...(values.stage !== undefined ? { stage: values.stage } : {}),
+      ...(values.json !== undefined ? { json: values.json } : {}),
+    });
+    process.exit(code);
+  }
+  case 'upgrade': {
+    const targetPath = positionals[1] ?? '.';
+    const code = await upgrade({
+      path: resolve(targetPath),
+      ...(values.to !== undefined ? { to: values.to } : {}),
+      ...(values['dry-run'] !== undefined ? { dryRun: values['dry-run'] } : {}),
+      ...(values.json !== undefined ? { json: values.json } : {}),
+    });
+    process.exit(code);
+  }
+  case 'telemetry': {
+    const sub = positionals[1];
+    if (!sub || (sub !== 'enable' && sub !== 'disable' && sub !== 'status')) {
+      console.error('Usage: loshu-sdlc telemetry <enable|disable|status>');
+      process.exit(2);
+    }
+    const code = await telemetry({
+      subcommand: sub,
       ...(values.json !== undefined ? { json: values.json } : {}),
     });
     process.exit(code);
