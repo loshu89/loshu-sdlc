@@ -3,12 +3,19 @@
   "version": "0.1.0",
   "description": "AI-Native SDLC: Plan → Design → Build → Test → Deploy → Maintain",
   "author": {
-    "name": "loshu-sdlc contributors"
+    "name": "loshu-sdlc contributors",
+    "url": "https://github.com/maxsun1989/loshu-sdlc"
+  },
+  "homepage": "https://github.com/maxsun1989/loshu-sdlc",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/maxsun1989/loshu-sdlc.git"
   },
   "license": "MIT",
   "keywords": [
     "sdlc",
     "ai-native",
+    "ai-native-sdlc",
     "claude-code",
     "planning",
     "design",
