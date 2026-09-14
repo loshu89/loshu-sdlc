@@ -1,0 +1,46 @@
+version: 1
+
+projectName: <%= projectName %>
+created: <%= date %>
+
+project:
+  name: <%= projectName %>
+
+coverage:
+  line: <%= coverageLine %>
+  branch: <%= coverageBranch %>
+  fail_on_drop: false
+
+hooks:
+  policy: tiered
+  block_on_critical: true
+  warn_on_soft: true
+
+deps:
+  tier1_required:
+    - superpowers:using-superpowers
+    - superpowers:brainstorming
+    - superpowers:writing-plans
+    - superpowers:tdd
+    - superpowers:systematic-debugging
+  tier2_recommended:
+    - ui-ux-pro-max
+    - ecc:architect
+    - ecc:code-reviewer
+    - ecc:security-reviewer
+    - superpowers:verification-before-completion
+    - superpowers:receiving-code-review
+  auto_install_offered: true
+
+eval:
+  mode: loose
+  similarity_threshold: 0.85
+
+logging:
+  level: info
+  json: false
+  redact_secrets: true
+
+loop:
+  auto_intent_on_incident: true
+  require_po_signoff: true

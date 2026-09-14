@@ -12,3 +12,9 @@ coverage/
 .pnpm-store/
 .loshu-sdlc/
 .superpowers/
+
+# Allow template .loshu-sdlc/ directories (used by scaffolder)
+!packages/templates/
+!packages/templates/*/
+!packages/templates/*/.loshu-sdlc/
+!packages/templates/*/.loshu-sdlc/*
