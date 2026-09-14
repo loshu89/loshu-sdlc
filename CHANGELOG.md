@@ -7,16 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-<!-- v0.3.0 entries will be added below -->
+<!-- v0.4.0 entries will be added below -->
 
 ### Added
-<!-- v0.3.0 entries will be added below -->
+<!-- v0.4.0 entries will be added below -->
 
 ### Changed
-<!-- v0.3.0 entries will be added below -->
+<!-- v0.4.0 entries will be added below -->
 
 ### Fixed
-<!-- v0.3.0 entries will be added below -->
+<!-- v0.4.0 entries will be added below -->
+
+---
+
+## [0.4.0] - 2026-09-14
+
+Persistent project-level state infrastructure to complement the v0.3.0 artifact-level DAG.
+
+### Added
+
+- **`.loshu-sdlc/state/cycle.json`** — single source of truth for cycle counter, per-stage states, timestamps, sha fingerprints, and origins (with `origin: maintain/3sigma:<metric>` for incident-driven cycles).
+- **`.loshu-sdlc/state/gates.jsonl`** — append-only JSON-Lines event log; one line per gate run, with `ts`, `cycle`, `gate`, `stage`, `result`, `artifact`, `sha`, `errors[]`.
+- **`packages/cli/src/lib/cycle.ts`** — `loadCycleState`, `saveCycleState` (atomic temp-file + rename), `incrementCycle` (serialized via mkdir lock — concurrent increments produce unique ids), `updateStage`, `getCurrentCycleId`, `getStage`, `archiveCycle`.
+- **`packages/cli/src/lib/gates-log.ts`** — `appendEvent`, `readEvents` (filters by `cycle`/`gate`/`stage`/`result`), `readEventsSince`.
+- **`loshu-sdlc cycle` CLI subcommand** with `status`, `log [--tail N] [--gate NAME] [--since ISO]`, `new <title> [--origin ORIGIN]`, `set <stage> <state>`, `archive`, `append-event --gate NAME --stage S --result R` (intended for hook use).
+- **Hook integration**: every stage hook (`plan-exit`, `design-exit`, `build-exit`, `deploy-exit`, `maintain-exit`) now persists stage transitions to `cycle.json` and appends a gate event to `gates.jsonl` on every run.
+- **`plan-exit.sh` auto-creates a cycle** when `cycle.json` doesn't exist or `current_cycle` is `0`, deriving the title from `intent.md# Title`.
+- **`maintain-exit.sh` loop closure** — on a 3σ incident, archives the current cycle and forks a new one with `origin: maintain/3sigma:<metric>`.
+- **`/sdlc-status` slash command** rewritten to invoke both `cycle status` and `cycle log --tail 10` and render them as a single combined table with `Result` column.
+- **45 new tests** in `packages/cli/tests/lib/cycle.test.ts`, `packages/cli/tests/lib/gates-log.test.ts`, and `packages/cli/tests/commands/cycle.test.ts`.
+
+### Changed
+
+- **`packages/cli/src/bin/loshu-sdlc.ts`** — added the `cycle` subcommand dispatch and CLI flags (`--title`, `--origin`, `--gate`, `--stage`, `--since`, `--sha`, `--artifact`).
+
+### Fixed
+
+- Hooks no longer silently drop state-transition data on success; every transition is now recorded.
+- mkdir-based locks prevent partial-write corruption when multiple sessions race on `cycle.json` or `gates.jsonl`.
 
 ---
 
