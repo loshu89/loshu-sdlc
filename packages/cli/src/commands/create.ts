@@ -1,8 +1,9 @@
 import { resolve, basename, join } from 'node:path';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { ensureDir, copy, writeFile } from 'fs-extra';
+import { ensureDir, ensureSymlink, copy, writeFile } from 'fs-extra';
 import chalk from 'chalk';
+import process from 'node:process';
 import { renderFile } from '../lib/render.js';
 import { initGit, isGitRepo } from '../lib/git.js';
 import { bundlePlugin } from '../lib/plugin-bundler.js';
@@ -105,6 +106,32 @@ export async function create(args: CreateArgs): Promise<void> {
     );
   }
   await bundlePlugin(pluginSrc, targetPath);
+
+  // hooks.json references scripts as `bash .claude/hooks/<script>.sh`. That is
+  // the canonical path used by marketplace installs (where hooks live directly
+  // under `.claude/hooks/`). For bundled plugin installs, the real files live
+  // under `.claude/plugins/loshu-sdlc/hooks/`. Create a symlink from the
+  // canonical path to the bundled location so the existing hooks.json
+  // references resolve unchanged. Idempotent: a no-op if already linked.
+  const canonicalHooksDir = join(targetPath, '.claude', 'hooks');
+  const bundledHooksDir = join(targetPath, '.claude', 'plugins', 'loshu-sdlc', 'hooks');
+  if (existsSync(bundledHooksDir)) {
+    try {
+      // Use 'junction' on Windows so it works without admin privileges
+      // (real symlinks require SeCreateSymbolicLinkPrivilege). 'dir' is the
+      // POSIX equivalent. Both behave like a directory at canonicalHooksDir.
+      const symlinkType: 'junction' | 'dir' = process.platform === 'win32' ? 'junction' : 'dir';
+      await ensureSymlink(bundledHooksDir, canonicalHooksDir, symlinkType);
+    } catch (err) {
+      console.log(
+        chalk.yellow(
+          `  Warning: could not create symlink ${canonicalHooksDir} -> ${bundledHooksDir}: ${
+            (err as Error).message
+          }`,
+        ),
+      );
+    }
+  }
 
   // Install plugins if requested
   if (options.installUx) {
