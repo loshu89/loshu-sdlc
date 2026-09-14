@@ -22,7 +22,7 @@ TRIPPED=$(npx --no-install loshu-sdlc bands evaluate "$BANDS" --json 2>/dev/null
 # If any 3σ incident and no new intent.md, block
 if echo "$TRIPPED" | grep -q '"tier":\s*"3sigma"'; then
   LATEST_INTENT="$ROOT/intent.md"
-  if [ ! -f "$LATEST_INTENT" ] || ! grep -qE 'origin:\s*maintain' "$LATENT_INTENT"; then
+  if [ ! -f "$LATEST_INTENT" ] || ! grep -qE 'origin:\s*maintain' "$LATEST_INTENT"; then
     echo "Maintain-exit: 3σ incident detected but no incident-driven intent.md found" >&2
     echo "Run /sdlc-maintain to investigate and generate a new intent.md" >&2
     exit 2
