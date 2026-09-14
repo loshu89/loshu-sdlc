@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loshu-sdlc.dev/schemas/bands.schema.json",
+  "title": "bands.yaml",
+  "description": "Schema for SDLC monitoring bands. See spec §8.3.",
+  "type": "object",
+  "required": ["version", "metrics", "evaluation"],
+  "properties": {
+    "version": { "type": "integer", "minimum": 1 },
+    "project": { "type": "string" },
+    "generated": { "type": "string", "format": "date" },
+    "metrics": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name", "baseline", "sigma_1", "sigma_2", "sigma_3", "unit", "window"],
+        "properties": {
+          "name": { "type": "string" },
+          "baseline": { "type": "number" },
+          "sigma_1": { "type": "number" },
+          "sigma_2": { "type": "number" },
+          "sigma_3": { "type": "number" },
+          "unit": { "type": "string" },
+          "window": { "type": "string" }
+        }
+      }
+    },
+    "evaluation": {
+      "type": "object",
+      "required": ["interval", "on_3sigma", "on_2sigma", "on_1sigma"],
+      "properties": {
+        "interval": { "type": "string" },
+        "on_3sigma": { "type": "string", "enum": ["block_maintain_exit", "warn", "log"] },
+        "on_2sigma": { "type": "string", "enum": ["warn", "log"] },
+        "on_1sigma": { "type": "string", "enum": ["log", "silent"] }
+      }
+    }
+  },
+  "additionalProperties": false
+}

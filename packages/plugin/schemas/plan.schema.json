@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loshu-sdlc.dev/schemas/plan.schema.json",
+  "title": "plan.md",
+  "description": "Schema for SDLC implementation plans. See spec §8.2.",
+  "type": "object",
+  "required": ["title", "spec", "tasks", "verification"],
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "accepted", "rejected"],
+      "default": "draft"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "spec": {
+      "type": "string",
+      "description": "Path to spec.md this plan implements"
+    },
+    "tasks": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "title"],
+        "properties": {
+          "id": { "type": "string" },
+          "title": { "type": "string" },
+          "estimate": { "type": "string" },
+          "files": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "dependsOn": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "verification": {
+      "type": "object",
+      "required": ["build", "test", "lint"],
+      "properties": {
+        "build": { "type": "string", "description": "Build command; must exit 0" },
+        "test": { "type": "string", "description": "Test command; must exit 0" },
+        "lint": { "type": "string", "description": "Lint command; must exit 0" },
+        "typecheck": { "type": "string", "description": "Type-check command; must exit 0" }
+      }
+    }
+  },
+  "additionalProperties": false
+}

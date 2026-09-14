@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loshu-sdlc.dev/schemas/review.schema.json",
+  "title": "REVIEW.md",
+  "description": "Schema for SDLC review documents. See spec §8.2.",
+  "type": "object",
+  "required": ["title", "bugs", "security", "compliance"],
+  "properties": {
+    "title": { "type": "string", "minLength": 1 },
+    "spec": { "type": "string" },
+    "plan": { "type": "string" },
+    "date": { "type": "string", "format": "date" },
+    "bugs": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": { "type": "string", "enum": ["pending", "pass", "fail"] },
+        "findings": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "security": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": { "type": "string", "enum": ["pending", "pass", "fail"] },
+        "owasp": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "findings": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "compliance": {
+      "type": "object",
+      "required": ["status"],
+      "properties": {
+        "status": { "type": "string", "enum": ["pending", "pass", "fail"] },
+        "findings": { "type": "array", "items": { "type": "string" } }
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,86 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loshu-sdlc.dev/schemas/intent.schema.json",
+  "title": "intent.md",
+  "description": "Schema for SDLC intent documents. See spec §8.2.",
+  "type": "object",
+  "required": ["title", "problem", "proposedOutcome", "affectedUsersAndSystems", "openQuestions"],
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Short title describing the intent"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "accepted", "rejected"],
+      "default": "draft"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "cycle": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Cycle number; populated by /sdlc-init or auto-incremented"
+    },
+    "author": {
+      "type": "string",
+      "description": "Author or origin (e.g., 'A. Chen' or 'loshu-sdlc/maintain (incident INC-2389)')"
+    },
+    "origin": {
+      "type": "string",
+      "description": "Optional origin marker for incident-driven intents (e.g., 'maintain/3σ-bands.yaml:error_rate')"
+    },
+    "problem": {
+      "type": "string",
+      "minLength": 1,
+      "description": "What is broken or missing"
+    },
+    "proposedOutcome": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Ideal end state"
+    },
+    "affectedUsersAndSystems": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string"
+      },
+      "description": "Scope of impact"
+    },
+    "constraints": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Hard limits — security, compliance, etc."
+    },
+    "openQuestions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Unresolved items; can be empty array if none"
+    },
+    "stack": {
+      "type": "object",
+      "description": "Optional stack markers for /sdlc-design and /sdlc-build",
+      "properties": {
+        "frontend": {
+          "type": "boolean"
+        },
+        "backend": {
+          "type": "boolean"
+        },
+        "frameworks": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

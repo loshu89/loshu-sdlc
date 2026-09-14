@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loshu-sdlc.dev/schemas/policy.schema.json",
+  "title": "policy-default/*.md",
+  "description": "Schema for policy-default frontmatter.",
+  "type": "object",
+  "required": ["provenance"],
+  "properties": {
+    "provenance": {
+      "type": "object",
+      "required": ["source"],
+      "properties": {
+        "source": { "type": "string" },
+        "borrowed_at": { "type": "string", "format": "date" },
+        "license": { "type": "string" },
+        "full_catalog": { "type": "string" }
+      }
+    }
+  }
+}

@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loshu-sdlc.dev/schemas/spec.schema.json",
+  "title": "spec.md",
+  "description": "Schema for SDLC design specifications. See spec §8.2.",
+  "type": "object",
+  "required": ["title", "intent", "architecture", "verificationCriteria"],
+  "properties": {
+    "title": {
+      "type": "string",
+      "minLength": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "accepted", "rejected"],
+      "default": "draft"
+    },
+    "date": {
+      "type": "string",
+      "format": "date"
+    },
+    "intent": {
+      "type": "string",
+      "description": "Path to the intent.md this spec implements"
+    },
+    "architecture": {
+      "type": "string",
+      "minLength": 1,
+      "description": "System design summary"
+    },
+    "ui": {
+      "type": "object",
+      "description": "Required when intent.stack.frontend is true",
+      "properties": {
+        "palette": { "type": "string" },
+        "typography": { "type": "string" },
+        "a11y": { "type": "string" },
+        "breakpoints": { "type": "string" }
+      }
+    },
+    "apiSurface": {
+      "type": "array",
+      "description": "Required when intent.stack.backend is true",
+      "items": {
+        "type": "object",
+        "required": ["method", "path"],
+        "properties": {
+          "method": { "type": "string", "enum": ["GET", "POST", "PUT", "DELETE", "PATCH"] },
+          "path": { "type": "string" },
+          "description": { "type": "string" },
+          "auth": { "type": "string", "enum": ["none", "session", "oauth", "api-key"] }
+        }
+      }
+    },
+    "dataModel": {
+      "type": "array",
+      "description": "Schema changes",
+      "items": {
+        "type": "object",
+        "required": ["name", "fields"],
+        "properties": {
+          "name": { "type": "string" },
+          "fields": {
+            "type": "array",
+            "items": { "type": "string" }
+          }
+        }
+      }
+    },
+    "verificationCriteria": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string" }
+    },
+    "compliance": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "additionalProperties": false
+}
