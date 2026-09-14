@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://loshu-sdlc.dev/state-machines/artifact.json",
+  "title": "Artifact state machine",
+  "description": "Formal DAG definition for the lifecycle of SDLC artifacts (intent, spec, plan, claude-md, review, bands). Loaded by packages/cli/src/lib/state-machine.ts.",
+  "states": ["draft", "accepted", "iterating", "blocked", "rejected", "archived"],
+  "initial": "draft",
+  "transitions": [
+    { "from": "draft",      "to": "accepted",  "event": "validate" },
+    { "from": "draft",      "to": "rejected",  "event": "reject" },
+    { "from": "draft",      "to": "blocked",   "event": "block" },
+    { "from": "accepted",   "to": "iterating", "event": "revise" },
+    { "from": "accepted",   "to": "blocked",   "event": "block" },
+    { "from": "accepted",   "to": "archived",  "event": "archive" },
+    { "from": "iterating",  "to": "accepted",  "event": "validate" },
+    { "from": "iterating",  "to": "rejected",  "event": "reject" },
+    { "from": "blocked",    "to": "draft",     "event": "unblock" },
+    { "from": "blocked",    "to": "rejected",  "event": "reject" },
+    { "from": "rejected",   "to": "draft",     "event": "resurrect" },
+    { "from": "archived",   "to": "draft",     "event": "unarchive" }
+  ],
+  "stage_order": ["plan", "design", "build", "test", "deploy", "maintain"],
+  "stage_artifacts": {
+    "plan": "intent.md",
+    "design": "spec.md",
+    "build": "plan.md",
+    "test": "REVIEW.md",
+    "deploy": "REVIEW.md",
+    "maintain": "bands.yaml"
+  },
+  "cross_stage_rule": "Cannot transition stage S to 'accepted' unless stage S-1 (in same cycle) is 'accepted'. For stage 'plan' (cycle 1), no previous constraint. For cycle restart (N+1), no previous constraint."
+}

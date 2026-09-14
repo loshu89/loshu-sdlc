@@ -7,6 +7,12 @@
   "required": ["version", "metrics", "evaluation"],
   "properties": {
     "version": { "type": "integer", "minimum": 1 },
+    "state": {
+      "type": "string",
+      "enum": ["draft", "accepted", "iterating", "blocked", "rejected", "archived"],
+      "default": "draft",
+      "description": "Formal DAG state of this artifact (see packages/plugin/state-machines/artifact.json)."
+    },
     "project": { "type": "string" },
     "generated": { "type": "string", "format": "date" },
     "metrics": {

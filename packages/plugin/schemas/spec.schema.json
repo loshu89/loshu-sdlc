@@ -15,6 +15,12 @@
       "enum": ["draft", "accepted", "rejected"],
       "default": "draft"
     },
+    "state": {
+      "type": "string",
+      "enum": ["draft", "accepted", "iterating", "blocked", "rejected", "archived"],
+      "default": "draft",
+      "description": "Formal DAG state of this artifact (see packages/plugin/state-machines/artifact.json)."
+    },
     "date": {
       "type": "string",
       "format": "date"
