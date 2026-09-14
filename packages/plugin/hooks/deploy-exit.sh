@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # Deploy-exit gate: validates REVIEW.md + respects DAG state machine
 # Plus: blocks if any section status: fail
+# Plus: persists state transitions to .loshu-sdlc/state/cycle.json
+# Plus: appends gate events to .loshu-sdlc/state/gates.jsonl
 # plan.md must be accepted before deploy can advance.
 
 set -euo pipefail
@@ -8,14 +10,35 @@ set -euo pipefail
 ROOT="${1:-.}"
 REVIEW="$ROOT/REVIEW.md"
 PLAN="$ROOT/plan.md"
+STATE_DIR="$ROOT/.loshu-sdlc/state"
+CYCLE_FILE="$STATE_DIR/cycle.json"
+
+mkdir -p "$STATE_DIR"
+
+CURRENT_CYCLE=0
+if [ -f "$CYCLE_FILE" ]; then
+  CURRENT_CYCLE=$(grep -oE '"current_cycle":[[:space:]]*[0-9]+' "$CYCLE_FILE" | grep -oE '[0-9]+' | head -1 || echo 0)
+fi
+
+log_event() {
+  local gate="$1"
+  local result="$2"
+  local artifact="${3:-}"
+  npx --no-install loshu-sdlc cycle append-event \
+    --gate "$gate" --stage deploy --result "$result" \
+    --cycle "$CURRENT_CYCLE" ${artifact:+--artifact "$artifact"} \
+    >/dev/null 2>&1 || true
+}
 
 if [ ! -f "$REVIEW" ]; then
+  log_event "deploy-exit" "noop" ""
   exit 0
 fi
 
 # Cross-stage: plan.md must be accepted
 if [ ! -f "$PLAN" ]; then
   echo "Deploy-exit: plan.md not found; required before REVIEW.md" >&2
+  log_event "deploy-exit" "block" "$REVIEW"
   exit 2
 fi
 
@@ -27,11 +50,13 @@ PLAN_STATE="${PLAN_STATE:-pending}"
 
 if [ "$PLAN_STATE" = "rejected" ] || [ "$PLAN_STATE" = "archived" ]; then
   echo "Deploy-exit: plan.md is $PLAN_STATE; resolve upstream artifact first" >&2
+  log_event "deploy-exit" "block" "$REVIEW"
   exit 2
 fi
 
 if [ "$PLAN_STATE" != "accepted" ]; then
   echo "Deploy-exit: plan.md is '$PLAN_STATE' (must be 'accepted')" >&2
+  log_event "deploy-exit" "block" "$REVIEW"
   exit 2
 fi
 
@@ -45,12 +70,14 @@ REVIEW_STATE="${REVIEW_STATE:-pending}"
 case "$REVIEW_STATE" in
   rejected|archived)
     echo "Deploy-exit: REVIEW.md is $REVIEW_STATE, allowing revision" >&2
+    log_event "deploy-exit" "noop" "$REVIEW"
     ;;
 esac
 
 # Validate schema
 if ! npx --no-install loshu-sdlc validate review "$REVIEW" --strict 2>/dev/null; then
   echo "Deploy-exit: REVIEW.md failed schema validation" >&2
+  log_event "deploy-exit" "block" "$REVIEW"
   exit 2
 fi
 
@@ -58,6 +85,7 @@ fi
 if grep -E '^Status: fail' "$REVIEW"; then
   echo "Deploy-exit: REVIEW.md has status: fail in at least one section" >&2
   echo "Fix findings and re-run /sdlc-deploy" >&2
+  log_event "deploy-exit" "block" "$REVIEW"
   exit 2
 fi
 
@@ -65,10 +93,15 @@ fi
 if [ "$REVIEW_STATE" = "draft" ] || [ "$REVIEW_STATE" = "iterating" ]; then
   if npx --no-install loshu-sdlc state deploy "$REVIEW" --transition accepted 2>/dev/null; then
     echo "Deploy-exit: transitioned REVIEW.md $REVIEW_STATE -> accepted" >&2
+    npx --no-install loshu-sdlc cycle set deploy accepted "$ROOT" >/dev/null 2>&1 || true
+    log_event "deploy-exit" "accept" "$REVIEW"
   else
     echo "Deploy-exit: schema valid but state transition rejected" >&2
+    log_event "deploy-exit" "block" "$REVIEW"
     exit 2
   fi
+else
+  log_event "deploy-exit" "noop" "$REVIEW"
 fi
 
 exit 0

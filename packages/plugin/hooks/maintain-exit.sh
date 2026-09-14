@@ -1,20 +1,44 @@
 #!/usr/bin/env bash
 # Maintain-exit gate: evaluates bands.yaml; if 3σ incident, requires new intent.md
 # Plus: respects DAG state machine; deploy stage must be accepted.
+# Plus: persists state transitions to .loshu-sdlc/state/cycle.json
+# Plus: appends gate events to .loshu-sdlc/state/gates.jsonl
+# Plus: forks a new cycle when a 3σ incident is detected (loop closure).
 
 set -euo pipefail
 
 ROOT="${1:-.}"
 BANDS="$ROOT/bands.yaml"
 REVIEW="$ROOT/REVIEW.md"
+STATE_DIR="$ROOT/.loshu-sdlc/state"
+CYCLE_FILE="$STATE_DIR/cycle.json"
+
+mkdir -p "$STATE_DIR"
+
+CURRENT_CYCLE=0
+if [ -f "$CYCLE_FILE" ]; then
+  CURRENT_CYCLE=$(grep -oE '"current_cycle":[[:space:]]*[0-9]+' "$CYCLE_FILE" | grep -oE '[0-9]+' | head -1 || echo 0)
+fi
+
+log_event() {
+  local gate="$1"
+  local result="$2"
+  local artifact="${3:-}"
+  npx --no-install loshu-sdlc cycle append-event \
+    --gate "$gate" --stage maintain --result "$result" \
+    --cycle "$CURRENT_CYCLE" ${artifact:+--artifact "$artifact"} \
+    >/dev/null 2>&1 || true
+}
 
 if [ ! -f "$BANDS" ]; then
+  log_event "maintain-exit" "noop" ""
   exit 0
 fi
 
 # Cross-stage: REVIEW.md (deploy stage) must be accepted
 if [ ! -f "$REVIEW" ]; then
   echo "Maintain-exit: REVIEW.md not found; required before bands.yaml" >&2
+  log_event "maintain-exit" "block" "$BANDS"
   exit 2
 fi
 
@@ -26,11 +50,13 @@ REVIEW_STATE="${REVIEW_STATE:-pending}"
 
 if [ "$REVIEW_STATE" = "rejected" ] || [ "$REVIEW_STATE" = "archived" ]; then
   echo "Maintain-exit: REVIEW.md is $REVIEW_STATE; resolve upstream artifact first" >&2
+  log_event "maintain-exit" "block" "$BANDS"
   exit 2
 fi
 
 if [ "$REVIEW_STATE" != "accepted" ]; then
   echo "Maintain-exit: REVIEW.md is '$REVIEW_STATE' (must be 'accepted')" >&2
+  log_event "maintain-exit" "block" "$BANDS"
   exit 2
 fi
 
@@ -44,12 +70,14 @@ BANDS_STATE="${BANDS_STATE:-pending}"
 case "$BANDS_STATE" in
   rejected|archived)
     echo "Maintain-exit: bands.yaml is $BANDS_STATE, allowing revision" >&2
+    log_event "maintain-exit" "noop" "$BANDS"
     ;;
 esac
 
 # Validate schema
 if ! npx --no-install loshu-sdlc validate bands "$BANDS" --strict 2>/dev/null; then
   echo "Maintain-exit: bands.yaml failed schema validation" >&2
+  log_event "maintain-exit" "block" "$BANDS"
   exit 2
 fi
 
@@ -57,29 +85,50 @@ fi
 # (written by observability stack). If absent, we cannot evaluate; allow.
 METRICS_FILE="$ROOT/.sdlc/metrics.json"
 TRIPPED='{"incidents":[]}'
+TRIPPED_METRIC=""
 if [ -f "$METRICS_FILE" ]; then
   OBS_JSON=$(cat "$METRICS_FILE")
-  TRIPPED=$(npx --no-install loshu-sdlc bands evaluate "$BANDS" --observations-json "$OBS_JSON" 2>/dev/null || echo '{"incidents":[]}')
+  EVAL_OUTPUT=$(npx --no-install loshu-sdlc bands evaluate "$BANDS" --observations-json "$OBS_JSON" 2>/dev/null || echo '{"incidents":[]}')
+  TRIPPED="$EVAL_OUTPUT"
+  # Extract first 3sigma metric name for cycle origin.
+  TRIPPED_METRIC=$(echo "$EVAL_OUTPUT" | grep -oE '"metric":"[^"]+"[^}]*"tier":"3sigma"' | head -1 | grep -oE '"metric":"[^"]+"' | head -1 | sed 's/"metric":"//;s/"//' || echo "")
 fi
 
 # If any 3σ incident and no new intent.md, block
-if echo "$TRIPPED" | grep -q '"tier":\s*"3sigma"'; then
+if echo "$TRIPPED" | grep -q '"tier":[[:space:]]*"3sigma"'; then
   LATEST_INTENT="$ROOT/intent.md"
-  if [ ! -f "$LATEST_INTENT" ] || ! grep -qE 'origin:\s*maintain' "$LATEST_INTENT"; then
+  if [ ! -f "$LATEST_INTENT" ] || ! grep -qE 'origin:[[:space:]]*maintain' "$LATEST_INTENT"; then
     echo "Maintain-exit: 3σ incident detected but no incident-driven intent.md found" >&2
     echo "Run /sdlc-maintain to investigate and generate a new intent.md" >&2
+    log_event "maintain-exit" "block" "$BANDS"
     exit 2
   fi
+
+  # Loop closure: archive the current cycle and fork a new incident-driven cycle.
+  ORIGIN="maintain/3sigma:${TRIPPED_METRIC:-unknown_metric}"
+  echo "Maintain-exit: 3σ incident on $TRIPPED_METRIC — forking incident cycle (origin: $ORIGIN)" >&2
+  # Archive the cycle that's currently active (preserve history).
+  npx --no-install loshu-sdlc cycle archive "$ROOT" >/dev/null 2>&1 || true
+  # Create a new incident-driven cycle. Title is the metric + UTC timestamp.
+  TS=$(date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || echo "unknown-time")
+  NEW_TITLE="Incident: ${TRIPPED_METRIC:-unknown_metric} ($TS)"
+  npx --no-install loshu-sdlc cycle new "$NEW_TITLE" --origin "$ORIGIN" "$ROOT" >/dev/null 2>&1 || true
+  log_event "maintain-exit" "incident" "$BANDS"
 fi
 
 # Transition bands.yaml -> accepted when valid
 if [ "$BANDS_STATE" = "draft" ] || [ "$BANDS_STATE" = "iterating" ]; then
   if npx --no-install loshu-sdlc state maintain "$BANDS" --transition accepted 2>/dev/null; then
     echo "Maintain-exit: transitioned bands.yaml $BANDS_STATE -> accepted" >&2
+    npx --no-install loshu-sdlc cycle set maintain accepted "$ROOT" >/dev/null 2>&1 || true
+    log_event "maintain-exit" "accept" "$BANDS"
   else
     echo "Maintain-exit: schema valid but state transition rejected" >&2
+    log_event "maintain-exit" "block" "$BANDS"
     exit 2
   fi
+else
+  log_event "maintain-exit" "noop" "$BANDS"
 fi
 
 exit 0
