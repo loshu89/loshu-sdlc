@@ -42,6 +42,8 @@ const { values, positionals } = parseArgs({
     sha: { type: 'string' },
     artifact: { type: 'string' },
     'append-event': { type: 'boolean' },
+    from: { type: 'string' },
+    check: { type: 'boolean' },
   },
   allowPositionals: true,
 });
@@ -71,6 +73,8 @@ Commands:
   cycle set <stage> <state> [path]      Update a stage's state
   cycle archive [path]                   Archive current cycle
   cycle append-event --gate ...          Append a gate event (for hooks)
+  migrate <file> [--from V] [--to V]     Migrate artifact to a schema version
+       [--check] [--dry-run]
   help [command]                         Show help for a command
   version                                Show version`);
   process.exit(0);
@@ -250,6 +254,25 @@ switch (command) {
     const code = await telemetry({
       subcommand: sub,
       ...(values.json !== undefined ? { json: values.json } : {}),
+    });
+    process.exit(code);
+    // falls through
+  }
+  case 'migrate': {
+    const filePath = positionals[1];
+    if (!filePath) {
+      console.error(
+        'Usage: loshu-sdlc migrate <file> [--from <ver>] [--to <ver>] [--check] [--dry-run]',
+      );
+      process.exit(2);
+    }
+    const { migrate } = await import('../commands/migrate.js');
+    const code = await migrate({
+      file: filePath,
+      ...(values.from !== undefined ? { from: values.from } : {}),
+      ...(values.to !== undefined ? { to: values.to } : {}),
+      ...(values.check !== undefined ? { check: values.check } : {}),
+      ...(values['dry-run'] !== undefined ? { dryRun: values['dry-run'] } : {}),
     });
     process.exit(code);
     // falls through
