@@ -44,6 +44,8 @@ const { values, positionals } = parseArgs({
     'append-event': { type: 'boolean' },
     from: { type: 'string' },
     check: { type: 'boolean' },
+    layer: { type: 'string' },
+    reporter: { type: 'string' },
   },
   allowPositionals: true,
 });
@@ -273,6 +275,20 @@ switch (command) {
       ...(values.to !== undefined ? { to: values.to } : {}),
       ...(values.check !== undefined ? { check: values.check } : {}),
       ...(values['dry-run'] !== undefined ? { dryRun: values['dry-run'] } : {}),
+    });
+    process.exit(code);
+    // falls through
+  }
+  case 'test': {
+    const { test } = await import('../commands/test.js');
+    const code = await test({
+      ...(positionals[1] !== undefined ? { file: positionals[1] } : {}),
+      ...(values.layer !== undefined
+        ? { layer: Number(values.layer) as 1 | 2 | 3 | 4 }
+        : {}),
+      ...(values.strict !== undefined ? { strict: values.strict } : {}),
+      ...(values.fix !== undefined ? { fix: values.fix } : {}),
+      reporter: ((values.reporter ?? 'text') as 'text' | 'json' | 'junit'),
     });
     process.exit(code);
     // falls through
