@@ -22,5 +22,5 @@
     "@typescript-eslint/no-floating-promises": "error",
     "no-console": "off"
   },
-  "ignorePatterns": ["node_modules/", "dist/", "coverage/", "*.config.js", "*.mjs"]
+  "ignorePatterns": ["node_modules/", "dist/", "coverage/", "*.config.js", "*.mjs", "packages/cli/plugin/", "packages/plugin/migrations/"]
 }

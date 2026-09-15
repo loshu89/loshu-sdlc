@@ -34,7 +34,6 @@ export class GitLabPlatform implements Platform {
   }
 
   async openPR(base: string, head: string, title: string, body: string, reviewers: string[]): Promise<PRRef> {
-    const projectPath = encodeURIComponent(this.config.repo);
     const { stdout } = await execa('glab', [
       'mr', 'create',
       '--source-branch', head,
