@@ -86,12 +86,14 @@ authored_by:
     id: superpowers:brainstorming
     at: 2026-09-15T10:30:00Z
 
-# Git binding (C)
+# Git binding (C) — PR ref + branch; commit SHA queried from platform API on demand
 git:
   branch: sdlc/cycle-3-oauth-auth
-  commit: abc123def456
   pr_number: 42
   pr_url: https://github.com/loshu89/loshu-sdlc/pull/42
+# NOTE: commit SHA is NOT stored locally. The platform API (GitHub/GitLab)
+# is the source of truth for commit info. This avoids stale data after
+# rebase/force-push and removes redundant storage.
 
 # Existing fields (preserved)
 state: draft
@@ -401,13 +403,12 @@ type SdlcEvent = {
     | { type: 'agent'; id: string }
     | { type: 'hook'; id: string };
 
-  // Git binding
+  // Git binding (PR ref + branch; commit SHA is queried from platform API)
   git?: {
     branch?: string;
-    commit_before?: string;
-    commit_after?: string;
     pr_number?: number;
     pr_url?: string;
+    // NOTE: commit_before/commit_after intentionally NOT stored. See §3.7.
   };
 
   // CI binding
@@ -556,13 +557,12 @@ Each stage hook now does more than schema validation:
 - **C1**: state transitions follow DAG (no illegal)
 - **C2**: `state` enum in schema
 - **C3**: events.jsonl entry per transition
-- **C4**: git branch exists
-- **C5**: git commit SHA is real
-- **C6**: PR open when cycle all accepted
-- **C7**: state = `merged` after PR merge
-- **C8**: branch deleted after archive
-- **C9**: events.jsonl is append-only (event_id monotonic)
-- **C10**: reviewers are CODEOWNERS-matched
+- **C4**: git branch exists (via `git rev-parse --verify`)
+- **C5**: PR exists in platform API with `state` matching artifact `state`
+- **C6**: state = `merged` requires PR state = `merged` in platform API
+- **C7**: branch deleted after archive
+- **C8**: events.jsonl is append-only (event_id monotonic)
+- **C9**: reviewers are CODEOWNERS-matched
 
 ### 3.9 Scope Boundaries
 
@@ -653,7 +653,7 @@ export interface Assertion {
 | C3 | 2 | cross-stage guard (prev accepted) | — |
 | C4 | 3 | `parent_ids` artifacts exist | — |
 | C5 | 3 | `git.branch` exists | — |
-| C6 | 3 | `git.commit` in branch history | — |
+| C6 | 3 | PR exists in platform API with matching state | sync |
 | C7 | 3 | cycle all accepted → PR open | open PR |
 | C8 | 4 | PR CI all success | wait — |
 | B1 | 4 | bands.yaml σ thresholds monotonic | — |
@@ -818,7 +818,9 @@ interface StageEntry {
   blocked_by?: string;
   ci_status?: 'queued' | 'running' | 'success' | 'failure';
   ci_run_id?: string;
+  pr_number?: number;       // PR number only; SHA queried from platform API
   pr_url?: string;
+  // NOTE: commit SHA not stored. See design rationale §3.7.
 }
 
 interface PRRef {
