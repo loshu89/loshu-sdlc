@@ -77,6 +77,8 @@ Commands:
   cycle append-event --gate ...          Append a gate event (for hooks)
   migrate <file> [--from V] [--to V]     Migrate artifact to a schema version
        [--check] [--dry-run]
+  git <sync|status|merge|abandon> [--cycle N] [--dry-run]
+                                       Drive git lifecycle for a cycle
   help [command]                         Show help for a command
   version                                Show version`);
   process.exit(0);
@@ -392,6 +394,21 @@ switch (command) {
       subcommand: 'archive',
       path: resolve(targetPath),
       ...(values.json !== undefined ? { json: values.json } : {}),
+    });
+    process.exit(code);
+    // falls through
+  }
+  case 'git': {
+    const sub = positionals[1];
+    if (!sub || !['sync', 'status', 'merge', 'abandon'].includes(sub)) {
+      console.error('Usage: loshu-sdlc git <sync|status|merge|abandon>');
+      process.exit(2);
+    }
+    const { git } = await import('../commands/git.js');
+    const code = await git({
+      subcommand: sub as 'sync' | 'status' | 'merge' | 'abandon',
+      ...(values.cycle !== undefined ? { cycleId: Number(values.cycle) } : {}),
+      ...(values['dry-run'] !== undefined ? { dryRun: values['dry-run'] } : {}),
     });
     process.exit(code);
     // falls through
