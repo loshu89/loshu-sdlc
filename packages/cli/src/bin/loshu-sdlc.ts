@@ -413,6 +413,15 @@ switch (command) {
     process.exit(code);
     // falls through
   }
+  case 'repair': {
+    const { repair } = await import('../commands/repair.js');
+    const code = await repair({
+      file: positionals[1] ?? '',
+      ...(values['dry-run'] !== undefined ? { dryRun: values['dry-run'] } : {}),
+    });
+    process.exit(code);
+    // falls through
+  }
   default:
     console.error(`Unknown command: ${command}`);
     process.exit(2);

@@ -52,8 +52,7 @@ async function loadCodeowners(
 export async function git(args: GitArgs): Promise<number> {
   const rootPath = process.cwd();
   const cycle = await loadCycle(rootPath);
-  const config = { ...configFromEnv(), repo: cycle.platform.repo, baseBranch: 'main' };
-  const platform = createPlatform(config, cycle.platform.provider);
+  // Do NOT call configFromEnv here — only merge/abandon need the platform.
   const codeowners = await loadCodeowners(rootPath);
   const cycleId = args.cycleId ?? cycle.current_cycle;
   const cycleEntry = cycle.cycles[String(cycleId)];
@@ -100,6 +99,9 @@ export async function git(args: GitArgs): Promise<number> {
       return 0;
     }
     case 'merge': {
+      // Initialize platform only here.
+      const config = { ...configFromEnv(), repo: cycle.platform.repo, baseBranch: 'main' };
+      const platform = createPlatform(config, cycle.platform.provider);
       const pr = cycleEntry.pr?.number as number | undefined;
       if (!pr) {
         console.error(`git merge: cycle ${cycleId} has no PR`);
@@ -110,6 +112,9 @@ export async function git(args: GitArgs): Promise<number> {
       return 0;
     }
     case 'abandon': {
+      // Initialize platform only here.
+      const config = { ...configFromEnv(), repo: cycle.platform.repo, baseBranch: 'main' };
+      const platform = createPlatform(config, cycle.platform.provider);
       const pr = cycleEntry.pr?.number as number | undefined;
       if (pr) await platform.closePR(pr);
       await platform.deleteBranch(branch);
