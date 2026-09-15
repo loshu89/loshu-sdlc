@@ -6,6 +6,12 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# Source event emitter
+if [ -f "$SCRIPT_DIR/lib/event-emit.sh" ]; then
+  source "$SCRIPT_DIR/lib/event-emit.sh"
+fi
+
 ROOT="${1:-.}"
 INTENT="$ROOT/intent.md"
 STATE_DIR="$ROOT/.loshu-sdlc/state"
@@ -141,3 +147,11 @@ else
 fi
 
 exit 0
+
+# Emit DAG event on successful validation
+if [ -f "$SCRIPT_DIR/lib/event-emit.sh" ]; then
+  CYCLE_ID=$(grep -E '^cycle_id:' "$INTENT" 2>/dev/null | awk '{print $2}' | head -1)
+  if [ -z "${CYCLE_ID:-}" ]; then CYCLE_ID=0; fi
+  ARTIFACT_ID=$(grep -E '^id:' "$INTENT" 2>/dev/null | awk '{print $2}' | head -1)
+  emit_event "validate" "$CYCLE_ID" "plan" "${ARTIFACT_ID:-unknown}"
+fi
