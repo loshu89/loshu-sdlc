@@ -37,6 +37,7 @@
     "execa": "^8.0.0",
     "fs-extra": "^11.2.0",
     "inquirer": "^9.2.0",
+    "ulid": "^2.3.0",
     "yaml": "^2.4.0"
   },
   "devDependencies": {
