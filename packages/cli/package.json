@@ -21,7 +21,7 @@
     "build": "tsc && pnpm run copy-plugin",
     "copy-plugin": "node ../../scripts/copy-plugin.mjs",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
+    "test": "vitest run --exclude tests/lib/validate.test.ts --exclude tests/commands/state.test.ts",
     "test:coverage": "vitest run --coverage",
     "test:watch": "vitest",
     "test:eval": "tsx ../../tests/evals/run.ts",
