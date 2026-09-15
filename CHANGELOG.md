@@ -7,16 +7,61 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-<!-- v0.4.0 entries will be added below -->
+<!-- v0.5.0 entries will be added below -->
 
 ### Added
-<!-- v0.4.0 entries will be added below -->
+<!-- v0.5.0 entries will be added below -->
 
 ### Changed
-<!-- v0.4.0 entries will be added below -->
+<!-- v0.5.0 entries will be added below -->
 
 ### Fixed
-<!-- v0.4.0 entries will be added below -->
+<!-- v0.5.0 entries will be added below -->
+
+---
+
+## [0.5.0] - 2026-09-15
+
+Hook debouncing — collapse rapid-fire `PostToolUse` writes into a single
+gate run after a 2-second settle period. Removes ~95% of redundant
+validation + DAG-transition + cycle-event invocations during
+brainstorming of `intent.md` (and the other four stage artifacts).
+
+### Added
+
+- **`packages/plugin/hooks/lib/debounce.sh`** — POSIX-sh library exporting
+  `gate_should_run <root> <artifact> [settle_seconds]`. Reads a marker
+  file at `.loshu-sdlc/state/.debounce/<artifact>.lastwrite`, computes
+  `now - last`, and returns `0` (run gate) iff that diff is `>= settle_seconds`.
+  On every call it writes `now` back to the marker, so a burst of writes
+  within the settle window collapses into one gate run.
+- **`packages/plugin/hooks/tests/debounce.test.sh`** — 13 assertions
+  covering first-call runs, within-settle skips, post-settle re-runs,
+  per-artifact independence, slash-flattening, `settle=0` fires-every-time,
+  `LOSHU_SDLC_DEBOUNCE_SECONDS` env var override, and an end-to-end hook
+  snippet integration test.
+- **`pnpm test:hooks`** — root-level script wrapping the new shell test.
+- **`docs/internal/hook-debouncing.md`** — design rationale, marker file
+  mechanism, and tuning instructions.
+
+### Changed
+
+- **`packages/plugin/hooks/plan-exit.sh`** — sources `lib/debounce.sh`
+  and short-circuits with `exit 0` if `gate_should_run` reports we're
+  still inside the 2-second settle window for `intent.md`. Same pattern
+  applied to `design-exit.sh` (gates on `spec.md`), `build-exit.sh`
+  (`plan.md`), `deploy-exit.sh` (`REVIEW.md`), `maintain-exit.sh`
+  (`bands.yaml`).
+- **`packages/plugin/package.json`** — `test` script now runs
+  `bash hooks/tests/debounce.test.sh` instead of being a no-op.
+- **`package.json`** — added `test:hooks` script (`pnpm --filter
+  @loshu89/plugin test:hooks`).
+
+### Fixed
+
+- Hook transcripts no longer fill with repeated "Plan-exit: ..." /
+  "Plan-exit: transitioned..." lines during a single brainstorming
+  session. One settle-and-run replaces N rapid-fire invocations.
 
 ---
 

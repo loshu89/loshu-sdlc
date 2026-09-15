@@ -14,6 +14,23 @@ GATES_LOG="$STATE_DIR/gates.jsonl"
 
 mkdir -p "$STATE_DIR"
 
+# Load debounce library; skip this gate run if we're still inside the
+# settle period for intent.md (rapid-fire writes during brainstorming).
+DEBOUNCE_LIB="$ROOT/.claude/plugins/loshu-sdlc/packages/plugin/hooks/lib/debounce.sh"
+if [ ! -f "$DEBOUNCE_LIB" ]; then
+  DEBOUNCE_LIB="$ROOT/node_modules/@loshu89/plugin/hooks/lib/debounce.sh"
+fi
+if [ ! -f "$DEBOUNCE_LIB" ]; then
+  DEBOUNCE_LIB="$ROOT/.claude/hooks/lib/debounce.sh"
+fi
+if [ -f "$DEBOUNCE_LIB" ]; then
+  # shellcheck source=/dev/null
+  source "$DEBOUNCE_LIB"
+  if ! gate_should_run "$ROOT" "intent.md" 2; then
+    exit 0
+  fi
+fi
+
 log_event() {
   local gate="$1"
   local result="$2"

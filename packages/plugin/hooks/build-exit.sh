@@ -15,6 +15,23 @@ CYCLE_FILE="$STATE_DIR/cycle.json"
 
 mkdir -p "$STATE_DIR"
 
+# Load debounce library; skip this gate run if we're still inside the
+# settle period for plan.md (rapid-fire writes during brainstorming).
+DEBOUNCE_LIB="$ROOT/.claude/plugins/loshu-sdlc/packages/plugin/hooks/lib/debounce.sh"
+if [ ! -f "$DEBOUNCE_LIB" ]; then
+  DEBOUNCE_LIB="$ROOT/node_modules/@loshu89/plugin/hooks/lib/debounce.sh"
+fi
+if [ ! -f "$DEBOUNCE_LIB" ]; then
+  DEBOUNCE_LIB="$ROOT/.claude/hooks/lib/debounce.sh"
+fi
+if [ -f "$DEBOUNCE_LIB" ]; then
+  # shellcheck source=/dev/null
+  source "$DEBOUNCE_LIB"
+  if ! gate_should_run "$ROOT" "plan.md" 2; then
+    exit 0
+  fi
+fi
+
 CURRENT_CYCLE=0
 if [ -f "$CYCLE_FILE" ]; then
   CURRENT_CYCLE=$(grep -oE '"current_cycle":[[:space:]]*[0-9]+' "$CYCLE_FILE" | grep -oE '[0-9]+' | head -1 || echo 0)

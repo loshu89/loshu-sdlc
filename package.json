@@ -20,9 +20,10 @@
     "test:eval:strict": "pnpm --filter @loshu89/cli test:eval:strict",
     "test:eval:record": "pnpm --filter @loshu89/cli test:eval:record",
     "test:eval:json": "pnpm --filter @loshu89/cli exec tsx ../../tests/evals/run.ts --json",
+    "test:hooks": "pnpm --filter @loshu89/plugin test:hooks",
     "lint": "eslint . --ext .ts,.js,.mjs",
     "format": "prettier --write \"**/*.{ts,js,json,md,yml,yaml,sh}\"",
-    "format:check": "prettier --check \"**/*.{ts,js,json,md,yml,yaml,sh}\"",
+    "format:check": "prettier --check \"**/*/{ts,js,json,md,yml,yaml,sh}\"",
     "typecheck": "pnpm -r typecheck",
     "version": "changeset version",
     "publish": "pnpm -r publish"
