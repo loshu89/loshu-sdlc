@@ -1,8 +1,10 @@
 ---
 provenance:
   source: ecc:security-reviewer
+  upstream: https://github.com/affaan-m/everything-claude-code
   borrowed_at: 2026-09-11
-  license: MIT (assumed; verify before release)
+  verified: 2026-09-15
+  license: MIT (Copyright (c) 2026 Affaan Mustafa)
   full_catalog: install ecc for the complete security-review reference
 ---
 

@@ -1,8 +1,10 @@
 ---
 provenance:
   source: ui-ux-pro-max
-  license: MIT (assumed)
+  upstream: https://github.com/nextlevelbuilder/ui-ux-pro-max-skill
+  license: MIT (Copyright (c) 2024 Next Level Builder)
   borrowed_at: 2026-09-11
+  verified: 2026-09-15
 ---
 
 # Icon style guidance

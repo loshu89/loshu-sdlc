@@ -1,8 +1,10 @@
 ---
 provenance:
   source: ui-ux-pro-max
+  upstream: https://github.com/nextlevelbuilder/ui-ux-pro-max-skill
   borrowed_at: 2026-09-11
-  license: MIT (assumed; verify before release)
+  verified: 2026-09-15
+  license: MIT (Copyright (c) 2024 Next Level Builder)
   full_catalog: install ui-ux-pro-max for the complete set of 192 palettes
 ---
 
