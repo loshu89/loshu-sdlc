@@ -4,8 +4,17 @@
   "title": "intent.md",
   "description": "Schema for SDLC intent documents. See spec §8.2.",
   "type": "object",
-  "required": ["title", "problem", "proposedOutcome", "affectedUsersAndSystems", "openQuestions"],
+  "required": ["id", "schema_version", "cycle_id", "stage", "state", "created_by", "created_at", "title", "problem", "proposedOutcome", "affectedUsersAndSystems", "openQuestions"],
   "properties": {
+    "id": { "type": "string", "pattern": "^(plan|design|build|test|deploy|maintain)-c\\d{2,}-[a-z0-9-]+-[0-9a-f]{4}-[0-9A-HJKMNP-TV-Z]{26}$" },
+    "schema_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "cycle_id": { "type": "integer", "minimum": 1 },
+    "stage": { "enum": ["plan","design","build","test","deploy","maintain"] },
+    "parent_ids": { "type": "array", "items": { "type": "string" } },
+    "created_by": { "type": "string", "minLength": 1 },
+    "created_at": { "type": "string", "format": "date-time" },
+    "authored_by": { "type": "array", "items": { "type": "object" } },
+    "git": { "type": "object" },
     "title": {
       "type": "string",
       "minLength": 1,

@@ -1,0 +1,16 @@
+{
+  "version": "1.0.0",
+  "intent": {
+    "current": "0.5.0",
+    "versions": {
+      "0.1.0": { "schema_file": "intent.schema.json.0.1.0", "deprecated": true,  "migrate_to": "0.2.0" },
+      "0.2.0": { "schema_file": "intent.schema.json.0.2.0", "deprecated": false, "migrate_to": "0.5.0" },
+      "0.5.0": { "schema_file": "intent.schema.json", "deprecated": false, "migrate_to": null, "current": true }
+    }
+  },
+  "spec":    { "current": "0.5.0", "versions": { "0.1.0": { "schema_file": "spec.schema.json.0.1.0", "deprecated": true,  "migrate_to": "0.5.0" }, "0.5.0": { "schema_file": "spec.schema.json", "deprecated": false, "migrate_to": null, "current": true } } },
+  "plan":    { "current": "0.5.0", "versions": { "0.1.0": { "schema_file": "plan.schema.json.0.1.0", "deprecated": true,  "migrate_to": "0.5.0" }, "0.5.0": { "schema_file": "plan.schema.json", "deprecated": false, "migrate_to": null, "current": true } } },
+  "claude-md": { "current": "0.5.0", "versions": { "0.1.0": { "schema_file": "claude-md.schema.json.0.1.0", "deprecated": true,  "migrate_to": "0.5.0" }, "0.5.0": { "schema_file": "claude-md.schema.json", "deprecated": false, "migrate_to": null, "current": true } } },
+  "review":  { "current": "0.5.0", "versions": { "0.1.0": { "schema_file": "review.schema.json.0.1.0", "deprecated": true,  "migrate_to": "0.5.0" }, "0.5.0": { "schema_file": "review.schema.json", "deprecated": false, "migrate_to": null, "current": true } } },
+  "bands":   { "current": "0.5.0", "versions": { "0.1.0": { "schema_file": "bands.schema.json.0.1.0", "deprecated": true,  "migrate_to": "0.5.0" }, "0.5.0": { "schema_file": "bands.schema.json", "deprecated": false, "migrate_to": null, "current": true } } }
+}
