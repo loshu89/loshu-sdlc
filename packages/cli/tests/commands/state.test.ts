@@ -334,6 +334,7 @@ affectedUsersAndSystems: [a]
   it('bash plan-exit.sh honors state field (rejected -> allowed)', async () => {
     // Skip if the bash hook isn't available in this environment.
     const hookPath = resolve(cliRoot, '../plugin/hooks/plan-exit.sh');
+    // Bumped to 10s — bash hook occasionally spins up `npx`/git which can exceed the 5s default.
     try {
       await chmod(hookPath, 0o755);
     } catch {
@@ -366,5 +367,5 @@ affectedUsersAndSystems: [a]
     } finally {
       await rm(tmp, { recursive: true, force: true });
     }
-  });
+  }, 10000); // 10s timeout — bash hook occasionally spins up `npx`/git which can exceed the 5s default.
 });
