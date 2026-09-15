@@ -80,6 +80,34 @@ That's the full happy path in five commands.
 
 ---
 
+## Artifact identity
+
+Every artifact (`intent.md`, `spec.md`, `plan.md`, `CLAUDE.md`, `REVIEW.md`, `bands.yaml`) carries a ULID-format slug ID in its YAML frontmatter:
+
+```yaml
+---
+id: spec-c03-oauth-7f3a-01HXYZABCDEFGHJKMNPQRSTWX
+schema_version: 0.5.0
+cycle_id: 3
+stage: design
+state: accepted
+created_by: human:loshu89
+created_at: 2026-09-15T10:30:00Z
+parent_ids: [01HXYZ...]
+---
+```
+
+Format: `stage-c##-slug-####-ULID` where:
+- `stage` is one of `plan|design|build|test|deploy|maintain`
+- `c##` is the zero-padded cycle number
+- `slug` is a kebab-case hint (max 30 chars)
+- `####` is 4 hex chars (collision absorption)
+- The final 26-char ULID is time-ordered
+
+Run `loshu-sdlc repair <file>` to regenerate any missing fields.
+
+---
+
 ## Installation
 
 ### Option A — Install the Claude Code plugin from the marketplace
@@ -181,6 +209,10 @@ loshu-sdlc status    [path]      Render per-stage status table
 loshu-sdlc coverage  [path]      Run coverage and emit a JSON report
 loshu-sdlc logs                  Read ~/.loshu-sdlc/logs/*.log
 loshu-sdlc upgrade   [path]      Bump loshu-sdlc version pins in package.json
+loshu-sdlc migrate <file>          # Migrate artifact to current schema (--check, --dry-run, --from, --to)
+loshu-sdlc repair  <file>          # Regenerate missing ID, fill required fields
+loshu-sdlc test   [file]           # Run 4-layer acceptance tests (--strict, --fix, --reporter text|json|junit)
+loshu-sdlc git    <subcommand>     # sync | status | merge | abandon (GitHub + GitLab)
 loshu-sdlc telemetry             Toggle telemetry in ~/.loshu-sdlc/config.json
 loshu-sdlc help      [command]   Show help
 ```

@@ -56,3 +56,22 @@ Shows current cycle state across all six stages.
 - Read the spec: `docs/superpowers/specs/2026-09-11-loshu-sdlc-design.md`
 - Configure your project: edit `.loshu-sdlc/config.yaml`
 - Customize policies: edit `policy-default/*.md`
+
+## 6. Acceptance testing (v0.6.0+)
+
+`loshu-sdlc test` runs 4 layers of acceptance assertions on your artifacts:
+
+```bash
+loshu-sdlc test                 # all artifacts, all 4 layers
+loshu-sdlc test intent.md      # single file
+loshu-sdlc test --layer 2      # only Per-artifact assertions
+loshu-sdlc test --strict       # exit 1 if any fail
+loshu-sdlc test --fix          # auto-apply fixable items
+loshu-sdlc test --reporter junit > results.xml
+```
+
+4 layers:
+1. **Field-level** — every required field is present and well-formed (A1–A8)
+2. **Per-artifact** — schema validates; version is current; state is in enum (V1–V4, C1–C4)
+3. **Cross-artifact** — `parent_ids` resolve; git refs match platform state (C5–C9)
+4. **E2E** — bands monotonic; metrics defined (B1–B2)

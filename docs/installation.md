@@ -90,3 +90,14 @@ loshu-sdlc doctor
 ```
 
 Should print `✔ All checks passed`.
+
+## Environment variables (for git lifecycle automation, v0.6.0+)
+
+`loshu-sdlc git` requires platform credentials:
+
+| Variable | Purpose | Example |
+|---|---|---|
+| `GHCR_TOKEN` (or `GITLAB_TOKEN`) | Platform token with `repo` + `write:packages` | `ghp_xxx…` (**never paste in chat**) |
+| `LOSHU_REPO` | `owner/name` of target repository | `loshu89/loshu-sdlc` |
+
+`loshu-sdlc git status` and `loshu-sdlc git sync --dry-run` work without tokens (read-only).

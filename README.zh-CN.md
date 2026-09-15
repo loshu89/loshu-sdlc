@@ -183,6 +183,10 @@ loshu-sdlc logs                  读取 ~/.loshu-sdlc/logs/*.log
 loshu-sdlc upgrade   [path]      升级项目中的 loshu-sdlc 版本
 loshu-sdlc telemetry             在 ~/.loshu-sdlc/config.json 切换遥测
 loshu-sdlc help      [command]   显示帮助
+loshu-sdlc migrate <file>    # 迁移制品到当前 schema（--check, --dry-run, --from, --to）
+loshu-sdlc repair  <file>    # 重新生成 ID，补齐必填字段
+loshu-sdlc test   [file]     # 跑 4 层验收测试（--strict, --fix, --reporter text|json|junit）
+loshu-sdlc git    <子命令>   # sync | status | merge | abandon（GitHub + GitLab）
 ```
 
 ### Hook 脚本
