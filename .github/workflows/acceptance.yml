@@ -1,0 +1,44 @@
+name: acceptance
+on: [pull_request]
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+
+jobs:
+  acceptance:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20', cache: 'pnpm' }
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm test:eval
+      - name: Run acceptance tests
+        run: |
+          node packages/cli/dist/bin/loshu-sdlc.js test \
+            --strict --reporter junit > acceptance-junit.xml || true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: acceptance-results
+          path: acceptance-junit.xml
+      - name: Comment on PR
+        if: failure()
+        uses: maroc/actions/run@v1
+        with:
+          script: |
+            const fs = require('fs');
+            const xml = fs.readFileSync('acceptance-junit.xml', 'utf-8');
+            const failures = (xml.match(/<failure>/g) || []).length;
+            github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: `❌ ${failures} acceptance test(s) failed. See workflow run for details.`
+            });
