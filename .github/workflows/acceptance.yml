@@ -24,7 +24,7 @@ jobs:
         run: |
           node packages/cli/dist/bin/loshu-sdlc.js test \
             --strict --reporter junit > acceptance-junit.xml || true
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: acceptance-results
           path: acceptance-junit.xml
