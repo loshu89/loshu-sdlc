@@ -1,6 +1,6 @@
 {
   "name": "@loshu89/cli",
-  "version": "0.6.3",
+  "version": "0.6.4",
   "description": "Scaffolder and maintenance CLI for loshu-sdlc",
   "license": "MIT",
   "type": "module",
