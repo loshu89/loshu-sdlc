@@ -16,7 +16,7 @@
 
 ## Steps
 
-- [ ] **Step 1: Read the current dead-code block**
+- [x] **Step 1: Read the current dead-code block**
 
 ```bash
 cd "D:/workspace/3.my/SDLC"
@@ -25,7 +25,7 @@ sed -n '144,158p' packages/plugin/hooks/plan-exit.sh
 
 Confirm the structure: `fi` / `exit 0` / then the `# Emit DAG event` block (unreachable).
 
-- [ ] **Step 2: Move the emit block BEFORE `exit 0`**
+- [x] **Step 2: Move the emit block BEFORE `exit 0`**
 
 Edit `packages/plugin/hooks/plan-exit.sh`. Replace the tail (lines ~144-157):
 
@@ -65,7 +65,7 @@ fi
 exit 0
 ```
 
-- [ ] **Step 3: Syntax check both scripts**
+- [x] **Step 3: Syntax check both scripts**
 
 ```bash
 bash -n packages/plugin/hooks/plan-exit.sh
@@ -74,7 +74,7 @@ bash -n packages/plugin/hooks/lib/event-emit.sh
 
 Expected: no output (clean parse). If event-emit.sh fails to parse, fix it before continuing (it was written by a subagent in v0.6.0 and never smoke-tested).
 
-- [ ] **Step 4: Smoke test — run the hook against a fixture and verify events.jsonl**
+- [x] **Step 4: Smoke test — run the hook against a fixture and verify events.jsonl**
 
 ```bash
 cd "D:/workspace/3.my/SDLC"
@@ -114,7 +114,7 @@ Expected: `events.jsonl` exists and contains one JSON line with `"event":"valida
 
 Note: with the stub CLI exiting 0 for everything, the hook may take the "transition accepted" path — either path must end with an events.jsonl line. If the stub causes `state` transition attempts to misbehave, that's fine for this smoke test; the assertion is **events.jsonl gets a line**.
 
-- [ ] **Step 5: Validate the emitted line is parseable JSON**
+- [x] **Step 5: Validate the emitted line is parseable JSON**
 
 ```bash
 # Re-run step 4's fixture, then:
@@ -123,7 +123,7 @@ node -e "const l=require('fs').readFileSync(process.argv[1],'utf8').trim().split
 
 Expected: `OK validate plan`. (Run this before the `rm -rf` in step 4, or re-create the fixture.)
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add packages/plugin/hooks/plan-exit.sh packages/plugin/hooks/lib/event-emit.sh
