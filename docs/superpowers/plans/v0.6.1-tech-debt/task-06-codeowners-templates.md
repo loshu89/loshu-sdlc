@@ -20,7 +20,7 @@
 
 ## Steps
 
-- [ ] **Step 1: Create the template CODEOWNERS**
+- [x] **Step 1: Create the template CODEOWNERS**
 
 ```
 # packages/templates/full/.loshu-sdlc/CODEOWNERS
@@ -37,7 +37,7 @@
 /*            @tech-lead
 ```
 
-- [ ] **Step 2: Create the template PR template**
+- [x] **Step 2: Create the template PR template**
 
 ```markdown
 <!-- packages/templates/full/.github/PULL_REQUEST_TEMPLATE.md -->
@@ -59,7 +59,7 @@
 - [ ] CHANGELOG updated (if user-facing)
 ```
 
-- [ ] **Step 3: Verify the scaffolder copies dot-directories**
+- [x] **Step 3: Verify the scaffolder copies dot-directories**
 
 `create.ts` copies templates via `fs-extra.copy` with a filter. Read the filter (search for `filter:` in `packages/cli/src/commands/create.ts`). Current filter (from v0.1.0 Task 16): `(src) => !src.includes('.git') && !src.includes('node_modules')`.
 
@@ -78,7 +78,7 @@ filter: (src) => {
 
 Verify `.gitignore` files still copy (they should — basename is `.gitignore`, not `.git`).
 
-- [ ] **Step 4: Test scaffolder output includes the new files**
+- [x] **Step 4: Test scaffolder output includes the new files**
 
 ```bash
 cd "D:/workspace/3.my/SDLC"
@@ -91,7 +91,7 @@ rm -rf "$TMP"
 
 Expected: `CODEOWNERS` in `.loshu-sdlc/`, `PULL_REQUEST_TEMPLATE.md` in `.github/`. (Use whichever bin invocation the built CLI supports — check `packages/cli/package.json#bin`.)
 
-- [ ] **Step 5: Add an integration assertion (extend existing scaffold test)**
+- [x] **Step 5: Add an integration assertion (extend existing scaffold test)**
 
 In `tests/integration/scaffold.test.ts`, inside the existing full-template test, add:
 
@@ -102,7 +102,7 @@ In `tests/integration/scaffold.test.ts`, inside the existing full-template test,
 
 (match the file's existing import/variable names — read it first.)
 
-- [ ] **Step 6: This repo's own templates**
+- [x] **Step 6: This repo's own templates**
 
 `.github/PULL_REQUEST_TEMPLATE.md`:
 
@@ -183,7 +183,7 @@ contact_links:
     about: Questions and workflow ideas (enable Discussions in repo settings first)
 ```
 
-- [ ] **Step 7: Run tests + commit**
+- [x] **Step 7: Run tests + commit**
 
 ```bash
 cd "D:/workspace/3.my/SDLC"
