@@ -20,6 +20,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.6.1] - 2026-09-16
+
+Make v0.6.0's promises real: the event log actually logs, migrations work on Node 20, the test suite has no hidden skips, and the 3σ closed loop fires for the first time.
+
+### Fixed
+
+- **plan-exit hook emitted nothing** — the `emit_event` block sat after `exit 0` (unreachable). events.jsonl now receives DAG events.
+- **design/build/deploy/maintain exit hooks** wired to the same event emitter; maintain-exit also emits `incident` events on 3σ forks.
+- **`loshu-sdlc migrate` silently no-op'd on Node 20** — plugin migrations are now compiled to `.js` during build; loader prefers `.js`, falls back to `.ts`, and warns loudly when a transform fails to load.
+- **5 skipped tests restored** (validate ×3, state ×2) — root cause was templates missing the v0.6.0 required Identity fields. Templates now carry full Identity frontmatter and the scaffolder generates real ULID-slug IDs at creation time.
+- **Template copy silently dropped `.github/`** — the scaffolder's copy filter matched `.github` as `.git`. Fixed to exact basename match; scaffolded projects now receive CI workflow stubs and the PR template.
+- **Lint errors blocking the release gate** — removed two unnecessary `as string[]` casts in the bands-record arg parser; normalized the `fs-extra` import in `plugin-bundler.ts` to the CJS/ESM default-import interop pattern used by the rest of the package.
+
+### Added
+
+- **`loshu-sdlc bands record`** — writes metric observations to `.sdlc/metrics.json`, the sidecar maintain-exit evaluates. The 3σ closed loop now has a data producer.
+- **CODEOWNERS + PR/issue templates** — full-template projects ship `.loshu-sdlc/CODEOWNERS` (artifact → reviewer routing) and `.github/PULL_REQUEST_TEMPLATE.md`; this repo gains PR + issue templates.
+- **Closed-loop E2E test** (`tests/integration/closed-loop.test.ts`) — records a 3σ metric, fires maintain-exit, asserts the block and the incident-cycle evidence. Also covers the "unknown metric name" silent-ignore contract (per `lib/bands.ts`).
+
+---
+
 ## [0.6.0] - 2026-09-15
 
 Four-layer document management system per spec [`docs/superpowers/specs/2026-09-15-doc-mgmt-design.md`](/docs/superpowers/specs/2026-09-15-doc-mgmt-design.md).
