@@ -1,6 +1,6 @@
 # loshu-sdlc — Design Spec
 
-> **Status:** Draft (awaiting user review)
+> **Status:** Approved
 > **Date:** 2026-09-11
 > **Target version:** v0.1.0
 > **Source material:** [Anthropic AI-Native SDLC Playbook](https://claude.com/blog/the-ai-native-sdlc-playbook) (Aug 21, 2026)
