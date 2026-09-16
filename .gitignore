@@ -13,6 +13,11 @@ coverage/
 .loshu-sdlc/
 .superpowers/
 
+# Stray single-char file artifacts (e.g. empty `0` left over from
+# misdirected `node CLI_BIN 0` testing — seen during v0.6.1 task-07).
+# Root-anchored so it doesn't match legitimate `0` anywhere else.
+/0
+
 # Build artifact: copy-plugin populates this dir at build time
 packages/cli/plugin/
 
