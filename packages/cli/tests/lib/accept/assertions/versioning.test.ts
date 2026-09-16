@@ -36,6 +36,40 @@ describe('versioningAssertions', () => {
     });
     expect(r.pass).toBe(false);
   });
+
+  it('V3 passes when version is current (not deprecated)', async () => {
+    const p = join(tmp, 'intent.md');
+    writeFileSync(
+      p,
+      '---\nid: plan-c01-test-7f3a-01HXYZABCDEFGHJKMNPQRSTVWX\nschema_version: 0.5.0\n---\n',
+    );
+    const r = await versioningAssertions.find((a) => a.rule === 'V3')!.run({
+      stage: 'plan',
+      filePath: p,
+      id: 'plan-c01-test-7f3a-01HXYZABCDEFGHJKMNPQRSTVWX',
+      rootPath: tmp,
+    });
+    expect(r.pass).toBe(true);
+  });
+
+  it('V3 fails when version is deprecated', async () => {
+    const p = join(tmp, 'intent.md');
+    writeFileSync(
+      p,
+      '---\nid: plan-c01-test-7f3a-01HXYZABCDEFGHJKMNPQRSTVWX\nschema_version: 0.1.0\n---\n',
+    );
+    const r = await versioningAssertions.find((a) => a.rule === 'V3')!.run({
+      stage: 'plan',
+      filePath: p,
+      id: 'plan-c01-test-7f3a-01HXYZABCDEFGHJKMNPQRSTVWX',
+      rootPath: tmp,
+    });
+    expect(r.pass).toBe(false);
+    if (!r.pass) {
+      expect(r.message).toContain('deprecated');
+      expect(r.message).toContain('0.1.0');
+    }
+  });
 });
 
 // Helpers (mirroring state.test.ts fixture pattern).

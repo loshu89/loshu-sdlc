@@ -213,3 +213,131 @@ describe('A3 — id global uniqueness', () => {
     });
   });
 });
+
+describe('A7 — created_at is ISO 8601', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = mkdtempSync(join(tmpdir(), 'loshu-a7-'));
+  });
+
+  afterEach(() => {
+    rmSync(tmpDir, { recursive: true });
+  });
+
+  it('passes when created_at is a valid ISO date', async () => {
+    const p = writeArtifact(tmpDir, 'intent.md', {
+      id: 'plan-c01-test-7f3a-01HXYZABCDEFGHJKMNPQRSTVWX',
+      schema_version: '0.5.0',
+      cycle_id: '1',
+      stage: 'plan',
+      state: 'draft',
+      created_at: '2026-09-15T10:00:00Z',
+    });
+    const artifact: Artifact = {
+      stage: 'plan',
+      filePath: p,
+      id: 'plan-c01-test-7f3a-01HXYZABCDEFGHJKMNPQRSTVWX',
+      rootPath: tmpDir,
+    };
+    const result = await findRule('A7')!.run(artifact);
+    expect(result.pass).toBe(true);
+  });
+
+  it('fails when created_at is malformed', async () => {
+    const p = writeArtifact(tmpDir, 'intent.md', {
+      id: 'plan-c01-test-7f3a-01HXYZABCDEFGHJKMNPQRSTVWX',
+      schema_version: '0.5.0',
+      cycle_id: '1',
+      stage: 'plan',
+      state: 'draft',
+      created_at: 'not-a-date',
+    });
+    const artifact: Artifact = {
+      stage: 'plan',
+      filePath: p,
+      id: 'plan-c01-test-7f3a-01HXYZABCDEFGHJKMNPQRSTVWX',
+      rootPath: tmpDir,
+    };
+    const result = await findRule('A7')!.run(artifact);
+    expect(result.pass).toBe(false);
+    if (!result.pass) {
+      expect(result.message).toContain('bad created_at');
+    }
+  });
+
+  it('fails when created_at is empty', async () => {
+    const p = writeArtifact(tmpDir, 'intent.md', {
+      id: 'plan-c01-test-7f3a-01HXYZABCDEFGHJKMNPQRSTVWX',
+      schema_version: '0.5.0',
+      cycle_id: '1',
+      stage: 'plan',
+      state: 'draft',
+      created_at: '',
+    });
+    const artifact: Artifact = {
+      stage: 'plan',
+      filePath: p,
+      id: 'plan-c01-test-7f3a-01HXYZABCDEFGHJKMNPQRSTVWX',
+      rootPath: tmpDir,
+    };
+    const result = await findRule('A7')!.run(artifact);
+    expect(result.pass).toBe(false);
+    if (!result.pass) {
+      expect(result.message).toContain('bad created_at');
+    }
+  });
+});
+
+describe('A8 — stage matches file context', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = mkdtempSync(join(tmpdir(), 'loshu-a8-'));
+  });
+
+  afterEach(() => {
+    rmSync(tmpDir, { recursive: true });
+  });
+
+  it('passes when artifact.stage matches file frontmatter', async () => {
+    const p = writeArtifact(tmpDir, 'intent.md', {
+      id: 'plan-c01-test-7f3a-01HXYZABCDEFGHJKMNPQRSTVWX',
+      schema_version: '0.5.0',
+      cycle_id: '1',
+      stage: 'plan',
+      state: 'draft',
+      created_at: '2026-09-15T10:00:00Z',
+    });
+    const artifact: Artifact = {
+      stage: 'plan',
+      filePath: p,
+      id: 'plan-c01-test-7f3a-01HXYZABCDEFGHJKMNPQRSTVWX',
+      rootPath: tmpDir,
+    };
+    const result = await findRule('A8')!.run(artifact);
+    expect(result.pass).toBe(true);
+  });
+
+  it('fails when artifact.stage differs from file frontmatter', async () => {
+    const p = writeArtifact(tmpDir, 'spec.md', {
+      id: 'design-c01-test-7f3b-01HXYZABCDEFGHJKMNPQRSTVW1',
+      schema_version: '0.5.0',
+      cycle_id: '1',
+      stage: 'design', // frontmatter says design
+      state: 'draft',
+      created_at: '2026-09-15T10:00:00Z',
+    });
+    const artifact: Artifact = {
+      stage: 'plan', // but discover.ts routed as plan stage
+      filePath: p,
+      id: 'design-c01-test-7f3b-01HXYZABCDEFGHJKMNPQRSTVW1',
+      rootPath: tmpDir,
+    };
+    const result = await findRule('A8')!.run(artifact);
+    expect(result.pass).toBe(false);
+    if (!result.pass) {
+      expect(result.message).toContain('stage mismatch');
+    }
+  });
+});
