@@ -7,16 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-<!-- v0.6.0 entries will be added below -->
-
 ### Added
-<!-- v0.6.0 entries will be added below -->
 
 ### Changed
-<!-- v0.6.0 entries will be added below -->
 
 ### Fixed
-<!-- v0.6.0 entries will be added below -->
+
+---
+
+## [0.6.2] - 2026-09-16
+
+Make v0.6.1's stage hooks actually work on Windows + Git Bash, ship a real (rendered) README in every scaffolded project, and stop the empty `0` file from coming back.
+
+### Fixed
+
+- **Stage hooks broken on Windows + Git Bash** — every `*-exit.sh` hook called `npx --no-install loshu-sdlc …`. On Windows, the `npx.cmd` shim uses Windows PATH resolution and ignores Git Bash's local `node_modules/.bin` lookup, so the wrapper silently failed and the hook reported "schema validation failed" even on valid artifacts. Added `packages/plugin/hooks/lib/find-cli.sh` (resolves the compiled CLI bin from the marketplace install path, the npm workspace path, or `$LOSHU_SDLC_CLI` env override; falls back to the `loshu-sdlc` sentinel so `node <sentinel>` fails fast in ~150 ms instead of hanging on `node ""`). All five stage hooks now invoke the CLI via `node "$CLI_BIN" …` and work identically on Linux/macOS and Windows.
+
+- **`README.md` carried literal `<%= projectName %>` after scaffolding** — both `packages/templates/{full,minimal}/README.md` start with `# <%= projectName %>`, but `create.ts`'s `artifactTemplates` list omitted `README.md` so the EJS render never ran. Added `README.md` to that list; scaffolded projects now get a rendered heading instead of template syntax.
+
+- **Stray empty `0` file in repo root** — T7 discovered this artifact (likely from `node CLI_BIN 0` style testing during v0.6.1). Removed then, but no `.gitignore` rule meant it could recur. Added root-anchored `/0` to `.gitignore` so only the literal single-char filename at the root matches.
+
+### Added
+
+- **`packages/plugin/hooks/tests/find-cli.test.sh`** — 9 assertions covering the resolution order (env override > marketplace > npm), the missing-candidate sentinel behavior, the empty-env and missing-path fallthroughs, and the default-cwd handling. Wired into `packages/plugin/package.json` so `pnpm test:hooks` and `pnpm test` run it alongside `debounce.test.sh`.
+
+- **README render regression test** — `packages/cli/tests/commands/create.test.ts` now asserts that scaffolded `README.md` contains neither `<%=` nor `<%-` template syntax and does contain the project's actual basename.
+
+### Changed
+
+- **`tests/integration/closed-loop.test.ts`** — dropped the `npx` wrapper script and the `node_modules/.bin/loshu-sdlc` shim setup that worked around the Windows + Git Bash npx resolution bug. The hook spawn env now sets `LOSHU_SDLC_CLI=<CLI_BIN>` and `find-cli.sh` returns the real path immediately. Hook chain behavior is identical; the test is now ~50 lines shorter and doesn't depend on PATH gymnastics.
 
 ---
 
