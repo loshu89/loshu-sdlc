@@ -7,6 +7,13 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# Source event emitter
+if [ -f "$SCRIPT_DIR/lib/event-emit.sh" ]; then
+  # shellcheck source=/dev/null
+  source "$SCRIPT_DIR/lib/event-emit.sh"
+fi
+
 ROOT="${1:-.}"
 BANDS="$ROOT/bands.yaml"
 REVIEW="$ROOT/REVIEW.md"
@@ -130,6 +137,9 @@ if echo "$TRIPPED" | grep -q '"tier":[[:space:]]*"3sigma"'; then
   TS=$(date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || echo "unknown-time")
   NEW_TITLE="Incident: ${TRIPPED_METRIC:-unknown_metric} ($TS)"
   npx --no-install loshu-sdlc cycle new "$NEW_TITLE" --origin "$ORIGIN" "$ROOT" >/dev/null 2>&1 || true
+  if [ -f "$SCRIPT_DIR/lib/event-emit.sh" ]; then
+    emit_event "incident" "$CURRENT_CYCLE" "maintain" "bands-3sigma:${TRIPPED_METRIC:-unknown}"
+  fi
   log_event "maintain-exit" "incident" "$BANDS"
 fi
 
@@ -146,6 +156,14 @@ if [ "$BANDS_STATE" = "draft" ] || [ "$BANDS_STATE" = "iterating" ]; then
   fi
 else
   log_event "maintain-exit" "noop" "$BANDS"
+fi
+
+# Emit DAG event on successful validation (must run BEFORE exit 0)
+if [ -f "$SCRIPT_DIR/lib/event-emit.sh" ]; then
+  CYCLE_ID=$(grep -E '^cycle_id:' "$BANDS" 2>/dev/null | awk '{print $2}' | head -1 || true)
+  if [ -z "${CYCLE_ID:-}" ]; then CYCLE_ID="$CURRENT_CYCLE"; fi
+  ARTIFACT_ID=$(grep -E '^id:' "$BANDS" 2>/dev/null | awk '{print $2}' | head -1 || true)
+  emit_event "validate" "$CYCLE_ID" "maintain" "${ARTIFACT_ID:-bands-c$CYCLE_ID}"
 fi
 
 exit 0

@@ -7,6 +7,13 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# Source event emitter
+if [ -f "$SCRIPT_DIR/lib/event-emit.sh" ]; then
+  # shellcheck source=/dev/null
+  source "$SCRIPT_DIR/lib/event-emit.sh"
+fi
+
 ROOT="${1:-.}"
 REVIEW="$ROOT/REVIEW.md"
 PLAN="$ROOT/plan.md"
@@ -119,6 +126,14 @@ if [ "$REVIEW_STATE" = "draft" ] || [ "$REVIEW_STATE" = "iterating" ]; then
   fi
 else
   log_event "deploy-exit" "noop" "$REVIEW"
+fi
+
+# Emit DAG event on successful validation (must run BEFORE exit 0)
+if [ -f "$SCRIPT_DIR/lib/event-emit.sh" ]; then
+  CYCLE_ID=$(grep -E '^cycle_id:' "$REVIEW" 2>/dev/null | awk '{print $2}' | head -1 || true)
+  if [ -z "${CYCLE_ID:-}" ]; then CYCLE_ID="${CURRENT_CYCLE:-0}"; fi
+  ARTIFACT_ID=$(grep -E '^id:' "$REVIEW" 2>/dev/null | awk '{print $2}' | head -1 || true)
+  emit_event "validate" "$CYCLE_ID" "deploy" "${ARTIFACT_ID:-unknown}"
 fi
 
 exit 0

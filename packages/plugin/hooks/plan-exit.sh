@@ -148,9 +148,9 @@ fi
 
 # Emit DAG event on successful validation (must run BEFORE exit 0)
 if [ -f "$SCRIPT_DIR/lib/event-emit.sh" ]; then
-  CYCLE_ID=$(grep -E '^cycle_id:' "$INTENT" 2>/dev/null | awk '{print $2}' | head -1)
+  CYCLE_ID=$(grep -E '^cycle_id:' "$INTENT" 2>/dev/null | awk '{print $2}' | head -1 || true)
   if [ -z "${CYCLE_ID:-}" ]; then CYCLE_ID=0; fi
-  ARTIFACT_ID=$(grep -E '^id:' "$INTENT" 2>/dev/null | awk '{print $2}' | head -1)
+  ARTIFACT_ID=$(grep -E '^id:' "$INTENT" 2>/dev/null | awk '{print $2}' | head -1 || true)
   emit_event "validate" "$CYCLE_ID" "plan" "${ARTIFACT_ID:-unknown}"
 fi
 
