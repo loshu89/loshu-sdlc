@@ -120,8 +120,8 @@ switch (command) {
       process.exit(2);
     }
     if (sub === 'record') {
-      const metricNames = (values.metric ?? []) as string[];
-      const metricValues = (values.value ?? []) as string[];
+      const metricNames = values.metric ?? [];
+      const metricValues = values.value ?? [];
       if (metricNames.length !== metricValues.length) {
         console.error('bands record: --metric and --value counts must match');
         process.exit(2);

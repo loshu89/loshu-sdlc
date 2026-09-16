@@ -1,4 +1,5 @@
-import { copy, ensureDir } from 'fs-extra';
+import fsExtra from 'fs-extra';
+const { copy, ensureDir } = fsExtra;
 import { join } from 'node:path';
 
 export async function bundlePlugin(srcPlugin: string, destDir: string): Promise<void> {
