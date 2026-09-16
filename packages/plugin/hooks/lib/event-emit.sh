@@ -14,7 +14,8 @@ emit_event() {
   local ts
   ts=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
   local branch="${LOSHU_CURRENT_BRANCH:-}"
-  local pr_number="${LOSHU_CURRENT_PR:-}"
+  # Bare JSON value: number when set, null when unset (empty would be invalid JSON).
+  local pr_number="${LOSHU_CURRENT_PR:-null}"
   local events_file="$ROOT/.loshu-sdlc/state/events.jsonl"
   mkdir -p "$(dirname "$events_file")"
   [ -f "$events_file" ] && chmod 0644 "$events_file" || touch "$events_file"
