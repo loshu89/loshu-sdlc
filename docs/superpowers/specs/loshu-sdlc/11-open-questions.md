@@ -23,6 +23,6 @@ Seven questions still open as of v0.1.0. None block v0.1–v0.5; license questio
 
 ## Cross-references
 
-- See also: [§10-adr.md](§10-adr.md) — locked decisions that may be amended once these resolve
-- See also: [§9-nfrs.md](§9-nfrs.md) — license and security SLA decisions live here once resolved
-- See also: [§1-goals.md](§1-goals.md) — "auditable" goal is most affected by license + provenance decisions
+- See also: [10-adr.md](10-adr.md) — locked decisions that may be amended once these resolve
+- See also: [9-nfrs.md](9-nfrs.md) — license and security SLA decisions live here once resolved
+- See also: [1-goals.md](1-goals.md) — "auditable" goal is most affected by license + provenance decisions

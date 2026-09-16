@@ -254,8 +254,8 @@ Each stage hook now does more than schema validation:
 
 ## Cross-references
 
-- See also: [§1-identity.md](§1-identity.md) for the `cycle_id`, `stage`, and `git.branch` frontmatter fields consumed by this state machine
-- See also: [§2-versioning.md](§2-versioning.md) for how `state = iterating` is forced after schema migration
-- See also: [§4-acceptance.md](§4-acceptance.md) for the C1-C9 assertion rules that gate transitions
-- See also: [§5-storage.md](§5-storage.md) for cycle.json schema, events.jsonl append-only guarantees, and CODEOWNERS file format
-- See also: [§6-scope-acceptance.md](§6-scope-acceptance.md) for system-level acceptance items tied to state and git operations
+- See also: [1-identity.md](1-identity.md) for the `cycle_id`, `stage`, and `git.branch` frontmatter fields consumed by this state machine
+- See also: [2-versioning.md](2-versioning.md) for how `state = iterating` is forced after schema migration
+- See also: [4-acceptance.md](4-acceptance.md) for the C1-C9 assertion rules that gate transitions
+- See also: [5-storage.md](5-storage.md) for cycle.json schema, events.jsonl append-only guarantees, and CODEOWNERS file format
+- See also: [6-scope-acceptance.md](6-scope-acceptance.md) for system-level acceptance items tied to state and git operations

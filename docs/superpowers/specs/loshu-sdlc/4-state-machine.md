@@ -24,10 +24,10 @@ Plan → Design → Build → Test → Deploy → Maintain
                                     Plan (new intent.md)
 ```
 
-Each stage has an entry gate (the previous artifact validated) and an exit gate (the current artifact validated). Stage gates are enforced by hooks (see [§5-data-flow.md](§5-data-flow.md) § 9 for hook exit semantics).
+Each stage has an entry gate (the previous artifact validated) and an exit gate (the current artifact validated). Stage gates are enforced by hooks (see [5-data-flow.md](5-data-flow.md) § 9 for hook exit semantics).
 
 ## Cross-references
 
-- See also: [§3-domain-model.md](§3-domain-model.md) for the schemas directory referenced in rule 2
-- See also: [§5-data-flow.md](§5-data-flow.md) for the happy-path sequence and loop closure flow
-- See also: [§10-adr.md](§10-adr.md) for the locked decision on tiered hook policy
+- See also: [3-domain-model.md](3-domain-model.md) for the schemas directory referenced in rule 2
+- See also: [5-data-flow.md](5-data-flow.md) for the happy-path sequence and loop closure flow
+- See also: [10-adr.md](10-adr.md) for the locked decision on tiered hook policy

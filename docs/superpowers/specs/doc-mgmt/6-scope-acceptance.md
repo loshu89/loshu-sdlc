@@ -141,9 +141,9 @@ Each phase is independently usable. v0.6.0 alone ships as a working artifact-man
 
 ## Cross-references
 
-- See also: [§1-identity.md](§1-identity.md) for functionality items 1-3 (ID format, uniqueness, parent chain)
-- See also: [§2-versioning.md](§2-versioning.md) for functionality items 4-5 and 23 (schema registry, migrate behavior)
-- See also: [§3-state-machine-git.md](§3-state-machine-git.md) for functionality items 6-11 (DAG, branch, PR/MR, merge)
-- See also: [§4-acceptance.md](§4-acceptance.md) for functionality items 13-15 and 21-22 (test runner, eval suite)
-- See also: [§5-storage.md](§5-storage.md) for functionality items 12, 18-20 (events.jsonl, locks, retention, tamper detection) and performance items 25-27
+- See also: [1-identity.md](1-identity.md) for functionality items 1-3 (ID format, uniqueness, parent chain)
+- See also: [2-versioning.md](2-versioning.md) for functionality items 4-5 and 23 (schema registry, migrate behavior)
+- See also: [3-state-machine-git.md](3-state-machine-git.md) for functionality items 6-11 (DAG, branch, PR/MR, merge)
+- See also: [4-acceptance.md](4-acceptance.md) for functionality items 13-15 and 21-22 (test runner, eval suite)
+- See also: [5-storage.md](5-storage.md) for functionality items 12, 18-20 (events.jsonl, locks, retention, tamper detection) and performance items 25-27
 - See also: [spec.md](spec.md) References section for source material and related specs

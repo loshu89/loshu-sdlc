@@ -40,6 +40,6 @@ Every "we picked X over Y" decision, both the locked decisions set at the start 
 
 ## Cross-references
 
-- See also: [§3-domain-model.md](§3-domain-model.md) — the repo layout, components, and dependency tiers that these decisions produce
-- See also: [§4-state-machine.md](§4-state-machine.md) — the compliance contract that operationalizes the "tiered hook policy" decision
-- See also: [§11-open-questions.md](§11-open-questions.md) — items still unresolved that may amend these decisions
+- See also: [3-domain-model.md](3-domain-model.md) — the repo layout, components, and dependency tiers that these decisions produce
+- See also: [4-state-machine.md](4-state-machine.md) — the compliance contract that operationalizes the "tiered hook policy" decision
+- See also: [11-open-questions.md](11-open-questions.md) — items still unresolved that may amend these decisions

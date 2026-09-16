@@ -178,8 +178,8 @@ jobs:
 
 ## Cross-references
 
-- See also: [§1-identity.md](§1-identity.md) for A1-A8 field-level assertions on identity frontmatter
-- See also: [§2-versioning.md](§2-versioning.md) for V1-V4 schema-version assertions
-- See also: [§3-state-machine-git.md](§3-state-machine-git.md) for C1-C9 transition and git-binding assertions
-- See also: [§5-storage.md](§5-storage.md) for the test-results.yaml report file location
-- See also: [§6-scope-acceptance.md](§6-scope-acceptance.md) for the full system-level acceptance criteria (33 items) that this 22-assertion suite feeds into
+- See also: [1-identity.md](1-identity.md) for A1-A8 field-level assertions on identity frontmatter
+- See also: [2-versioning.md](2-versioning.md) for V1-V4 schema-version assertions
+- See also: [3-state-machine-git.md](3-state-machine-git.md) for C1-C9 transition and git-binding assertions
+- See also: [5-storage.md](5-storage.md) for the test-results.yaml report file location
+- See also: [6-scope-acceptance.md](6-scope-acceptance.md) for the full system-level acceptance criteria (33 items) that this 22-assertion suite feeds into

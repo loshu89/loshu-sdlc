@@ -20,7 +20,7 @@ loshu-sdlc is a reusable Claude Code plugin that implements the six-stage AI-Nat
 - **Full-stack project:** UI + backend; both sets of hints apply.
 - **Cycle:** One traversal of the six stages for one piece of work (one feature, one bug fix, one incident response).
 - **Stage gate:** The hook-enforced check between stages (e.g., Design-exit blocks Build entry until `spec.md` validates).
-- **Tier-1/2/3:** External dependency tiers (required / recommended / opportunistic). See [§10-adr.md](§10-adr.md).
+- **Tier-1/2/3:** External dependency tiers (required / recommended / opportunistic). See [10-adr.md](10-adr.md).
 
 ---
 
@@ -41,40 +41,40 @@ This spec is loaded when:
 
 Each § is a separate file. Open only the one you need.
 
-### Goals — [§1-goals.md](§1-goals.md)
+### Goals — [1-goals.md](1-goals.md)
 The six success criteria for loshu-sdlc: universal applicability, full lifecycle coverage, closed feedback loop, composability, auditability, bootstrappability.
 
-### Non-goals — [§2-non-goals.md](§2-non-goals.md)
+### Non-goals — [2-non-goals.md](2-non-goals.md)
 Five explicit "we will NOT do this" boundaries: not replacing the human, not stack opinionation, not build-system integration, not real-time collaboration, not hosted service.
 
-### Domain model — [§3-domain-model.md](§3-domain-model.md)
+### Domain model — [3-domain-model.md](3-domain-model.md)
 Repo layout (monorepo with `packages/{plugin, cli, templates}`), component shapes (`@loshu-sdlc/plugin`, `@loshu-sdlc/cli`, `@loshu-sdlc/templates`), slash command → external dependency map, and what loshu-sdlc owns vs borrows.
 
-### State machine / compliance contract — [§4-state-machine.md](§4-state-machine.md)
+### State machine / compliance contract — [4-state-machine.md](4-state-machine.md)
 The five SDLC compliance rules (landing zone, schema enforcement, hook enforcement, loop closure, provenance) that govern how external capabilities interact with the artifact chain.
 
-### Data flow — [§5-data-flow.md](§5-data-flow.md)
+### Data flow — [5-data-flow.md](5-data-flow.md)
 Project bootstrap (fresh + existing), happy path (`/sdlc-plan` → ... → `/sdlc-maintain`), loop closure on 3σ incidents, cross-stage navigation, plus error categories (E1–E10), hook exit semantics, fallback strategy, and CLI exit codes.
 
-### API surface — [§6-api-surface.md](§6-api-surface.md)
+### API surface — [6-api-surface.md](6-api-surface.md)
 `create-loshu-sdlc-app` flags, `loshu-sdlc` subcommands (`doctor`, `validate`, `lint`, `rules`, `upgrade`, `logs`, `status`, `coverage`, `help`, `version`), `.loshu-sdlc/config.yaml` schema, and the no-telemetry default.
 
-### UX wireframes — [§7-ux-wireframes.md](§7-ux-wireframes.md)
+### UX wireframes — [7-ux-wireframes.md](7-ux-wireframes.md)
 ASCII wireframes of CLI command output, scaffold flow, status output, and the README layout users see after bootstrap.
 
-### Acceptance criteria — [§8-acceptance.md](§8-acceptance.md)
+### Acceptance criteria — [8-acceptance.md](8-acceptance.md)
 Testing layers (unit, integration, eval, smoke), coverage targets per package, and release gating checklist.
 
-### Non-functional requirements — [§9-nfrs.md](§9-nfrs.md)
+### Non-functional requirements — [9-nfrs.md](9-nfrs.md)
 Versioning policy, distribution channels, support model, deprecation policy, security disclosure SLA, and the v0.1 → v1.0 roadmap.
 
-### Architecture decisions — [§10-adr.md](§10-adr.md)
+### Architecture decisions — [10-adr.md](10-adr.md)
 All locked decisions from user-stated constraints and trimming audit, plus the chronological decision log (start → early → mid → late).
 
-### Open questions — [§11-open-questions.md](§11-open-questions.md)
+### Open questions — [11-open-questions.md](11-open-questions.md)
 Seven pre-v1.0 questions: license, marketplace identity, first-party hosting, backing org, brand assets, eval threshold calibration, hook policy overrides.
 
-### References — [§12-references.md](§12-references.md)
+### References — [12-references.md](12-references.md)
 External docs: Anthropic AI-Native SDLC Playbook, Claude Academy course, ECC, superpowers plugin, ui-ux-pro-max, Claude Code plugin marketplace docs.
 
 ---

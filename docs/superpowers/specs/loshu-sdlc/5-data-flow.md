@@ -80,7 +80,7 @@ other  → non-block error; stderr logged
 
 ## Cross-references
 
-- See also: [§3-domain-model.md](§3-domain-model.md) for the slash command → external dependency map
-- See also: [§4-state-machine.md](§4-state-machine.md) for the compliance rules these flows must satisfy
-- See also: [§6-api-surface.md](§6-api-surface.md) for CLI flags referenced in the bootstrap section
-- See also: [§8-acceptance.md](§8-acceptance.md) for how the happy path is tested
+- See also: [3-domain-model.md](3-domain-model.md) for the slash command → external dependency map
+- See also: [4-state-machine.md](4-state-machine.md) for the compliance rules these flows must satisfy
+- See also: [6-api-surface.md](6-api-surface.md) for CLI flags referenced in the bootstrap section
+- See also: [8-acceptance.md](8-acceptance.md) for how the happy path is tested

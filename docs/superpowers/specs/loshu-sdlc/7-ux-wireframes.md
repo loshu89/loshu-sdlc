@@ -102,6 +102,6 @@ my-app/
 
 ## Cross-references
 
-- See also: [§5-data-flow.md](§5-data-flow.md) for the bootstrap and maintain flows these wireframes illustrate
-- See also: [§6-api-surface.md](§6-api-surface.md) for the full flag/option list referenced in the prompts
-- See also: [§3-domain-model.md](§3-domain-model.md) for the scaffolded file layout (Wireframe 4)
+- See also: [5-data-flow.md](5-data-flow.md) for the bootstrap and maintain flows these wireframes illustrate
+- See also: [6-api-surface.md](6-api-surface.md) for the full flag/option list referenced in the prompts
+- See also: [3-domain-model.md](3-domain-model.md) for the scaffolded file layout (Wireframe 4)

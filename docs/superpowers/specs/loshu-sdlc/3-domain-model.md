@@ -184,6 +184,6 @@ packages/templates/
 
 ## Cross-references
 
-- See also: [§1-goals.md](§1-goals.md) — composability goal drives the owns-vs-borrows split
-- See also: [§5-data-flow.md](§5-data-flow.md) — how the slash commands in the dependency map sequence
-- See also: [§10-adr.md](§10-adr.md) — locked decisions on tiering and external deps
+- See also: [1-goals.md](1-goals.md) — composability goal drives the owns-vs-borrows split
+- See also: [5-data-flow.md](5-data-flow.md) — how the slash commands in the dependency map sequence
+- See also: [10-adr.md](10-adr.md) — locked decisions on tiering and external deps

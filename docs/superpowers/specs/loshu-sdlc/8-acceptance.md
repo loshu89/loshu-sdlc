@@ -24,6 +24,6 @@ A version can be released only if: all unit + integration tests pass, eval suite
 
 ## Cross-references
 
-- See also: [§1-goals.md](§1-goals.md) — each goal here maps to ≥1 acceptance criterion (auditable → attribution check; bootstrappable → integration tests for scaffolder)
-- See also: [§9-nfrs.md](§9-nfrs.md) for the non-functional criteria (security SLA, support model) that complement these tests
-- See also: [§5-data-flow.md](§5-data-flow.md) § 9 for the error categories these tests must cover
+- See also: [1-goals.md](1-goals.md) — each goal here maps to ≥1 acceptance criterion (auditable → attribution check; bootstrappable → integration tests for scaffolder)
+- See also: [9-nfrs.md](9-nfrs.md) for the non-functional criteria (security SLA, support model) that complement these tests
+- See also: [5-data-flow.md](5-data-flow.md) § 9 for the error categories these tests must cover

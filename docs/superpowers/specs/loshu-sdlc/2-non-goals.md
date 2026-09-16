@@ -14,5 +14,5 @@ Five explicit "we will NOT do this" boundaries. Critical for scope control — t
 
 ## Cross-references
 
-- See also: [§1-goals.md](§1-goals.md) for the positive scope that these non-goals carve out
-- See also: [§3-domain-model.md](§3-domain-model.md) for the owns-vs-borrows boundary that enforces these non-goals
+- See also: [1-goals.md](1-goals.md) for the positive scope that these non-goals carve out
+- See also: [3-domain-model.md](3-domain-model.md) for the owns-vs-borrows boundary that enforces these non-goals

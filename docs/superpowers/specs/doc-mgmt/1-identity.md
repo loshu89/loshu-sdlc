@@ -154,6 +154,6 @@ $ loshu-sdlc validate spec.md
 
 ## Cross-references
 
-- See also: [§2-versioning.md](§2-versioning.md) for the `schema_version` field that travels with every ID
-- See also: [§3-state-machine-git.md](§3-state-machine-git.md) for how `cycle_id` and `git.branch` link to lifecycle
-- See also: [§4-acceptance.md](§4-acceptance.md) for ID-related assertions (A1-A3, A5)
+- See also: [2-versioning.md](2-versioning.md) for the `schema_version` field that travels with every ID
+- See also: [3-state-machine-git.md](3-state-machine-git.md) for how `cycle_id` and `git.branch` link to lifecycle
+- See also: [4-acceptance.md](4-acceptance.md) for ID-related assertions (A1-A3, A5)

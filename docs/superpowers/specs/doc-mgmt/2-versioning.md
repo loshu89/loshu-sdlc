@@ -134,7 +134,7 @@ migrated_at: 2026-09-15T12:00:00Z
 
 ## Cross-references
 
-- See also: [§1-identity.md](§1-identity.md) for the `id` field that travels with every `schema_version`
-- See also: [§3-state-machine-git.md](§3-state-machine-git.md) for how the `iterating` state is set post-migration
-- See also: [§4-acceptance.md](§4-acceptance.md) for V1-V7 assertion rules
-- See also: [§5-storage.md](§5-storage.md) for events.jsonl emission on migrate
+- See also: [1-identity.md](1-identity.md) for the `id` field that travels with every `schema_version`
+- See also: [3-state-machine-git.md](3-state-machine-git.md) for how the `iterating` state is set post-migration
+- See also: [4-acceptance.md](4-acceptance.md) for V1-V7 assertion rules
+- See also: [5-storage.md](5-storage.md) for events.jsonl emission on migrate

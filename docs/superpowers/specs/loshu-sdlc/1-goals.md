@@ -2,7 +2,7 @@
 
 <!-- 100-300 words. Specific to this section. -->
 
-The six measurable success criteria for loshu-sdlc. Every goal must be verifiable through a combination of acceptance criteria ([§8-acceptance.md](§8-acceptance.md)) and NFRs ([§9-nfrs.md](§9-nfrs.md)).
+The six measurable success criteria for loshu-sdlc. Every goal must be verifiable through a combination of acceptance criteria ([8-acceptance.md](8-acceptance.md)) and NFRs ([9-nfrs.md](9-nfrs.md)).
 
 ## Goals
 
@@ -15,6 +15,6 @@ The six measurable success criteria for loshu-sdlc. Every goal must be verifiabl
 
 ## Cross-references
 
-- See also: [§2-non-goals.md](§2-non-goals.md) for explicit "we will NOT do this" boundaries
-- See also: [§8-acceptance.md](§8-acceptance.md) for how each goal is verified
-- See also: [§3-domain-model.md](§3-domain-model.md) for the architecture that satisfies these goals
+- See also: [2-non-goals.md](2-non-goals.md) for explicit "we will NOT do this" boundaries
+- See also: [8-acceptance.md](8-acceptance.md) for how each goal is verified
+- See also: [3-domain-model.md](3-domain-model.md) for the architecture that satisfies these goals

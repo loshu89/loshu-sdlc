@@ -45,6 +45,6 @@ For `1.x+` breaking changes: announce in CHANGELOG, document migration, warn in 
 
 ## Cross-references
 
-- See also: [§1-goals.md](§1-goals.md) — universal applicability is the NFR constraint that keeps the plugin language-agnostic
-- See also: [§8-acceptance.md](§8-acceptance.md) — coverage targets are the quantitative counterpart to these qualitative NFRs
-- See also: [§6-api-surface.md](§6-api-surface.md) § Telemetry — no-telemetry-by-default is the privacy NFR
+- See also: [1-goals.md](1-goals.md) — universal applicability is the NFR constraint that keeps the plugin language-agnostic
+- See also: [8-acceptance.md](8-acceptance.md) — coverage targets are the quantitative counterpart to these qualitative NFRs
+- See also: [6-api-surface.md](6-api-surface.md) § Telemetry — no-telemetry-by-default is the privacy NFR

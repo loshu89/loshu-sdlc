@@ -9,18 +9,18 @@
 ```
 docs/superpowers/specs/<feature>/
 ├── spec.md              ← main file (this template's structure)
-├── §1-goals.md
-├── §2-non-goals.md
-├── §3-domain-model.md
-├── §4-state-machine.md
-├── §5-data-flow.md
-├── §6-api-surface.md
-├── §7-ux-wireframes.md
-├── §8-acceptance.md
-├── §9-nfrs.md
-├── §10-adr.md
-├── §11-open-questions.md
-└── §12-references.md
+├── 1-goals.md
+├── 2-non-goals.md
+├── 3-domain-model.md
+├── 4-state-machine.md
+├── 5-data-flow.md
+├── 6-api-surface.md
+├── 7-ux-wireframes.md
+├── 8-acceptance.md
+├── 9-nfrs.md
+├── 10-adr.md
+├── 11-open-questions.md
+└── 12-references.md
 ```
 
 **Layer 1 (always loaded, 10-30 lines):** Description + trigger. AI and humans read this first.
@@ -58,7 +58,7 @@ docs/superpowers/specs/<feature>/
 **Example:**
 - Triggered by `/sdlc-design` when entering Design stage
 - Triggered by `loshu-sdlc cycle new` to scaffold initial cycle state
-- Referenced by all §-files in this directory (cross-links via `§N-name.md` syntax)
+- Referenced by all §-files in this directory (cross-links via `N-name.md` syntax)
 
 ---
 
@@ -66,40 +66,40 @@ docs/superpowers/specs/<feature>/
 
 Each § is a separate file. The numbering is fixed (1-12) but not all §-files are required — pick what applies.
 
-### Goals — [§1-goals.md](§1-goals.md)
+### Goals — [1-goals.md](1-goals.md)
 <3-7 measurable goals. What does "done" look like?>
 
-### Non-goals — [§2-non-goals.md](§2-non-goals.md)
+### Non-goals — [2-non-goals.md](2-non-goals.md)
 <3-7 explicit "we will NOT do this." Critical for scope control.>
 
-### Domain model — [§3-domain-model.md](§3-domain-model.md)
+### Domain model — [3-domain-model.md](3-domain-model.md)
 <Entities, fields, types, relationships. ASCII diagram OK.>
 
-### State machine — [§4-state-machine.md](§4-state-machine.md)
+### State machine — [4-state-machine.md](4-state-machine.md)
 <States, transitions, guards, trigger events. ASCII diagram or table.>
 
-### Data flow — [§5-data-flow.md](§5-data-flow.md)
+### Data flow — [5-data-flow.md](5-data-flow.md)
 <Bootstrap, happy path, error path, edge cases. Sequence diagrams OK.>
 
-### API surface — [§6-api-surface.md](§6-api-surface.md)
+### API surface — [6-api-surface.md](6-api-surface.md)
 <Commands, parameters, outputs, error codes. Type signatures.>
 
-### UX wireframes — [§7-ux-wireframes.md](§7-ux-wireframes.md)
+### UX wireframes — [7-ux-wireframes.md](7-ux-wireframes.md)
 <ASCII boxes + sample outputs. Each UI surface gets one wireframe + one sample artifact.>
 
-### Acceptance criteria — [§8-acceptance.md](§8-acceptance.md)
+### Acceptance criteria — [8-acceptance.md](8-acceptance.md)
 <Checklist: how do we know this is done? Per-assertion pass/fail criteria.>
 
-### Non-functional requirements — [§9-nfrs.md](§9-nfrs.md)
+### Non-functional requirements — [9-nfrs.md](9-nfrs.md)
 <Performance budgets, reliability targets, security constraints, scalability limits.>
 
-### Architecture decisions — [§10-adr.md](§10-adr.md)
+### Architecture decisions — [10-adr.md](10-adr.md)
 <One section per decision: context, options considered, choice, rationale, consequences.>
 
-### Open questions — [§11-open-questions.md](§11-open-questions.md)
+### Open questions — [11-open-questions.md](11-open-questions.md)
 <Unresolved items that block implementation. Mark each as Blocking / Non-blocking.>
 
-### References — [§12-references.md](§12-references.md)
+### References — [12-references.md](12-references.md)
 <External docs, prior work, related specs.>
 
 ---
@@ -120,15 +120,15 @@ Each §-file follows the same shape:
 # §N <Section Name>
 
 <!-- 100-300 words. Specific to this section. -->
-<!-- For §7-ux-wireframes, include ASCII boxes. -->
-<!-- For §10-adr, one section per decision. -->
+<!-- For 7-ux-wireframes, include ASCII boxes. -->
+<!-- For 10-adr, one section per decision. -->
 
 <content here>
 
 ## Cross-references
 
-- See also: [§3-domain-model.md](§3-domain-model.md) for field definitions
-- See also: [§8-acceptance.md](§8-acceptance.md) for related acceptance criteria
+- See also: [3-domain-model.md](3-domain-model.md) for field definitions
+- See also: [8-acceptance.md](8-acceptance.md) for related acceptance criteria
 ```
 
 The "Cross-references" section at the end of each §-file is optional but recommended when §-files reference each other heavily.

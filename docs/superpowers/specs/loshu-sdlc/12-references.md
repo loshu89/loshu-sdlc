@@ -22,5 +22,5 @@ External sources cited by this spec. Linked from various §-files; consolidated 
 
 ## Cross-references
 
-- See also: [§3-domain-model.md](§3-domain-model.md) for the borrowed-vs-owned split these references support
-- See also: [§10-adr.md](§10-adr.md) for the locked decisions on which external deps to borrow
+- See also: [3-domain-model.md](3-domain-model.md) for the borrowed-vs-owned split these references support
+- See also: [10-adr.md](10-adr.md) for the locked decisions on which external deps to borrow

@@ -189,6 +189,6 @@ async function withLock<T>(file: string, fn: () => Promise<T>): Promise<T> {
 
 ## Cross-references
 
-- See also: [§3-state-machine-git.md](§3-state-machine-git.md) for the cycle.json fields (`state`, `pr_number`, `pr_url`) and the events.jsonl emission in hooks
-- See also: [§4-acceptance.md](§4-acceptance.md) for the test-results.yaml file and JUnit reporting
-- See also: [§6-scope-acceptance.md](§6-scope-acceptance.md) for retention/cleanup acceptance items
+- See also: [3-state-machine-git.md](3-state-machine-git.md) for the cycle.json fields (`state`, `pr_number`, `pr_url`) and the events.jsonl emission in hooks
+- See also: [4-acceptance.md](4-acceptance.md) for the test-results.yaml file and JUnit reporting
+- See also: [6-scope-acceptance.md](6-scope-acceptance.md) for retention/cleanup acceptance items

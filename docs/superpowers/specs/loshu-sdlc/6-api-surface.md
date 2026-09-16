@@ -45,6 +45,6 @@ loop: { auto_intent_on_incident: true, require_po_signoff: true }
 
 ## Cross-references
 
-- See also: [§5-data-flow.md](§5-data-flow.md) § 9 for CLI exit codes and error recovery semantics
-- See also: [§3-domain-model.md](§3-domain-model.md) for the `packages/cli/src/` source layout that implements these subcommands
-- See also: [§7-ux-wireframes.md](§7-ux-wireframes.md) for sample outputs of `doctor`, `status`, `coverage`
+- See also: [5-data-flow.md](5-data-flow.md) § 9 for CLI exit codes and error recovery semantics
+- See also: [3-domain-model.md](3-domain-model.md) for the `packages/cli/src/` source layout that implements these subcommands
+- See also: [7-ux-wireframes.md](7-ux-wireframes.md) for sample outputs of `doctor`, `status`, `coverage`
