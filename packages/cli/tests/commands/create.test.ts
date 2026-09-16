@@ -33,6 +33,26 @@ describe('create command', () => {
     expect(config).toContain('projectName: my-app');
   });
 
+  it('renders README.md via EJS (projectName substitution, no template-syntax leak)', async () => {
+    // Both README templates (minimal + full) carry `# <%= projectName %>`
+    // at the top. v0.6.0–v0.6.1's scaffolder omitted README.md from the
+    // artifactTemplates render list, so the literal `<%= … %>` leaked
+    // into every scaffolded project. Fix: add 'README.md' to that list.
+    const target = join(tmpDir, 'rendered-readme');
+    await create({
+      path: target,
+      template: 'minimal',
+      noGit: true,
+      yes: true,
+      coverage: 80,
+      branch: 75,
+    });
+
+    const readme = await readFile(join(target, 'README.md'), 'utf8');
+    expect(readme).not.toMatch(/<%=/);
+    expect(readme).toContain('rendered-readme');
+  });
+
   it('refuses to scaffold into existing repo without --existing', async () => {
     const target = join(tmpDir, 'existing');
     await outputFile(join(target, 'README.md'), '# existing');

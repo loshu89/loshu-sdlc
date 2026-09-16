@@ -107,7 +107,10 @@ export async function create(args: CreateArgs): Promise<void> {
   };
 
   // Render every artifact template present in the target (the minimal template
-  // ships intent.md only; the full template ships all six).
+  // ships intent.md only; the full template ships all six). README.md is
+  // included here too — both templates (full + minimal) carry
+  // `# <%= projectName %>` at the top, and v0.6.0–v0.6.1 omitted README.md
+  // from this list, leaking `<%= … %>` into every scaffolded project.
   const artifactTemplates = [
     'intent.md',
     'spec.md',
@@ -115,6 +118,7 @@ export async function create(args: CreateArgs): Promise<void> {
     'CLAUDE.md',
     'REVIEW.md',
     'bands.yaml',
+    'README.md',
   ];
   for (const rel of artifactTemplates) {
     const artifactPath = join(targetPath, rel);
