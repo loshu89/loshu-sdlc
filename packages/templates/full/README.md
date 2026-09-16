@@ -12,7 +12,7 @@ pnpm build
 
 ## SDLC
 
-Run `/sdlc-status` to see current cycle state. Run `/sdlc-help` for all commands.
+Run `/sdlc-status` to see current cycle state. Run `/sdlc-help` for all commands. Replace the placeholder owners in `.loshu-sdlc/CODEOWNERS` with your team's GitHub usernames.
 
 ## CI
 

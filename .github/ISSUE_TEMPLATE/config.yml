@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: loshu-sdlc discussions
+    url: https://github.com/loshu89/loshu-sdlc/discussions
+    about: Questions and workflow ideas (enable Discussions in repo settings first)

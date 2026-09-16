@@ -1,0 +1,12 @@
+# packages/templates/full/.loshu-sdlc/CODEOWNERS
+# Reviewer routing for SDLC artifacts (loshu-sdlc git sync reads this).
+# Syntax: <artifact-path> <@owner>... — last match wins.
+# Replace the placeholder owners with your team's GitHub usernames/teams.
+
+/intent.md    @product-owner
+/spec.md      @architect @security-reviewer
+/plan.md      @tech-lead
+/CLAUDE.md    @tech-lead
+/REVIEW.md    @security-reviewer @qa-lead
+/bands.yaml   @sre-oncall
+/*            @tech-lead

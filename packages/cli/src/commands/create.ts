@@ -1,7 +1,7 @@
 import { resolve, basename, join } from 'node:path';
 import { existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { ensureDir, ensureSymlink, copy, writeFile } from 'fs-extra';
+import fsExtra from 'fs-extra';
 import chalk from 'chalk';
 import process from 'node:process';
 import { renderFile } from '../lib/render.js';
@@ -9,6 +9,10 @@ import { generateId } from '../lib/identity.js';
 import { initGit, isGitRepo } from '../lib/git.js';
 import { bundlePlugin } from '../lib/plugin-bundler.js';
 import { runPrompts, type ScaffoldOptions } from '../lib/prompts.js';
+
+// fs-extra is CJS — default-import interop per repo convention (named imports
+// of CJS deps break at runtime on modern Node's ESM linker, e.g. writeFile).
+const { ensureDir, ensureSymlink, copy, writeFile } = fsExtra;
 
 export interface CreateArgs {
   path: string;
@@ -69,7 +73,13 @@ export async function create(args: CreateArgs): Promise<void> {
     options.template,
   );
   await copy(templateDir, targetPath, {
-    filter: (src) => !src.includes('.git') && !src.includes('node_modules'),
+    // Exact basename matches only. A substring check like src.includes('.git')
+    // also catches '.github' and '.gitignore', which silently dropped the
+    // template's CI workflow stubs and dotfiles since v0.1.0.
+    filter: (src) => {
+      const base = basename(src);
+      return base !== '.git' && base !== 'node_modules';
+    },
   });
 
   // Render EJS placeholders. v0.6.0 schemas require Identity fields on every

@@ -41,5 +41,10 @@ describe('end-to-end scaffold', () => {
       expect(result.errors).toEqual([]);
       expect(result.valid).toBe(true);
     }
+
+    // v0.6.1 T6: reviewer routing + PR template must reach scaffolded projects
+    // (the copy filter used to drop everything matching '.git*', incl. .github/).
+    expect(existsSync(join(target, '.loshu-sdlc', 'CODEOWNERS'))).toBe(true);
+    expect(existsSync(join(target, '.github', 'PULL_REQUEST_TEMPLATE.md'))).toBe(true);
   });
 });
