@@ -56,7 +56,7 @@ export const identityAssertions: Assertion[] = [
       const fm = await readFrontmatter(a);
       if (!fm?.schema_version) return fail('A4', 'schema_version missing');
       if (!/^\d+\.\d+\.\d+$/.test(String(fm.schema_version)))
-        return fail('A4', `not semver: ${fm.schema_version}`);
+        return fail('A4', `not semver: ${String(fm.schema_version)}`);
       return pass('A4');
     },
   },
@@ -67,7 +67,7 @@ export const identityAssertions: Assertion[] = [
     run: async (a) => {
       const fm = await readFrontmatter(a);
       if (typeof fm?.cycle_id !== 'number' || fm.cycle_id < 1)
-        return fail('A5', `bad cycle_id: ${fm?.cycle_id}`);
+        return fail('A5', `bad cycle_id: ${String(fm?.cycle_id)}`);
       return pass('A5');
     },
   },
@@ -79,7 +79,7 @@ export const identityAssertions: Assertion[] = [
       const fm = await readFrontmatter(a);
       const allowed = ['draft', 'accepted', 'iterating', 'blocked', 'rejected', 'merged', 'archived'];
       if (!allowed.includes(String(fm?.state)))
-        return fail('A6', `state "${fm?.state}" not in enum`);
+        return fail('A6', `state "${String(fm?.state)}" not in enum`);
       return pass('A6');
     },
   },
@@ -101,7 +101,7 @@ export const identityAssertions: Assertion[] = [
     run: async (a) => {
       const fm = await readFrontmatter(a);
       if (fm?.stage !== a.stage)
-        return fail('A8', `stage mismatch: file=${a.stage} frontmatter=${fm?.stage}`);
+        return fail('A8', `stage mismatch: file=${a.stage} frontmatter=${String(fm?.stage)}`);
       return pass('A8');
     },
   },

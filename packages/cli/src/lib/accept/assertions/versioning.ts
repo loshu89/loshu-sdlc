@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { parse as parseYaml } from 'yaml';
 import type { Assertion, AssertionResult } from '../types.js';
 import { loadRegistry, getArtifactTypeRegistry } from '../../registry.js';
+import type { RegistryVersion } from '../../migrate.js';
 
 const FRONTMATTER_RE = /^---\n([\s\S]*?)\n---/;
 
@@ -52,7 +53,8 @@ export const versioningAssertions: Assertion[] = [
       const ver = String(fm.schema_version);
       const reg = await loadRegistry();
       const typeReg = getArtifactTypeRegistry(reg, a.stage);
-      if ((typeReg[ver] as any)?.deprecated)
+      const entry = typeReg[ver] as RegistryVersion | undefined;
+      if (entry?.deprecated)
         return fail('V3', `version ${ver} is deprecated`, 'loshu-sdlc migrate <file>');
       return pass('V3');
     },

@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises';
 import { parse as parseYaml } from 'yaml';
 import type { Assertion, AssertionResult } from '../types.js';
 import type { Stage } from '../../identity.js';
+import type { CycleStateFile } from '../../cycle.js';
 
 const FRONTMATTER_RE = /^---\n([\s\S]*?)\n---/;
 
@@ -30,7 +31,7 @@ export const stateAssertions: Assertion[] = [
       const fm = await readFrontmatter(a.filePath);
       const allowed = ['draft', 'accepted', 'iterating', 'blocked', 'rejected', 'merged', 'archived'];
       if (!allowed.includes(String(fm?.state)))
-        return fail('C1', `state "${fm?.state}" not in enum`);
+        return fail('C1', `state "${String(fm?.state)}" not in enum`);
       return pass('C1');
     },
   },
@@ -40,9 +41,9 @@ export const stateAssertions: Assertion[] = [
     description: 'cross-stage guard: previous stage is accepted',
     run: async (a) => {
       const cyclePath = `${process.cwd()}/.loshu-sdlc/state/cycle.json`;
-      let cycle: any;
+      let cycle: CycleStateFile | undefined;
       try {
-        cycle = JSON.parse(await readFile(cyclePath, 'utf-8'));
+        cycle = JSON.parse(await readFile(cyclePath, 'utf-8')) as CycleStateFile;
       } catch {
         return pass('C2');
       }
@@ -54,7 +55,7 @@ export const stateAssertions: Assertion[] = [
       if (!myCycle) return pass('C2');
       const prevState = myCycle.stages?.[prevStage]?.state;
       if (prevState !== 'accepted' && prevState !== 'merged') {
-        return fail('C2', `previous stage ${prevStage} is ${prevState}, must be accepted`);
+        return fail('C2', `previous stage ${prevStage} is ${String(prevState)}, must be accepted`);
       }
       return pass('C2');
     },

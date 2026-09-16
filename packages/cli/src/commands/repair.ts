@@ -35,7 +35,7 @@ export async function repair(args: RepairArgs): Promise<number> {
     const stage = inferStage(args.file);
     const cycleId = Number(fm.cycle_id ?? 1);
     fm.id = generateId({ stage, cycle: cycleId, slug });
-    changes.push(`regenerated id → ${fm.id}`);
+    changes.push(`regenerated id → ${String(fm.id)}`);
   }
   if (!fm.schema_version) {
     fm.schema_version = '0.5.0';
