@@ -31,6 +31,12 @@ stage: plan
 state: draft
 created_by: human:test
 created_at: 2026-09-15T10:00:00Z
+title: Test intent
+problem: Something is broken
+proposedOutcome: It works
+affectedUsersAndSystems:
+  - Users
+openQuestions: []
 ---
 content`,
     );
