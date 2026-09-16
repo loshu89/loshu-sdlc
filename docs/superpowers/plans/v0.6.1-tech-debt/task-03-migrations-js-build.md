@@ -19,7 +19,7 @@
 
 ## Steps
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```typescript
 // packages/cli/tests/lib/migrate-load.test.ts
@@ -43,7 +43,7 @@ describe('loadTransforms', () => {
 });
 ```
 
-- [ ] **Step 2: Run test to verify it fails on this Node version**
+- [x] **Step 2: Run test to verify it fails on this Node version**
 
 ```bash
 cd "D:/workspace/3.my/SDLC"
@@ -53,7 +53,7 @@ npx pnpm@9.0.0 --filter @loshu89/cli test -- tests/lib/migrate-load.test.ts
 
 Expected on Node 20: FAIL (`transforms` is `{}` — key missing). On Node 22+: may PASS already (direct `.ts` import works) — that's fine, the test still guards the contract; note the Node version in your report.
 
-- [ ] **Step 3: Create the compile script**
+- [x] **Step 3: Create the compile script**
 
 ```javascript
 // scripts/compile-migrations.mjs
@@ -96,7 +96,7 @@ execFileSync(
 console.log(`compile-migrations: compiled ${tsFiles.length} file(s) to ${bundledMigrations}`);
 ```
 
-- [ ] **Step 4: Chain it into the build**
+- [x] **Step 4: Chain it into the build**
 
 In `packages/cli/package.json`, change:
 
@@ -111,7 +111,7 @@ to:
 "compile-migrations": "node ../../scripts/compile-migrations.mjs",
 ```
 
-- [ ] **Step 5: Fix the loader — .js first, .ts fallback, loud warning**
+- [x] **Step 5: Fix the loader — .js first, .ts fallback, loud warning**
 
 Replace the import-attempt block in `packages/cli/src/lib/migrate-load.ts` (currently lines ~24-35):
 
@@ -151,7 +151,7 @@ Also: the dev-repo `MIGRATIONS_DIR` (`packages/plugin/migrations`) contains only
 
 (Adapt variable names to the existing code; the CONTRACT is: keys are `{from}->{to}`, each key loaded at most once, `.js` preferred when both exist.)
 
-- [ ] **Step 6: Build + run the test**
+- [x] **Step 6: Build + run the test**
 
 ```bash
 cd "D:/workspace/3.my/SDLC"
@@ -161,7 +161,7 @@ npx pnpm@9.0.0 --filter @loshu89/cli test -- tests/lib/migrate-load.test.ts test
 
 Expected: build prints `compile-migrations: compiled 2 file(s)`; both test files PASS (migrate.test.ts exercises the full CLI path).
 
-- [ ] **Step 7: Verify compiled output is in the bundle and gitignored**
+- [x] **Step 7: Verify compiled output is in the bundle and gitignored**
 
 ```bash
 ls packages/cli/plugin/migrations/
@@ -170,7 +170,7 @@ git check-ignore packages/cli/plugin/ && echo "bundle ignored (correct)"
 
 Expected: `.ts` AND `.js` files listed; bundle is gitignored (copy-plugin output is not committed — verified in v0.6.0).
 
-- [ ] **Step 8: E2E migrate on Node — confirm no silent failure**
+- [x] **Step 8: E2E migrate on Node — confirm no silent failure**
 
 ```bash
 TMP=$(mktemp -d)
@@ -182,7 +182,7 @@ rm -rf "$TMP"
 
 Expected: `schema_version: 0.5.0` and `state: iterating` in the output file. If the warn message appears instead, the loader fix is wrong — debug before committing.
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add scripts/compile-migrations.mjs packages/cli/src/lib/migrate-load.ts packages/cli/package.json packages/cli/tests/lib/migrate-load.test.ts
