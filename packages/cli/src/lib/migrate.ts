@@ -9,6 +9,13 @@ export interface RegistryVersion {
 export type Registry = Record<string, RegistryVersion>;
 export type ArtifactTypeRegistry = Registry;
 
+// Migration transforms operate on arbitrary JSON-shaped artifacts
+// (intent.md, spec.md, …) with heterogeneous schemas. The input and
+// output are typed as `unknown` — transforms must narrow to their
+// expected shape, consumers must re-narrow after chainMigrate.
+// This is type-safer than `any` because it forces explicit narrowing.
+export type TransformFn = (artifact: unknown) => unknown;
+
 export interface MigrationEvent {
   ts: string;
   from: string;
@@ -16,15 +23,20 @@ export interface MigrationEvent {
   artifact_path: string;
 }
 
+// Registry shapes accepted by findMigrationPath:
+//   1. Flat — `{ "0.1.0": {…}, "0.2.0": {…} }` (legacy).
+//   2. Wrapper — `{ current?: string, versions: {…} }` (current v0.6
+//      registry.json layout).
+type RegistryShape = Registry | { current?: string; versions: Registry };
+
 export function findMigrationPath(
   fromVer: string,
   toVer: string,
-  registry: ArtifactTypeRegistry,
+  registry: RegistryShape,
 ): string[] {
   if (fromVer === toVer) throw new Error('no migration path: from equals to');
-  // Accept both wrapper {current, versions} and flat {version: ...} shapes.
-  const versions: Record<string, RegistryVersion | undefined> =
-    (registry as any).versions ?? (registry as any);
+  const versions: Registry =
+    'versions' in registry ? registry.versions : registry;
   if (!versions[fromVer]) throw new Error(`unknown from version: ${fromVer}`);
 
   const path: string[] = [fromVer];
@@ -39,25 +51,23 @@ export function findMigrationPath(
   return path;
 }
 
-export type TransformFn = (artifact: any) => any;
-
 export interface ChainMigrateResult {
-  artifact: any;
+  artifact: unknown;
   events: MigrationEvent[];
 }
 
-export async function chainMigrate(
-  artifact: any,
+export function chainMigrate(
+  artifact: unknown,
   fromVer: string,
   toVer: string,
   _stage: Stage,
   registry: ArtifactTypeRegistry,
   transforms: Record<string, TransformFn>,
   artifactPath: string = '<unknown>',
-): Promise<ChainMigrateResult> {
+): ChainMigrateResult {
   const path = findMigrationPath(fromVer, toVer, registry);
   const events: MigrationEvent[] = [];
-  let current = artifact;
+  let current: unknown = artifact;
   for (let i = 0; i < path.length - 1; i++) {
     const from = path[i]!;
     const to = path[i + 1]!;

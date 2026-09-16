@@ -104,7 +104,7 @@ export async function migrate(args: MigrateArgs): Promise<number> {
 
   try {
     const transforms = await loadTransforms(type);
-    const result = await chainMigrate(
+    const result = chainMigrate(
       fm,
       fromVer,
       toVer,
@@ -114,7 +114,9 @@ export async function migrate(args: MigrateArgs): Promise<number> {
       args.file,
     );
 
-    // Fill in Identity fields that need actual values.
+    // Fill in Identity fields that need actual values. The artifact
+    // is typed `unknown` by the transform pipeline; we narrow to a
+    // mutable frontmatter object here so we can stamp fields on it.
     const cycleId = Number(fm.cycle_id ?? fm.cycle ?? 1);
     const slug = String(
       fm.title ?? basename(args.file).replace(/\.(md|yaml|yml)$/i, ''),
@@ -124,15 +126,16 @@ export async function migrate(args: MigrateArgs): Promise<number> {
       .replace(/-+/g, '-')
       .replace(/^-|-$/g, '')
       .slice(0, 30);
-    result.artifact.id = generateId({ stage, cycle: cycleId, slug });
-    result.artifact.cycle_id = cycleId;
-    result.artifact.stage = stage;
-    result.artifact.schema_version = toVer;
-    result.artifact.state = 'iterating';
-    result.artifact.migrated_from = fromVer;
-    result.artifact.migrated_at = new Date().toISOString();
+    const artifact = result.artifact as Record<string, unknown>;
+    artifact.id = generateId({ stage, cycle: cycleId, slug });
+    artifact.cycle_id = cycleId;
+    artifact.stage = stage;
+    artifact.schema_version = toVer;
+    artifact.state = 'iterating';
+    artifact.migrated_from = fromVer;
+    artifact.migrated_at = new Date().toISOString();
 
-    const newContent = `---\n${stringifyYaml(result.artifact)}---\n${content.slice(fmMatch[0].length)}`;
+    const newContent = `---\n${stringifyYaml(artifact)}---\n${content.slice(fmMatch[0].length)}`;
     if (!args.dryRun) {
       await writeFile(args.file, newContent, 'utf-8');
       console.log(`migrate: ${args.file} ${fromVer} → ${toVer} (state: iterating)`);

@@ -24,6 +24,12 @@ function migrationsDir(): string {
   return CANDIDATE_DIRS.find((d) => existsSync(d)) ?? CANDIDATE_DIRS[0]!;
 }
 
+// Shape of a dynamic-imported migration transform module: exports
+// a `transform(artifact)` function (and nothing else we use).
+interface TransformModule {
+  transform?: unknown;
+}
+
 export async function loadTransforms(artifactType: string): Promise<Record<string, TransformFn>> {
   // Convention: {artifactType}-{from}-to-{to}.ts/.js exports `transform(artifact)`.
   // Filenames use `-to-`; lookup keys use `->`.
@@ -48,14 +54,14 @@ export async function loadTransforms(artifactType: string): Promise<Record<strin
     if (transforms[key]) continue; // dedupe: each key loaded at most once (.js preferred below)
     const filePath = join(dir, f);
     const jsPath = filePath.replace(/\.ts$/, '.js');
-    let mod: any = null;
+    let mod: TransformModule | null = null;
     // Prefer compiled .js (works on all supported Node versions);
     // fall back to .ts (dev repo on Node >=22.6 with type stripping).
     try {
-      mod = await import(pathToFileURL(jsPath).href);
+      mod = (await import(pathToFileURL(jsPath).href)) as TransformModule;
     } catch {
       try {
-        mod = await import(pathToFileURL(filePath).href);
+        mod = (await import(pathToFileURL(filePath).href)) as TransformModule;
       } catch {
         console.warn(
           `migrate: failed to load transform "${f}" — run \`pnpm build\` to compile migrations, ` +
@@ -65,7 +71,7 @@ export async function loadTransforms(artifactType: string): Promise<Record<strin
       }
     }
     if (mod && typeof mod.transform === 'function') {
-      transforms[key] = mod.transform;
+      transforms[key] = mod.transform as TransformFn;
     }
   }
   return transforms;

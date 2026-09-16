@@ -34,23 +34,23 @@ describe('findMigrationPath', () => {
 });
 
 describe('chainMigrate', () => {
-  it('applies transforms in order', async () => {
-    const result = await chainMigrate(
+  it('applies transforms in order', () => {
+    const result = chainMigrate(
       { title: 'foo' },
       '0.1.0',
       '0.5.0',
       'plan',
       REGISTRY.intent,
       {
-        '0.1.0->0.2.0': (x: any) => ({ ...x, state: 'draft' }),
-        '0.2.0->0.5.0': (x: any) => ({ ...x, id: 'plan-c01-foo-0001-01HXYZ' }),
+        '0.1.0->0.2.0': (x) => ({ ...(x as Record<string, unknown>), state: 'draft' }),
+        '0.2.0->0.5.0': (x) => ({ ...(x as Record<string, unknown>), id: 'plan-c01-foo-0001-01HXYZ' }),
       },
     );
     expect(result.artifact).toMatchObject({
       title: 'foo',
       state: 'draft',
       id: expect.stringMatching(/^plan-c\d+-/),
-    });
+    } as Record<string, unknown>);
     expect(result.events).toHaveLength(2);
   });
 });
