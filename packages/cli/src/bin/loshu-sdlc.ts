@@ -31,8 +31,8 @@ const { values, positionals } = parseArgs({
     validate: { type: 'boolean' },
     path: { type: 'string' },
     'dry-run': { type: 'boolean' },
-    metric: { type: 'string' },
-    value: { type: 'string' },
+    metric: { type: 'string', multiple: true },
+    value: { type: 'string', multiple: true },
     'observations-json': { type: 'string' },
     title: { type: 'string' },
     state: { type: 'string' },
@@ -61,6 +61,7 @@ Commands:
   state <stage> <file> --transition <s> Attempt state transition (reject if not in DAG)
   state <stage> <file> --validate       Check whether file can transition to 'accepted'
   bands evaluate <file> [--metric=NAME --value=N]  Evaluate bands against an observation
+  bands record [path] --metric=NAME --value=N   Record metric observation(s) into <path>/.sdlc/metrics.json
   lint [path] [--fix]                    Lint artifacts against policy-default
   rules list                             List all active rules
   rules check <name> [path]              Run a specific rule
@@ -118,16 +119,39 @@ switch (command) {
       console.error('Usage: loshu-sdlc bands evaluate <file> [--metric=NAME --value=N]');
       process.exit(2);
     }
+    if (sub === 'record') {
+      const metricNames = (values.metric ?? []) as string[];
+      const metricValues = (values.value ?? []) as string[];
+      if (metricNames.length !== metricValues.length) {
+        console.error('bands record: --metric and --value counts must match');
+        process.exit(2);
+      }
+      const metrics = metricNames.map((name, i) => ({ name, value: Number(metricValues[i]) }));
+      if (metrics.some((m) => Number.isNaN(m.value))) {
+        console.error('bands record: --value must be numeric');
+        process.exit(2);
+      }
+      const code = await bands({
+        subcommand: 'record',
+        filePath: '',
+        recordPath: positionals[2] ?? '.',
+        metrics,
+      });
+      process.exit(code);
+      // falls through
+    }
     const filePath = positionals[2];
     if (sub === 'evaluate' && !filePath) {
       console.error('Usage: loshu-sdlc bands evaluate <file> [--metric=NAME --value=N]');
       process.exit(2);
     }
+    const metricName = values.metric?.[0];
+    const metricValue = values.value?.[0];
     const code = await bands({
       subcommand: sub as 'evaluate',
       filePath: filePath ?? '',
-      ...(values.metric !== undefined ? { metric: values.metric } : {}),
-      ...(values.value !== undefined ? { value: Number(values.value) } : {}),
+      ...(metricName !== undefined ? { metric: metricName } : {}),
+      ...(metricValue !== undefined ? { value: Number(metricValue) } : {}),
       ...(values['observations-json'] !== undefined
         ? { observationsJson: values['observations-json'] }
         : {}),
