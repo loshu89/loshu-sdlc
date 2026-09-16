@@ -17,8 +17,8 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "test": "bash hooks/tests/debounce.test.sh",
-    "test:hooks": "bash hooks/tests/debounce.test.sh",
+    "test": "bash hooks/tests/debounce.test.sh && bash hooks/tests/find-cli.test.sh",
+    "test:hooks": "bash hooks/tests/debounce.test.sh && bash hooks/tests/find-cli.test.sh",
     "typecheck": "echo \"plugin is markdown/JSON, no typecheck\" && exit 0",
     "build": "echo \"plugin is markdown/JSON, no build\" && exit 0"
   },

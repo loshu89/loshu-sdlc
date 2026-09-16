@@ -13,6 +13,13 @@ if [ -f "$SCRIPT_DIR/lib/event-emit.sh" ]; then
 fi
 
 ROOT="${1:-.}"
+
+# Resolve compiled CLI bin (bypasses npx, which is broken on Windows +
+# Git Bash — the .cmd shim ignores local node_modules/.bin lookup).
+# find-cli.sh returns 127 with stderr message if no candidate matches;
+# in that case CLI_BIN stays empty and the subsequent `node "$CLI_BIN" …`
+# calls no-op via `|| true`, matching the previous npx degradation behavior.
+CLI_BIN="$(bash "$SCRIPT_DIR/lib/find-cli.sh" "$ROOT" 2>/dev/null || true)"
 INTENT="$ROOT/intent.md"
 STATE_DIR="$ROOT/.loshu-sdlc/state"
 CYCLE_FILE="$STATE_DIR/cycle.json"
@@ -43,12 +50,12 @@ log_event() {
   local artifact="${3:-}"
   local extra="${4:-}"
   if [ -n "$extra" ]; then
-    npx --no-install loshu-sdlc cycle append-event \
+    node "$CLI_BIN" cycle append-event \
       --gate "$gate" --stage plan --result "$result" \
       --cycle "${CURRENT_CYCLE:-0}" ${artifact:+--artifact "$artifact"} \
       ${extra} >/dev/null 2>&1 || true
   else
-    npx --no-install loshu-sdlc cycle append-event \
+    node "$CLI_BIN" cycle append-event \
       --gate "$gate" --stage plan --result "$result" \
       --cycle "${CURRENT_CYCLE:-0}" ${artifact:+--artifact "$artifact"} \
       >/dev/null 2>&1 || true
@@ -97,7 +104,7 @@ if [ ! -f "$CYCLE_FILE" ] || [ "$CURRENT_CYCLE" = "0" ]; then
     TITLE="untitled cycle"
   fi
   echo "Plan-exit: creating new cycle for: $TITLE" >&2
-  NEW_ID=$(npx --no-install loshu-sdlc cycle new "$TITLE" "$ROOT" 2>/dev/null | grep -oE 'cycle [0-9]+' | grep -oE '[0-9]+' | head -1 || echo 0)
+  NEW_ID=$(node "$CLI_BIN" cycle new "$TITLE" "$ROOT" 2>/dev/null | grep -oE 'cycle [0-9]+' | grep -oE '[0-9]+' | head -1 || echo 0)
   CURRENT_CYCLE="$NEW_ID"
 fi
 
@@ -120,8 +127,8 @@ if [ ! -f "$SCHEMA" ]; then
   exit 0
 fi
 
-# Validate via loshu-sdlc CLI (use npx for portability)
-if ! npx --no-install loshu-sdlc validate intent "$INTENT" --strict 2>/dev/null; then
+# Validate via loshu-sdlc CLI (direct bin call — bypasses npx on Windows)
+if ! node "$CLI_BIN" validate intent "$INTENT" --strict 2>/dev/null; then
   echo "Plan-exit: intent.md failed schema validation" >&2
   echo "Run: loshu-sdlc validate intent $INTENT --verbose" >&2
   log_event "plan-exit" "block" "$INTENT"
@@ -131,10 +138,10 @@ fi
 # On validation success, attempt to transition state -> accepted
 # (only legal when current state is draft or iterating).
 if [ "$CURRENT" = "draft" ] || [ "$CURRENT" = "iterating" ]; then
-  if npx --no-install loshu-sdlc state plan "$INTENT" --transition accepted 2>/dev/null; then
+  if node "$CLI_BIN" state plan "$INTENT" --transition accepted 2>/dev/null; then
     echo "Plan-exit: transitioned intent.md $CURRENT -> accepted" >&2
     # P0-1: persist stage transition to cycle.json
-    npx --no-install loshu-sdlc cycle set plan accepted "$ROOT" >/dev/null 2>&1 || true
+    node "$CLI_BIN" cycle set plan accepted "$ROOT" >/dev/null 2>&1 || true
     log_event "plan-exit" "accept" "$INTENT"
   else
     echo "Plan-exit: schema valid but state transition rejected" >&2

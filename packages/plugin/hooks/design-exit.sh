@@ -14,6 +14,13 @@ if [ -f "$SCRIPT_DIR/lib/event-emit.sh" ]; then
 fi
 
 ROOT="${1:-.}"
+
+# Resolve compiled CLI bin (bypasses npx, which is broken on Windows +
+# Git Bash — the .cmd shim ignores local node_modules/.bin lookup).
+# find-cli.sh returns 127 with stderr message if no candidate matches;
+# in that case CLI_BIN stays empty and the subsequent `node "$CLI_BIN" …`
+# calls no-op via `|| true`, matching the previous npx degradation behavior.
+CLI_BIN="$(bash "$SCRIPT_DIR/lib/find-cli.sh" "$ROOT" 2>/dev/null || true)"
 SPEC="$ROOT/spec.md"
 INTENT="$ROOT/intent.md"
 STATE_DIR="$ROOT/.loshu-sdlc/state"
@@ -48,7 +55,7 @@ log_event() {
   local gate="$1"
   local result="$2"
   local artifact="${3:-}"
-  npx --no-install loshu-sdlc cycle append-event \
+  node "$CLI_BIN" cycle append-event \
     --gate "$gate" --stage design --result "$result" \
     --cycle "$CURRENT_CYCLE" ${artifact:+--artifact "$artifact"} \
     >/dev/null 2>&1 || true
@@ -100,7 +107,7 @@ case "$SPEC_STATE" in
 esac
 
 # Validate spec.md
-if ! npx --no-install loshu-sdlc validate spec "$SPEC" --strict 2>/dev/null; then
+if ! node "$CLI_BIN" validate spec "$SPEC" --strict 2>/dev/null; then
   echo "Design-exit: spec.md failed schema validation" >&2
   echo "Run: loshu-sdlc validate spec $SPEC --verbose" >&2
   log_event "design-exit" "block" "$SPEC"
@@ -109,9 +116,9 @@ fi
 
 # Transition spec -> accepted when valid
 if [ "$SPEC_STATE" = "draft" ] || [ "$SPEC_STATE" = "iterating" ]; then
-  if npx --no-install loshu-sdlc state design "$SPEC" --transition accepted 2>/dev/null; then
+  if node "$CLI_BIN" state design "$SPEC" --transition accepted 2>/dev/null; then
     echo "Design-exit: transitioned spec.md $SPEC_STATE -> accepted" >&2
-    npx --no-install loshu-sdlc cycle set design accepted "$ROOT" >/dev/null 2>&1 || true
+    node "$CLI_BIN" cycle set design accepted "$ROOT" >/dev/null 2>&1 || true
     log_event "design-exit" "accept" "$SPEC"
   else
     echo "Design-exit: schema valid but state transition rejected" >&2

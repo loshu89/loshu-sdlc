@@ -15,6 +15,13 @@ if [ -f "$SCRIPT_DIR/lib/event-emit.sh" ]; then
 fi
 
 ROOT="${1:-.}"
+
+# Resolve compiled CLI bin (bypasses npx, which is broken on Windows +
+# Git Bash — the .cmd shim ignores local node_modules/.bin lookup).
+# find-cli.sh returns 127 with stderr message if no candidate matches;
+# in that case CLI_BIN stays empty and the subsequent `node "$CLI_BIN" …`
+# calls no-op via `|| true`, matching the previous npx degradation behavior.
+CLI_BIN="$(bash "$SCRIPT_DIR/lib/find-cli.sh" "$ROOT" 2>/dev/null || true)"
 REVIEW="$ROOT/REVIEW.md"
 PLAN="$ROOT/plan.md"
 STATE_DIR="$ROOT/.loshu-sdlc/state"
@@ -48,7 +55,7 @@ log_event() {
   local gate="$1"
   local result="$2"
   local artifact="${3:-}"
-  npx --no-install loshu-sdlc cycle append-event \
+  node "$CLI_BIN" cycle append-event \
     --gate "$gate" --stage deploy --result "$result" \
     --cycle "$CURRENT_CYCLE" ${artifact:+--artifact "$artifact"} \
     >/dev/null 2>&1 || true
@@ -99,7 +106,7 @@ case "$REVIEW_STATE" in
 esac
 
 # Validate schema
-if ! npx --no-install loshu-sdlc validate review "$REVIEW" --strict 2>/dev/null; then
+if ! node "$CLI_BIN" validate review "$REVIEW" --strict 2>/dev/null; then
   echo "Deploy-exit: REVIEW.md failed schema validation" >&2
   log_event "deploy-exit" "block" "$REVIEW"
   exit 2
@@ -115,9 +122,9 @@ fi
 
 # Transition REVIEW.md -> accepted when valid
 if [ "$REVIEW_STATE" = "draft" ] || [ "$REVIEW_STATE" = "iterating" ]; then
-  if npx --no-install loshu-sdlc state deploy "$REVIEW" --transition accepted 2>/dev/null; then
+  if node "$CLI_BIN" state deploy "$REVIEW" --transition accepted 2>/dev/null; then
     echo "Deploy-exit: transitioned REVIEW.md $REVIEW_STATE -> accepted" >&2
-    npx --no-install loshu-sdlc cycle set deploy accepted "$ROOT" >/dev/null 2>&1 || true
+    node "$CLI_BIN" cycle set deploy accepted "$ROOT" >/dev/null 2>&1 || true
     log_event "deploy-exit" "accept" "$REVIEW"
   else
     echo "Deploy-exit: schema valid but state transition rejected" >&2

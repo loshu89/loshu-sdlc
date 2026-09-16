@@ -14,6 +14,13 @@ if [ -f "$SCRIPT_DIR/lib/event-emit.sh" ]; then
 fi
 
 ROOT="${1:-.}"
+
+# Resolve compiled CLI bin (bypasses npx, which is broken on Windows +
+# Git Bash — the .cmd shim ignores local node_modules/.bin lookup).
+# find-cli.sh returns 127 with stderr message if no candidate matches;
+# in that case CLI_BIN stays empty and the subsequent `node "$CLI_BIN" …`
+# calls no-op via `|| true`, matching the previous npx degradation behavior.
+CLI_BIN="$(bash "$SCRIPT_DIR/lib/find-cli.sh" "$ROOT" 2>/dev/null || true)"
 PLAN="$ROOT/plan.md"
 SPEC="$ROOT/spec.md"
 CLAUDE_MD="$ROOT/CLAUDE.md"
@@ -48,7 +55,7 @@ log_event() {
   local gate="$1"
   local result="$2"
   local artifact="${3:-}"
-  npx --no-install loshu-sdlc cycle append-event \
+  node "$CLI_BIN" cycle append-event \
     --gate "$gate" --stage build --result "$result" \
     --cycle "$CURRENT_CYCLE" ${artifact:+--artifact "$artifact"} \
     >/dev/null 2>&1 || true
@@ -100,7 +107,7 @@ case "$PLAN_STATE" in
 esac
 
 # Validate plan.md
-if ! npx --no-install loshu-sdlc validate plan "$PLAN" --strict 2>/dev/null; then
+if ! node "$CLI_BIN" validate plan "$PLAN" --strict 2>/dev/null; then
   echo "Build-exit: plan.md failed schema validation" >&2
   log_event "build-exit" "block" "$PLAN"
   exit 2
@@ -121,9 +128,9 @@ fi
 
 # Transition plan -> accepted when valid
 if [ "$PLAN_STATE" = "draft" ] || [ "$PLAN_STATE" = "iterating" ]; then
-  if npx --no-install loshu-sdlc state build "$PLAN" --transition accepted 2>/dev/null; then
+  if node "$CLI_BIN" state build "$PLAN" --transition accepted 2>/dev/null; then
     echo "Build-exit: transitioned plan.md $PLAN_STATE -> accepted" >&2
-    npx --no-install loshu-sdlc cycle set build accepted "$ROOT" >/dev/null 2>&1 || true
+    node "$CLI_BIN" cycle set build accepted "$ROOT" >/dev/null 2>&1 || true
     log_event "build-exit" "accept" "$PLAN"
   else
     echo "Build-exit: schema valid but state transition rejected" >&2

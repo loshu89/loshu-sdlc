@@ -19,7 +19,7 @@ import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import { spawn } from 'node:child_process';
 import { mkdtemp, rm, writeFile, readFile, mkdir, pathExists } from 'fs-extra';
 import { tmpdir } from 'node:os';
-import { join, resolve, delimiter as PATH_DELIM } from 'node:path';
+import { join, resolve } from 'node:path';
 
 const REPO_ROOT = resolve(import.meta.dirname ?? '.', '../..');
 const HOOKS_DIR = join(REPO_ROOT, 'packages/plugin/hooks');
@@ -186,58 +186,17 @@ describe('closed loop (3σ incident → new cycle)', () => {
       console.warn(`SKIPPED closed-loop hook chain — ${bash.reason}`);
       return ctx.skip();
     }
-    // 1. Stub the CLI on PATH so hooks' `npx --no-install loshu-sdlc` resolves.
+    // 1. Tell find-cli.sh where the real CLI bin lives via LOSHU_SDLC_CLI.
     //
-    //    Windows + Git Bash quirk: `npx` on Windows resolves from the system
-    //    PATH using Windows semantics, NOT Git Bash's local node_modules/.bin.
-    //    The simplest cross-platform fix is a `npx` wrapper that strips the
-    //    npx-specific flags + the `loshu-sdlc` positional arg and forwards
-    //    everything else directly to the CLI's dist/bin entry point. When
-    //    PATH points to a directory containing this wrapper, bash finds our
-    //    `npx` before the system npx.cmd.
+    //    v0.6.2 replaced `npx --no-install loshu-sdlc` (broken on Windows +
+    //    Git Bash: npx.cmd shim ignores local node_modules/.bin lookup)
+    //    with `node "$CLI_BIN"` where CLI_BIN comes from find-cli.sh.
+    //    find-cli.sh honors LOSHU_SDLC_CLI as the highest-priority source,
+    //    so the test sets it explicitly to skip the filesystem walk.
     //
-    //    On POSIX (CI ubuntu), npx resolves local node_modules/.bin natively,
-    //    so the test also writes a plain bash shim there for completeness.
-    const stubDir = join(tmp, 'stub-bin');
-    await mkdir(stubDir, { recursive: true });
+    //    No more npx wrapper, no more node_modules/.bin shim, no more PATH
+    //    gymnastics — the hook's spawn env is now clean.
     const cliUnixPath = CLI_BIN.replace(/\\/g, '/');
-    const npxWrapper = join(stubDir, 'npx');
-    await writeFile(
-      npxWrapper,
-      [
-        '#!/usr/bin/env bash',
-        '# Test-only npx wrapper: strip npx flags + "loshu-sdlc" and forward.',
-        'args=()',
-        'for arg in "$@"; do',
-        '  case "$arg" in',
-        '    loshu-sdlc|--no-install|--no|-p|-y|--yes) ;;',
-        '    *) args+=("$arg") ;;',
-        '  esac',
-        'done',
-        `exec node "${cliUnixPath}" "${'${args[@]}'}"`,
-        '',
-      ].join('\n'),
-    );
-    if (process.platform !== 'win32') {
-      const { chmod } = await import('node:fs/promises');
-      await chmod(npxWrapper, 0o755);
-    }
-    // Also write a shim to the tmp's node_modules/.bin for POSIX where bash
-    // looks there first; on Windows this is ignored by npx but harmless.
-    await mkdir(join(tmp, 'node_modules/.bin'), { recursive: true });
-    const shim = join(tmp, 'node_modules/.bin/loshu-sdlc');
-    await writeFile(
-      shim,
-      `#!/usr/bin/env bash\nexec node "${cliUnixPath}" "$@"\n`,
-    );
-    if (process.platform !== 'win32') {
-      const { chmod } = await import('node:fs/promises');
-      await chmod(shim, 0o755);
-    }
-
-    // Spawn the hook with PATH including our wrapper dir so bash finds our
-    // `npx` first (Windows fix for the Git Bash + Windows npx resolution bug).
-    const pathWithStub = `${stubDir}${PATH_DELIM}${process.env.PATH ?? ''}`;
 
     // 2. bands.yaml with a tight error_rate band (baseline 0.01, 3σ 0.03) +
     //    Identity fields per v0.6.0 schema. Plain YAML — bands.yaml has no
@@ -334,7 +293,7 @@ describe('closed loop (3σ incident → new cycle)', () => {
     const first = await run('bash', [join(HOOKS_DIR, 'maintain-exit.sh'), tmp], {
       timeoutMs: HOOK_TIMEOUT_MS,
       cwd: tmp,
-      env: { PATH: pathWithStub },
+      env: { LOSHU_SDLC_CLI: cliUnixPath },
     });
     expect(first.exitCode).toBe(2);
     expect(first.stderr).toMatch(/3σ|3sigma/i);
@@ -374,7 +333,7 @@ describe('closed loop (3σ incident → new cycle)', () => {
     const second = await run('bash', [join(HOOKS_DIR, 'maintain-exit.sh'), tmp], {
       timeoutMs: HOOK_TIMEOUT_MS,
       cwd: tmp,
-      env: { PATH: pathWithStub },
+      env: { LOSHU_SDLC_CLI: cliUnixPath },
     });
     // 0 = closed-loop completed; 2 = the hook blocked again (legitimate if
     // bands.yaml or REVIEW.md is in a state the hook can't transition out of,

@@ -15,6 +15,13 @@ if [ -f "$SCRIPT_DIR/lib/event-emit.sh" ]; then
 fi
 
 ROOT="${1:-.}"
+
+# Resolve compiled CLI bin (bypasses npx, which is broken on Windows +
+# Git Bash — the .cmd shim ignores local node_modules/.bin lookup).
+# find-cli.sh returns 127 with stderr message if no candidate matches;
+# in that case CLI_BIN stays empty and the subsequent `node "$CLI_BIN" …`
+# calls no-op via `|| true`, matching the previous npx degradation behavior.
+CLI_BIN="$(bash "$SCRIPT_DIR/lib/find-cli.sh" "$ROOT" 2>/dev/null || true)"
 BANDS="$ROOT/bands.yaml"
 REVIEW="$ROOT/REVIEW.md"
 STATE_DIR="$ROOT/.loshu-sdlc/state"
@@ -48,7 +55,7 @@ log_event() {
   local gate="$1"
   local result="$2"
   local artifact="${3:-}"
-  npx --no-install loshu-sdlc cycle append-event \
+  node "$CLI_BIN" cycle append-event \
     --gate "$gate" --stage maintain --result "$result" \
     --cycle "$CURRENT_CYCLE" ${artifact:+--artifact "$artifact"} \
     >/dev/null 2>&1 || true
@@ -99,7 +106,7 @@ case "$BANDS_STATE" in
 esac
 
 # Validate schema
-if ! npx --no-install loshu-sdlc validate bands "$BANDS" --strict 2>/dev/null; then
+if ! node "$CLI_BIN" validate bands "$BANDS" --strict 2>/dev/null; then
   echo "Maintain-exit: bands.yaml failed schema validation" >&2
   log_event "maintain-exit" "block" "$BANDS"
   exit 2
@@ -112,7 +119,7 @@ TRIPPED='{"incidents":[]}'
 TRIPPED_METRIC=""
 if [ -f "$METRICS_FILE" ]; then
   OBS_JSON=$(cat "$METRICS_FILE")
-  EVAL_OUTPUT=$(npx --no-install loshu-sdlc bands evaluate "$BANDS" --observations-json "$OBS_JSON" 2>/dev/null || echo '{"incidents":[]}')
+  EVAL_OUTPUT=$(node "$CLI_BIN" bands evaluate "$BANDS" --observations-json "$OBS_JSON" 2>/dev/null || echo '{"incidents":[]}')
   TRIPPED="$EVAL_OUTPUT"
   # Extract first 3sigma metric name for cycle origin.
   TRIPPED_METRIC=$(echo "$EVAL_OUTPUT" | grep -oE '"metric":"[^"]+"[^}]*"tier":"3sigma"' | head -1 | grep -oE '"metric":"[^"]+"' | head -1 | sed 's/"metric":"//;s/"//' || echo "")
@@ -132,11 +139,11 @@ if echo "$TRIPPED" | grep -q '"tier":[[:space:]]*"3sigma"'; then
   ORIGIN="maintain/3sigma:${TRIPPED_METRIC:-unknown_metric}"
   echo "Maintain-exit: 3σ incident on $TRIPPED_METRIC — forking incident cycle (origin: $ORIGIN)" >&2
   # Archive the cycle that's currently active (preserve history).
-  npx --no-install loshu-sdlc cycle archive "$ROOT" >/dev/null 2>&1 || true
+  node "$CLI_BIN" cycle archive "$ROOT" >/dev/null 2>&1 || true
   # Create a new incident-driven cycle. Title is the metric + UTC timestamp.
   TS=$(date -u +"%Y-%m-%dT%H:%M:%SZ" 2>/dev/null || echo "unknown-time")
   NEW_TITLE="Incident: ${TRIPPED_METRIC:-unknown_metric} ($TS)"
-  npx --no-install loshu-sdlc cycle new "$NEW_TITLE" --origin "$ORIGIN" "$ROOT" >/dev/null 2>&1 || true
+  node "$CLI_BIN" cycle new "$NEW_TITLE" --origin "$ORIGIN" "$ROOT" >/dev/null 2>&1 || true
   if [ -f "$SCRIPT_DIR/lib/event-emit.sh" ]; then
     emit_event "incident" "$CURRENT_CYCLE" "maintain" "bands-3sigma:${TRIPPED_METRIC:-unknown}"
   fi
@@ -145,9 +152,9 @@ fi
 
 # Transition bands.yaml -> accepted when valid
 if [ "$BANDS_STATE" = "draft" ] || [ "$BANDS_STATE" = "iterating" ]; then
-  if npx --no-install loshu-sdlc state maintain "$BANDS" --transition accepted 2>/dev/null; then
+  if node "$CLI_BIN" state maintain "$BANDS" --transition accepted 2>/dev/null; then
     echo "Maintain-exit: transitioned bands.yaml $BANDS_STATE -> accepted" >&2
-    npx --no-install loshu-sdlc cycle set maintain accepted "$ROOT" >/dev/null 2>&1 || true
+    node "$CLI_BIN" cycle set maintain accepted "$ROOT" >/dev/null 2>&1 || true
     log_event "maintain-exit" "accept" "$BANDS"
   else
     echo "Maintain-exit: schema valid but state transition rejected" >&2

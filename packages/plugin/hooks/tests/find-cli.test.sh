@@ -70,13 +70,20 @@ expect_eq "falls back to node_modules npm path" \
   "$RESULT" \
   "$T/node_modules/@loshu89/cli/dist/bin/loshu-sdlc.js"
 
-# --- Test 3: falls back to pnpm .bin shim ---------------------------------
-T=$(mktemp -d "$TMPDIR_BASE/pnpm.XXXXXX")
-make_fake_cli "$T" "node_modules/.bin/loshu-sdlc"
-RESULT=$(run_find "$T")
-expect_eq "falls back to pnpm .bin shim" \
-  "$RESULT" \
-  "$T/node_modules/.bin/loshu-sdlc"
+# --- Test 3: missing candidate returns sentinel `loshu-sdlc` --------------
+# (Not exit 127 — the hook needs the sentinel so `node "$CLI_BIN" …` fails
+# fast with MODULE_NOT_FOUND in ~150ms instead of hanging on `node ""`.)
+T=$(mktemp -d "$TMPDIR_BASE/missing.XXXXXX")
+RESULT=$(run_find "$T" 2>/dev/null)
+RC=$?
+expect_eq "no candidate: returns sentinel loshu-sdlc" "$RESULT" "loshu-sdlc"
+if [ "$RC" -eq 0 ]; then
+  echo "PASS: no candidate: exit 0 (sentinel always succeeds)"
+  PASS=$((PASS + 1))
+else
+  echo "FAIL: expected rc=0 (sentinel succeeds), got rc=$RC" >&2
+  FAIL=$((FAIL + 1))
+fi
 
 # --- Test 4: marketplace wins over npm when both are present --------------
 T=$(mktemp -d "$TMPDIR_BASE/priority.XXXXXX")
@@ -87,19 +94,7 @@ expect_eq "marketplace path wins over npm path when both present" \
   "$RESULT" \
   "$T/.claude/plugins/loshu-sdlc/packages/cli/dist/bin/loshu-sdlc.js"
 
-# --- Test 5: errors with exit 127 + empty stdout when nothing is found -----
-T=$(mktemp -d "$TMPDIR_BASE/missing.XXXXXX")
-RESULT=$(run_find "$T" 2>/dev/null)
-RC=$?
-if [ "$RC" -eq 127 ] && [ -z "$RESULT" ]; then
-  echo "PASS: exit 127 with empty stdout when no candidate is present"
-  PASS=$((PASS + 1))
-else
-  echo "FAIL: expected rc=127 and empty stdout, got rc=$RC output='$RESULT'" >&2
-  FAIL=$((FAIL + 1))
-fi
-
-# --- Test 6: LOSHU_SDLC_CLI env override wins over filesystem candidates --
+# --- Test 5: LOSHU_SDLC_CLI env override wins over filesystem candidates --
 T=$(mktemp -d "$TMPDIR_BASE/env.XXXXXX")
 make_fake_cli "$T" ".claude/plugins/loshu-sdlc/packages/cli/dist/bin/loshu-sdlc.js"
 make_fake_cli "$T" "node_modules/@loshu89/cli/dist/bin/loshu-sdlc.js"
@@ -111,11 +106,19 @@ expect_eq "LOSHU_SDLC_CLI env override wins over filesystem candidates" \
   "$RESULT" \
   "$OVERRIDE_DIR/loshu-sdlc.js"
 
-# --- Test 7: empty LOSHU_SDLC_CLI is treated as unset (falls through) -----
+# --- Test 6: empty LOSHU_SDLC_CLI is treated as unset (falls through) -----
 T=$(mktemp -d "$TMPDIR_BASE/emptyenv.XXXXXX")
 make_fake_cli "$T" "node_modules/@loshu89/cli/dist/bin/loshu-sdlc.js"
 RESULT=$(LOSHU_SDLC_CLI="" bash "$LIB" "$T")
 expect_eq "empty LOSHU_SDLC_CLI falls through to filesystem lookup" \
+  "$RESULT" \
+  "$T/node_modules/@loshu89/cli/dist/bin/loshu-sdlc.js"
+
+# --- Test 7: LOSHU_SDLC_CLI set to a missing path falls through to FS ----
+T=$(mktemp -d "$TMPDIR_BASE/missingenv.XXXXXX")
+make_fake_cli "$T" "node_modules/@loshu89/cli/dist/bin/loshu-sdlc.js"
+RESULT=$(LOSHU_SDLC_CLI="/does/not/exist/loshu-sdlc.js" bash "$LIB" "$T")
+expect_eq "LOSHU_SDLC_CLI pointing at missing file falls through" \
   "$RESULT" \
   "$T/node_modules/@loshu89/cli/dist/bin/loshu-sdlc.js"
 
