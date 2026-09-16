@@ -1,6 +1,33 @@
 import { execa } from 'execa';
 import type { Platform, PlatformConfig, PRRef } from './interface.js';
 
+// Shape returned by `glab mr view <n> --output json`.
+interface GlMRViewJson {
+  state?: string;
+  merged_at?: string | null;
+  sha?: string;
+}
+
+// Shape returned by `glab api .../repository/branches/<branch>`.
+interface GlBranchJson {
+  commit?: { id?: string };
+}
+
+// `glab` returns state as 'opened' / 'merged' / 'closed'. Normalize
+// to PRRef['state'] and guard against unexpected values.
+function normalizeGlState(raw: string | undefined): PRRef['state'] {
+  switch ((raw ?? 'opened').toLowerCase()) {
+    case 'merged':
+      return 'merged';
+    case 'closed':
+      return 'closed';
+    case 'opened':
+    case 'open':
+    default:
+      return 'open';
+  }
+}
+
 export class GitLabPlatform implements Platform {
   constructor(private readonly config: PlatformConfig) {}
 
@@ -58,9 +85,9 @@ export class GitLabPlatform implements Platform {
 
   async getPR(number: number): Promise<{state: PRRef['state']; merged: boolean; sha: string}> {
     const { stdout } = await execa('glab', ['mr', 'view', String(number), '--output', 'json'], { env: this.env() });
-    const data = JSON.parse(stdout);
+    const data = JSON.parse(stdout) as GlMRViewJson;
     return {
-      state: (data.state ?? 'opened').toLowerCase() as PRRef['state'],
+      state: normalizeGlState(data.state),
       merged: data.merged_at ? true : false,
       sha: data.sha ?? '',
     };
@@ -74,7 +101,8 @@ export class GitLabPlatform implements Platform {
   async getMainBranchSha(): Promise<string> {
     const projectPath = encodeURIComponent(this.config.repo);
     const { stdout } = await execa('glab', ['api', `/projects/${projectPath}/repository/branches/${this.config.baseBranch ?? 'main'}`], { env: this.env() });
-    return JSON.parse(stdout).commit.id;
+    const data = JSON.parse(stdout) as GlBranchJson;
+    return data.commit?.id ?? '';
   }
 
   async requestReviewers(prNumber: number, reviewers: string[]): Promise<void> {

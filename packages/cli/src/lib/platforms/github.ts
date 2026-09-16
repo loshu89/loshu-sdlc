@@ -1,6 +1,35 @@
 import { execa } from 'execa';
 import type { Platform, PlatformConfig, PRRef } from './interface.js';
 
+// Shape returned by `gh pr view <n> --json state,mergedAt,sha`.
+interface GhPRViewJson {
+  state?: string;
+  mergedAt?: string | null;
+  sha?: string;
+}
+
+// Shape returned by `gh api .../git/refs/heads/<branch>`.
+interface GhRefJson {
+  object?: { sha?: string };
+}
+
+// `gh` returns state as 'OPEN' / 'MERGED' / 'CLOSED' — normalize to
+// PRRef['state'] and guard against unexpected values from a future
+// gh release.
+function normalizeGhState(raw: string | undefined): PRRef['state'] {
+  switch ((raw ?? 'open').toLowerCase()) {
+    case 'merged':
+      return 'merged';
+    case 'closed':
+      return 'closed';
+    case 'draft':
+      return 'draft';
+    case 'open':
+    default:
+      return 'open';
+  }
+}
+
 export class GitHubPlatform implements Platform {
   constructor(private readonly config: PlatformConfig) {}
 
@@ -60,9 +89,9 @@ export class GitHubPlatform implements Platform {
 
   async getPR(number: number): Promise<{state: PRRef['state']; merged: boolean; sha: string}> {
     const { stdout } = await execa('gh', ['pr', 'view', String(number), '--json', 'state,mergedAt,sha'], { env: this.env() });
-    const data = JSON.parse(stdout);
+    const data = JSON.parse(stdout) as GhPRViewJson;
     return {
-      state: (data.state ?? 'open').toLowerCase() as PRRef['state'],
+      state: normalizeGhState(data.state),
       merged: Boolean(data.mergedAt),
       sha: data.sha ?? '',
     };
@@ -74,7 +103,8 @@ export class GitHubPlatform implements Platform {
 
   async getMainBranchSha(): Promise<string> {
     const { stdout } = await execa('gh', ['api', `/repos/${this.config.repo}/git/refs/heads/${this.config.baseBranch ?? 'main'}`], { env: this.env() });
-    return JSON.parse(stdout).object.sha;
+    const data = JSON.parse(stdout) as GhRefJson;
+    return data.object?.sha ?? '';
   }
 
   async requestReviewers(prNumber: number, reviewers: string[]): Promise<void> {

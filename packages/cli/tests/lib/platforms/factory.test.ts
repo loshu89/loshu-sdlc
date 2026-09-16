@@ -14,6 +14,11 @@ describe('createPlatform', () => {
     expect(p).toBeInstanceOf(GitLabPlatform);
   });
   it('throws on unknown provider', () => {
-    expect(() => createPlatform({ repo: 'foo/bar', token: 'x' }, 'bitbucket' as any)).toThrow(/unknown provider/i);
+    expect(() =>
+      createPlatform(
+        { repo: 'foo/bar', token: 'x' },
+        'bitbucket' as unknown as 'github' | 'gitlab',
+      ),
+    ).toThrow(/unknown provider/i);
   });
 });
