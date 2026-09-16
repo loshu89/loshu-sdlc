@@ -1,9 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { mkdtempSync, writeFileSync, rmSync } from 'fs-extra';
+import { mkdtempSync, writeFileSync, rmSync, mkdirSync } from 'fs-extra';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { identityAssertions } from '../../../../src/lib/accept/assertions/identity.js';
 import type { Artifact } from '../../../../src/lib/accept/types.js';
+
+const findRule = (rule: string) =>
+  identityAssertions.find((a) => a.rule === rule);
+if (!findRule('A3')) throw new Error('A3 not implemented');
 
 describe('identityAssertions', () => {
   let tmp: string;
@@ -66,5 +70,146 @@ content`,
     );
     const results = await runAssertions();
     expect(results.find((r) => r.rule === 'A2')!.result.pass).toBe(false);
+  });
+});
+
+// Helper to build a minimal valid frontmatter artifact for testing.
+function writeArtifact(
+  dir: string,
+  fileRel: string,
+  frontmatter: Record<string, string>,
+  body = '',
+): string {
+  const fm = Object.entries(frontmatter)
+    .map(([k, v]) => `${k}: ${v}`)
+    .join('\n');
+  const filePath = join(dir, fileRel);
+  writeFileSync(filePath, `---\n${fm}\n---\n${body}`, 'utf-8');
+  return filePath;
+}
+
+function writeCycle(
+  dir: string,
+  cycles: Record<string, { stages: Record<string, { artifact: string }> }>,
+  currentCycle = 1,
+): void {
+  const state = { version: 1, current_cycle: currentCycle, cycles };
+  const stateDir = join(dir, '.loshu-sdlc/state');
+  mkdirSync(stateDir, { recursive: true });
+  writeFileSync(
+    join(stateDir, 'cycle.json'),
+    JSON.stringify(state),
+    'utf-8',
+  );
+}
+
+describe('A3 — id global uniqueness', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = mkdtempSync(join(tmpdir(), 'loshu-a3-'));
+  });
+
+  afterEach(() => {
+    rmSync(tmpDir, { recursive: true });
+  });
+
+  it('passes when all ids are unique', () => {
+    writeCycle(tmpDir, {
+      '1': {
+        stages: {
+          plan: { artifact: 'intent.md' },
+          design: { artifact: 'spec.md' },
+        },
+      },
+    });
+    writeArtifact(tmpDir, 'intent.md', {
+      id: 'plan-c01-foo-0001-01HXYZAAAAAA',
+      schema_version: '0.5.0',
+      cycle_id: '1',
+      stage: 'plan',
+      state: 'draft',
+      created_at: new Date().toISOString(),
+    });
+    writeArtifact(tmpDir, 'spec.md', {
+      id: 'design-c01-foo-0001-01HXYZBbbbbb',
+      schema_version: '0.5.0',
+      cycle_id: '1',
+      stage: 'design',
+      state: 'draft',
+      created_at: new Date().toISOString(),
+    });
+    const artifact: Artifact = {
+      stage: 'plan',
+      filePath: join(tmpDir, 'intent.md'),
+      id: 'plan-c01-foo-0001-01HXYZAAAAAA',
+      rootPath: tmpDir,
+    };
+    return findRule('A3')!.run(artifact).then((result) => {
+      expect(result.pass).toBe(true);
+    });
+  });
+
+  it('fails when two artifacts share an id', () => {
+    const sharedId = 'plan-c01-foo-0001-01HXYZCCCCCC';
+    writeCycle(tmpDir, {
+      '1': {
+        stages: {
+          plan: { artifact: 'intent.md' },
+          build: { artifact: 'plan.md' },
+        },
+      },
+    });
+    writeArtifact(tmpDir, 'intent.md', {
+      id: sharedId,
+      schema_version: '0.5.0',
+      cycle_id: '1',
+      stage: 'plan',
+      state: 'draft',
+      created_at: new Date().toISOString(),
+    });
+    writeArtifact(tmpDir, 'plan.md', {
+      id: sharedId, // duplicate
+      schema_version: '0.5.0',
+      cycle_id: '1',
+      stage: 'build',
+      state: 'draft',
+      created_at: new Date().toISOString(),
+    });
+    const artifact: Artifact = {
+      stage: 'plan',
+      filePath: join(tmpDir, 'intent.md'),
+      id: sharedId,
+      rootPath: tmpDir,
+    };
+    return findRule('A3')!.run(artifact).then((result) => {
+      expect(result.pass).toBe(false);
+      if (!result.pass) {
+        expect(result.message).toContain(sharedId);
+      }
+    });
+  });
+
+  it('passes when only one artifact exists', () => {
+    writeCycle(tmpDir, {
+      '1': { stages: { plan: { artifact: 'intent.md' } } },
+    });
+    writeArtifact(tmpDir, 'intent.md', {
+      id: 'plan-c01-foo-0001-01HXYZDDDDDD',
+      schema_version: '0.5.0',
+      cycle_id: '1',
+      stage: 'plan',
+      state: 'draft',
+      created_at: new Date().toISOString(),
+    });
+    const artifact: Artifact = {
+      stage: 'plan',
+      filePath: join(tmpDir, 'intent.md'),
+      id: 'plan-c01-foo-0001-01HXYZDDDDDD',
+      rootPath: tmpDir,
+    };
+    return findRule('A3')!.run(artifact).then((result) => {
+      expect(result.pass).toBe(true);
+    });
   });
 });

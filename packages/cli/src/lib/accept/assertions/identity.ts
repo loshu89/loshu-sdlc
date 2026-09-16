@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { parse as parseYaml } from 'yaml';
 import type { Assertion, Artifact, AssertionResult } from '../types.js';
+import { discoverArtifacts } from '../discover.js';
 import { ID_REGEX } from '../../identity.js';
 
 const FRONTMATTER_RE = /^---\n([\s\S]*?)\n---/;
@@ -46,6 +47,30 @@ export const identityAssertions: Assertion[] = [
       if (!fm?.id || typeof fm.id !== 'string') return fail('A2', 'no id field');
       if (!ID_REGEX.test(fm.id)) return fail('A2', `id "${fm.id}" doesn't match format`);
       return pass('A2');
+    },
+  },
+  {
+    rule: 'A3',
+    layer: 1,
+    description: 'id is globally unique across the project',
+    run: async (a) => {
+      const all = await discoverArtifacts(a.rootPath);
+      const seen = new Map<string, string[]>();
+      for (const art of all) {
+        const paths = seen.get(art.id) ?? [];
+        paths.push(art.filePath);
+        seen.set(art.id, paths);
+      }
+      const dupes = [...seen.entries()].filter(([, paths]) => paths.length > 1);
+      if (dupes.length === 0) return pass('A3');
+      const detail = dupes
+        .map(([id, paths]) => `${id} (in ${paths.join(', ')})`)
+        .join('; ');
+      return fail(
+        'A3',
+        `${dupes.length} duplicate id(s) found: ${detail}`,
+        'loshu-sdlc repair <file>',
+      );
     },
   },
   {
