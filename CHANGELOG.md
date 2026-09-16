@@ -15,6 +15,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.6.4] - 2026-09-16
+
+Close the spec-vs-implementation gap in the acceptance test framework per the v0.6.4 audit. Five new assertions + the foundation change enabling project-scope assertions + fill missing test coverage on existing assertions.
+
+### Added
+
+- **A3 assertion** — `id` globally unique across the project. Re-discovers via `Artifact.rootPath`, fails when two or more artifacts share an id. Fix hint: `'loshu-sdlc repair <file>'` (per spec §4.3 "regenerate").
+- **V4 assertion** — cross-cycle parent schema consistency. For each `parent_id` pointing to an artifact in a different cycle, the parent's `schema_version` must be in the registry and not deprecated. Intra-cycle parents are skipped (consistency covered by V1/V2).
+- **`Artifact.rootPath: string`** — new field on the `Artifact` interface populated by `discover.ts` from the cycle.json parent path. Enables project-scope assertions (A3, V4, C4) to re-read cycle.json or walk the artifact set. Carried through to all test fixtures.
+- **`bands.test.ts`** — new unit test file for B1 (σ monotonic) and B2 (≥1 metric defined). Five tests total (B1 × 3 including non-trivial monotonic violations, B2 × 3 covering one/empty/none).
+- **A7, A8, V3 test coverage** — 7 new tests added to existing identity.test.ts and versioning.test.ts (positive + negative for each).
+
+### Changed
+
+- **State assertions realigned with spec §4.3** — `rule: 'C1'` was an enum-membership check (duplicating A6) and is now the spec-mandated **DAG transition check** with a permissive-superset `TRANSITIONS` table (spec §3.1 + §3.2 + conservative extensions like `accepted → iterating`, `accepted → merged`, `merged → archived`, `archived → draft`). The previous cross-stage-guard assertion moves from `rule: 'C2'` to **`rule: 'C3'`** (matching spec). A new **`rule: 'C2'` (schema validate pass)** joins the assertion set, reusing `validateArtifact` from `lib/validate.ts` (single source of truth for AJV setup, schema path resolution, EJS-template handling). The `C2 → C3` rename is reflected in state.test.ts.
+- **`C4` extended** — previously a regex format check; now a composite check: regex fast-fail + artifact-existence check via `discoverArtifacts(a.rootPath)` (each `parent_id` must refer to a real artifact in some cycle's stages).
+- **`discover.ts` bug fix** — `stageEntry.artifact_id` replaced with the canonical `stageEntry.artifact` per the v0.6.3 CycleEntry type cleanup (commit `b2a1629`). Local `CycleFile` interface replaced with `CycleStateFile` from `lib/cycle.ts`. Test fixtures updated to use the canonical cycle.json shape.
+
+### Notes
+
+- Pre-existing latent bug noted but out of scope: `a.stage` is used as the registry key for V2/V3/V4 lookups, but the registry keys are schema names (`intent/spec/plan/claude-md/review/bands`), not stage names (`plan/design/build/test/deploy/maintain`). Only `plan` and `build` overlap. The correct `STAGE_TO_SCHEMA` mapping already exists in `state.ts` (Task 3) but was not reused. Follow-up task should consolidate.
+- Git-layer assertions (C5/C6/C7/C8) remain deferred to v0.7.0 per spec phasing ("platform completeness").
+- Acceptance tests: 188 → 201 passing (+13 in v0.6.4); spec coverage for the 22 documented assertions now reaches all of L1+L2 rules (A1-A8, V1-V4, B1-B2) and L2+L3 state rules (C1-C4). C5-C8 + the performance/security/compatibility items from spec §6.2.2-§6.2.4 remain pending.
+
+---
+
 ## [0.6.3] - 2026-09-16
 
 Re-enable the eight `@typescript-eslint/*` rules relaxed in v0.6.0 across `@loshu89/cli`. Catches three latent bugs the relaxed typing had been hiding.
