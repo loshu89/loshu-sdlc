@@ -43,10 +43,7 @@ content`,
             stages: {
               plan: {
                 state: 'draft',
-                artifact_id: 'plan-c01-test-7f3a-01HXYZABCDEFGHJKMNPQRSTVWX',
-                artifact_path: 'intent.md',
-                updated_at: new Date().toISOString(),
-                updated_by: 'x',
+                artifact: 'intent.md',
               },
             },
           },
@@ -59,6 +56,7 @@ content`,
       stage: 'plan',
       filePath: join(tmp, 'intent.md'),
       id: 'plan-c01-test-7f3a-01HXYZABCDEFGHJKMNPQRSTVWX',
+      rootPath: tmp,
     });
   });
 });

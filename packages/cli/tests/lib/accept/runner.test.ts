@@ -49,10 +49,7 @@ content`,
             stages: {
               plan: {
                 state: 'draft',
-                artifact_id: 'plan-c01-test-7f3a-01HXYZABCDEFGHJKMNPQRSTVWX',
-                artifact_path: 'intent.md',
-                updated_at: '2026-09-15T10:00:00Z',
-                updated_by: 'x',
+                artifact: 'intent.md',
               },
             },
           },

@@ -2,16 +2,7 @@ import { readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
 import type { Artifact } from './types.js';
 import type { Stage } from '../identity.js';
-
-interface CycleFile {
-  current_cycle: number;
-  cycles: Record<
-    string,
-    {
-      stages: Partial<Record<Stage, { artifact_id?: string; artifact_path?: string }>>;
-    }
-  >;
-}
+import type { CycleStateFile } from '../cycle.js';
 
 const FRONTMATTER_RE = /^---\n([\s\S]*?)\n---/;
 
@@ -35,17 +26,18 @@ export async function discoverArtifacts(rootPath: string): Promise<Artifact[]> {
     return [];
   }
   const cycleRaw = await readFile(cyclePath, 'utf-8');
-  const cycle = JSON.parse(cycleRaw) as CycleFile;
+  const cycle = JSON.parse(cycleRaw) as CycleStateFile;
   const artifacts: Artifact[] = [];
   for (const cycleEntry of Object.values(cycle.cycles)) {
     for (const [stage, stageEntry] of Object.entries(cycleEntry.stages)) {
-      if (!stageEntry.artifact_path || !stageEntry.artifact_id) continue;
-      const filePath = join(rootPath, stageEntry.artifact_path);
+      if (!stageEntry.artifact) continue;
+      const filePath = join(rootPath, stageEntry.artifact);
       const fm = parseFrontmatter(await readFile(filePath, 'utf-8').catch(() => ''));
       artifacts.push({
         stage: stage as Stage,
         filePath,
-        id: String(fm.id ?? stageEntry.artifact_id),
+        id: String(fm.id ?? stageEntry.artifact),
+        rootPath,
       });
     }
   }

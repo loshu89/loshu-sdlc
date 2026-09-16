@@ -7,7 +7,7 @@ import type { Artifact } from '../../../../src/lib/accept/types.js';
 
 describe('identityAssertions', () => {
   let tmp: string;
-  const artifact: Artifact = { stage: 'plan', filePath: '', id: '' };
+  const artifact: Artifact = { stage: 'plan', filePath: '', id: '', rootPath: '' };
 
   beforeEach(() => {
     tmp = mkdtempSync(join(tmpdir(), 'id-'));
