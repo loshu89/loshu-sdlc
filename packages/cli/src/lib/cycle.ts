@@ -67,6 +67,12 @@ export interface CycleEntry {
   created_at: string;
   origin: string | null;
   stages: Partial<Record<CycleStage, StageEntry>>;
+  // Optional extras populated by the git lifecycle (commands/git.ts)
+  // for cycles that have a platform provider attached and/or an
+  // open PR. Not written by incrementCycle; absent unless an
+  // explicit sync / openPR step has recorded them.
+  platform?: { provider: 'github' | 'gitlab'; repo: string };
+  pr?: { number: number; url?: string; state?: string };
 }
 
 export interface CycleStateFile {

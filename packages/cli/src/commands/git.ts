@@ -20,12 +20,7 @@ import { join } from 'node:path';
 import { createPlatform } from '../lib/platforms/factory.js';
 import { configFromEnv } from '../lib/platforms/interface.js';
 import { parseCodeowners, reviewersForPath } from '../lib/codeowners.js';
-
-interface CycleFile {
-  current_cycle: number;
-  cycles: Record<string, any>;
-  platform: { provider: 'github' | 'gitlab'; repo: string };
-}
+import type { CycleStateFile } from '../lib/cycle.js';
 
 export interface GitArgs {
   subcommand: 'sync' | 'status' | 'merge' | 'abandon';
@@ -33,10 +28,10 @@ export interface GitArgs {
   dryRun?: boolean | undefined;
 }
 
-async function loadCycle(rootPath: string): Promise<CycleFile> {
+async function loadCycle(rootPath: string): Promise<CycleStateFile> {
   return JSON.parse(
     await readFile(join(rootPath, '.loshu-sdlc/state/cycle.json'), 'utf-8'),
-  ) as CycleFile;
+  ) as CycleStateFile;
 }
 
 async function loadCodeowners(
@@ -67,21 +62,21 @@ export async function git(args: GitArgs): Promise<number> {
 
   switch (args.subcommand) {
     case 'sync': {
-      const stages = cycleEntry.stages as Record<string, any>;
-      const allAccepted = Object.values(stages).every(
+      const allAccepted = Object.values(cycleEntry.stages).every(
         (s) => s.state === 'accepted' || s.state === 'merged',
       );
       if (!allAccepted) {
         console.log(`git: cycle ${cycleId} has unaccepted stages — commit only, no PR`);
       }
-      // Iterate stages, commit each, determine reviewers from CODEOWNERS
-      for (const [stageName, s] of Object.entries(stages)) {
-        const artifactPath = s.artifact_path as string | undefined;
-        if (!artifactPath) continue;
-        const reviewers = reviewersForPath(codeowners, artifactPath);
-        const message = `sdlc(${stageName}): ${artifactPath} accepted for cycle ${cycleId}`;
+      // Iterate stages, commit each, determine reviewers from CODEOWNERS.
+      // NOTE: cycle.ts StageEntry.artifact (not artifact_path) carries
+      // the relative path to the artifact for that stage.
+      for (const [stageName, s] of Object.entries(cycleEntry.stages)) {
+        if (!s.artifact) continue;
+        const reviewers = reviewersForPath(codeowners, s.artifact);
+        const message = `sdlc(${stageName}): ${s.artifact} accepted for cycle ${cycleId}`;
         console.log(
-          `git sync: would commit ${artifactPath} -> branch ${branch} (reviewers: ${reviewers.join(',') || 'none'})`,
+          `git sync: would commit ${s.artifact} -> branch ${branch} (reviewers: ${reviewers.join(',') || 'none'})`,
         );
         console.log(`         message: ${message}`);
       }
@@ -92,17 +87,21 @@ export async function git(args: GitArgs): Promise<number> {
     }
     case 'status': {
       console.log(`Cycle ${cycleId}: ${cycleEntry.title}`);
-      for (const [stage, s] of Object.entries(cycleEntry.stages as Record<string, any>)) {
-        const pr = s.pr_number ? `PR #${s.pr_number as number}` : 'no PR';
-        console.log(`  ${stage}: ${s.state as string} (${pr})`);
+      for (const [stage, s] of Object.entries(cycleEntry.stages)) {
+        const pr = cycleEntry.pr
+          ? `PR #${cycleEntry.pr.number}`
+          : 'no PR';
+        console.log(`  ${stage}: ${s.state} (${pr})`);
       }
       return 0;
     }
     case 'merge': {
       // Initialize platform only here.
-      const config = { ...configFromEnv(), repo: cycle.platform.repo, baseBranch: 'main' };
-      const platform = createPlatform(config, cycle.platform.provider);
-      const pr = cycleEntry.pr?.number as number | undefined;
+      const provider = cycleEntry.platform?.provider ?? 'github';
+      const repo = cycleEntry.platform?.repo ?? configFromEnv().repo;
+      const config = { ...configFromEnv(), repo, baseBranch: 'main' };
+      const platform = createPlatform(config, provider);
+      const pr = cycleEntry.pr?.number;
       if (!pr) {
         console.error(`git merge: cycle ${cycleId} has no PR`);
         return 1;
@@ -113,9 +112,11 @@ export async function git(args: GitArgs): Promise<number> {
     }
     case 'abandon': {
       // Initialize platform only here.
-      const config = { ...configFromEnv(), repo: cycle.platform.repo, baseBranch: 'main' };
-      const platform = createPlatform(config, cycle.platform.provider);
-      const pr = cycleEntry.pr?.number as number | undefined;
+      const provider = cycleEntry.platform?.provider ?? 'github';
+      const repo = cycleEntry.platform?.repo ?? configFromEnv().repo;
+      const config = { ...configFromEnv(), repo, baseBranch: 'main' };
+      const platform = createPlatform(config, provider);
+      const pr = cycleEntry.pr?.number;
       if (pr) await platform.closePR(pr);
       await platform.deleteBranch(branch);
       console.log(`git abandon: cycle ${cycleId} closed, branch ${branch} deleted`);
