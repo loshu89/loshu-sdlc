@@ -34,12 +34,6 @@ jobs:
 
       - name: Test
         run: pnpm test
-        env:
-          # Tests import from packages/cli/dist/ (built artifacts) — the
-          # T7 closed-loop test plus the migrate + repair CLI integration
-          # tests need the dist tree. pnpm build above produces it.
-          # No additional flag needed; this env block is for future overrides.
-          CI_NODE_PATH: ${{ runner.temp }}/_npath
 
       - name: Lint
         run: pnpm lint
