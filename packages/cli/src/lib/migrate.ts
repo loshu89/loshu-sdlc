@@ -27,7 +27,11 @@ export interface MigrationEvent {
 //   1. Flat — `{ "0.1.0": {…}, "0.2.0": {…} }` (legacy).
 //   2. Wrapper — `{ current?: string, versions: {…} }` (current v0.6
 //      registry.json layout).
-type RegistryShape = Registry | { current?: string; versions: Registry };
+interface WrappedRegistry {
+  current?: string;
+  versions: Registry;
+}
+type RegistryShape = Registry | WrappedRegistry;
 
 export function findMigrationPath(
   fromVer: string,
@@ -35,8 +39,13 @@ export function findMigrationPath(
   registry: RegistryShape,
 ): string[] {
   if (fromVer === toVer) throw new Error('no migration path: from equals to');
+  // 'in' narrowing doesn't disambiguate Registry (an open index signature)
+  // from WrappedRegistry, so TS keeps the union; cast through the wrapper
+  // shape to pick the typed `versions` field.
   const versions: Registry =
-    'versions' in registry ? registry.versions : registry;
+    'versions' in registry
+      ? (registry as WrappedRegistry).versions
+      : registry;
   if (!versions[fromVer]) throw new Error(`unknown from version: ${fromVer}`);
 
   const path: string[] = [fromVer];

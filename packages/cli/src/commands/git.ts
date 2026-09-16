@@ -63,7 +63,7 @@ export async function git(args: GitArgs): Promise<number> {
   switch (args.subcommand) {
     case 'sync': {
       const allAccepted = Object.values(cycleEntry.stages).every(
-        (s) => s.state === 'accepted' || s.state === 'merged',
+        (s) => s.state === 'accepted',
       );
       if (!allAccepted) {
         console.log(`git: cycle ${cycleId} has unaccepted stages — commit only, no PR`);

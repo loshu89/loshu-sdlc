@@ -54,7 +54,7 @@ export const stateAssertions: Assertion[] = [
       const myCycle = cycle.cycles?.[String(myCycleId)];
       if (!myCycle) return pass('C2');
       const prevState = myCycle.stages?.[prevStage]?.state;
-      if (prevState !== 'accepted' && prevState !== 'merged') {
+      if (prevState !== 'accepted') {
         return fail('C2', `previous stage ${prevStage} is ${String(prevState)}, must be accepted`);
       }
       return pass('C2');
