@@ -18,8 +18,9 @@
     "node": ">=20.0.0"
   },
   "scripts": {
-    "build": "tsc && pnpm run copy-plugin",
+    "build": "tsc && pnpm run copy-plugin && pnpm run compile-migrations",
     "copy-plugin": "node ../../scripts/copy-plugin.mjs",
+    "compile-migrations": "node ../../scripts/compile-migrations.mjs",
     "typecheck": "tsc --noEmit",
     "test": "vitest run --exclude tests/lib/validate.test.ts --exclude tests/commands/state.test.ts",
     "test:coverage": "vitest run --coverage",
