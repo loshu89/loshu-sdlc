@@ -15,6 +15,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.6.3] - 2026-09-16
+
+Re-enable the eight `@typescript-eslint/*` rules relaxed in v0.6.0 across `@loshu89/cli`. Catches three latent bugs the relaxed typing had been hiding.
+
+### Fixed
+
+- **C2 cross-stage assertion checked `'merged'` against a `StageState` that doesn't include it** — `'merged'` is a `PRRef['state']` value, not a stage state. The check could never fire (`StageState` has no `'merged'` member) but `tsc --noEmit` flagged the comparison as unintentional once the strict rule caught it. Removed both occurrences (`src/commands/git.ts` and `src/lib/accept/assertions/state.ts`).
+- **`loshu-sdlc git status` printed 'no PR' for every cycle** — `s.pr_number as number` per-stage read a field that doesn't exist on `StageEntry`; PR info lives at the cycle level (`cycleEntry.pr.number`). Fixed the read site and moved the `pr`/`platform` optional fields onto `CycleEntry` in `lib/cycle.ts` so the type matches what the command expects.
+- **`loshu-sdlc git sync` printed 'undefined' for every artifact path** — `s.artifact_path as string | undefined` read a field that doesn't exist on `StageEntry`; the real field is `artifact` (per `cycle.ts:19` schema comment). Fixed the read site.
+- **`chainMigrate` was `async` but never `await`-ed** — `@typescript-eslint/require-await` flagged the function as a no-op async. Dropped the `async` keyword; callers (commands/migrate.ts and the test) now call the synchronous result directly.
+
+### Changed
+
+- **`@loshu89/cli` now compiles under strict typescript rules** — `packages/cli/.eslintrc.json` flips the eight v0.6.0-relaxed rules (`no-explicit-any`, `no-unsafe-{assignment,call,member-access,return,argument}`, `restrict-template-expressions`, `no-base-to-string`, `require-await`) from `off` to `error`. 98 violations across 14 files fixed in five per-area commits:
+  - platforms (34) — typed `gh`/`glab` JSON via `GhPRViewJson`/`GhRefJson`/`GlMRViewJson`/`GlBranchJson` interfaces; replaced ad-hoc `.toLowerCase() as PRRef['state']` casts with exhaustive `normalizeGhState`/`normalizeGlState` switch helpers.
+  - commands/git.ts (19) — uses `CycleStateFile` from `lib/cycle.ts`; fixes two latent bugs above as a side effect.
+  - migrate (30) — transform pipeline is `unknown`-typed end to end (was `any`); `findMigrationPath` accepts a discriminated `Registry | WrappedRegistry` shape via a named `WrappedRegistry` interface.
+  - accept assertions (14) — `state.ts` C2 reads cycle via `CycleStateFile`; `identity.ts` + `state.ts` wrap `unknown` frontmatter field interpolations with `String(...)`; `versioning.ts` V3 reads `RegistryVersion` instead of `any`.
+  - commands/repair.ts (1) — `String(fm.id)` in the change-log message.
+- **Test mock typings** — `vi.mock('execa', () => ({ execa: vi.fn() }))` factory erased the execa type; replaced with `vi.mock('execa')` (auto-mock preserves types). The mockExeca helpers now return `Awaited<ReturnType<typeof execa>>` so `vi.mocked(execa).mockResolvedValue`'s parameter is checked.
+
+### Notes
+
+- Lint progress: 98 → 0 across the five per-area commits; intermediate commits intentionally have red lint while in-flight.
+- `eval:strict` still 30/30; closed-loop E2E 2/2 (no changes to runtime behavior; this is purely type/lint cleanup).
+
+---
+
 ## [0.6.2] - 2026-09-16
 
 Make v0.6.1's stage hooks actually work on Windows + Git Bash, ship a real (rendered) README in every scaffolded project, and stop the empty `0` file from coming back.
