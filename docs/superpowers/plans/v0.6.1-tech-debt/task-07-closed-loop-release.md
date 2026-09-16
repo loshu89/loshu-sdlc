@@ -17,7 +17,7 @@
 
 ## Steps
 
-- [ ] **Step 1: Write the closed-loop E2E test**
+- [x] **Step 1: Write the closed-loop E2E test**
 
 ```typescript
 // tests/integration/closed-loop.test.ts
@@ -174,7 +174,7 @@ openQuestions: []
 
 ADAPT after first run: this test encodes the EXPECTED contract; exact hook behavior (debounce timing, cycle origin shape) may require assertion adjustments. The contract that must NOT be weakened: **(a)** first fire blocks with exit 2 on 3σ without incident intent; **(b)** after incident intent exists, evidence of the loop (events.jsonl entries or forked incident cycle) is present. If you must relax (a) or (b), STOP and report BLOCKED — that means the loop is broken, not the test.
 
-- [ ] **Step 2: Build, then run the test**
+- [x] **Step 2: Build, then run the test**
 
 ```bash
 cd "D:/workspace/3.my/SDLC"
@@ -184,7 +184,7 @@ npx pnpm@9.0.0 test -- tests/integration/closed-loop.test.ts
 
 Expected: PASS (≤30s). If FAIL: read hook stderr in the test output; distinguish test-fixture bugs (yours to fix) from product bugs (fix the product — that's what this task is for; the loop has literally never run end-to-end).
 
-- [ ] **Step 3: Full gauntlet**
+- [x] **Step 3: Full gauntlet**
 
 ```bash
 npx pnpm@9.0.0 typecheck
@@ -196,7 +196,7 @@ npx pnpm@9.0.0 lint
 
 All green, zero excludes, zero skips. Record totals in the report.
 
-- [ ] **Step 4: CHANGELOG v0.6.1 entry**
+- [x] **Step 4: CHANGELOG v0.6.1 entry**
 
 Replace the `## [Unreleased]` placeholder comments in `CHANGELOG.md` with a real entry ABOVE `## [0.6.0]`:
 
@@ -220,7 +220,7 @@ Make v0.6.0's promises real: the event log actually logs, migrations work on Nod
 - **Closed-loop E2E test** (`tests/integration/closed-loop.test.ts`) — records a 3σ metric, fires maintain-exit, asserts the block and the incident-cycle evidence.
 ```
 
-- [ ] **Step 5: Release**
+- [x] **Step 5: Release**
 
 ```bash
 cd "D:/workspace/3.my/SDLC"
@@ -230,7 +230,7 @@ git tag -a v0.6.1 -m "v0.6.1 — tech debt: real event log, Node 20 migrations, 
 
 Do NOT push — the controller pushes after review.
 
-- [ ] **Step 6: Verify tag + tree**
+- [x] **Step 6: Verify tag + tree**
 
 ```bash
 git log --oneline -3
