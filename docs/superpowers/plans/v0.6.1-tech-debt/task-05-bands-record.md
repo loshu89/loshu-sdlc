@@ -16,7 +16,7 @@
 
 ## Steps
 
-- [ ] **Step 1: Write the failing tests (append to existing bands.test.ts)**
+- [x] **Step 1: Write the failing tests (append to existing bands.test.ts)**
 
 ```typescript
 // append to packages/cli/tests/commands/bands.test.ts
@@ -57,7 +57,7 @@ describe('bands record', () => {
 
 Adjust the import in the test header to also import `bandsRecord` (the new export, Step 3).
 
-- [ ] **Step 2: Run tests — expect FAIL**
+- [x] **Step 2: Run tests — expect FAIL**
 
 ```bash
 cd "D:/workspace/3.my/SDLC"
@@ -66,7 +66,7 @@ npx pnpm@9.0.0 --filter @loshu89/cli test -- tests/commands/bands.test.ts
 
 Expected: FAIL — `bandsRecord` is not exported.
 
-- [ ] **Step 3: Implement `bandsRecord` + `record` subcommand in bands.ts**
+- [x] **Step 3: Implement `bandsRecord` + `record` subcommand in bands.ts**
 
 Add to `packages/cli/src/commands/bands.ts` (read the file first; follow its existing arg-interface + dispatcher style):
 
@@ -129,7 +129,7 @@ Update HELP:
                                            (repeat --metric/--value for multiple; merges with existing)
 ```
 
-- [ ] **Step 4: Wire the bin (multi-value --metric/--value)**
+- [x] **Step 4: Wire the bin (multi-value --metric/--value)**
 
 In `packages/cli/src/bin/loshu-sdlc.ts`, find the existing `bands` case. `parseArgs` supports multi-value options via `multiple: true`. Add to the options block:
 
@@ -162,7 +162,7 @@ In the `bands` case, when `positionals[1] === 'record'`:
 
 (Adapt variable names to the existing case structure — read it first. Keep the existing `evaluate` routing untouched.)
 
-- [ ] **Step 5: Build + run tests**
+- [x] **Step 5: Build + run tests**
 
 ```bash
 cd "D:/workspace/3.my/SDLC"
@@ -172,7 +172,7 @@ npx pnpm@9.0.0 --filter @loshu89/cli test -- tests/commands/bands.test.ts
 
 Expected: all bands tests pass (existing evaluate tests + 4 new record tests).
 
-- [ ] **Step 6: CLI smoke test**
+- [x] **Step 6: CLI smoke test**
 
 ```bash
 TMP=$(mktemp -d)
@@ -185,7 +185,7 @@ rm -rf "$TMP"
 
 Expected: first cat shows `{"error_rate": 0.011}` (pretty-printed); second shows both keys.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add packages/cli/src/commands/bands.ts packages/cli/src/bin/loshu-sdlc.ts packages/cli/tests/commands/bands.test.ts
