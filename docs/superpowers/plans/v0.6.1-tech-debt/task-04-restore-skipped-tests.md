@@ -20,7 +20,7 @@
 
 ## Steps
 
-- [ ] **Step 1: Update template frontmatter to v0.6.0 schema**
+- [x] **Step 1: Update template frontmatter to v0.6.0 schema**
 
 For each template artifact, REPLACE the legacy frontmatter with Identity-complete frontmatter. Use EJS variables for values the scaffolder knows (`<%= intentId %>`, `<%= today %>`, `<%= projectName %>`) — Step 3 wires them.
 
@@ -139,7 +139,7 @@ IMPORTANT: before writing, READ each current template file and each correspondin
 
 `bands.yaml` (full template): check `bands.schema.json` required fields; if Identity fields are required there too, add them as plain YAML (no EJS needed except `<%= bandsId %>`; stage `maintain`).
 
-- [ ] **Step 2: Verify templates render + validate standalone**
+- [x] **Step 2: Verify templates render + validate standalone**
 
 Quick manual render check (EJS vars substituted with valid static values):
 
@@ -167,7 +167,7 @@ Expected: `✔ ... valid`. (Requires Task 3's build to have run — `pnpm --filt
 
 Note the ID fixtures above use only Crockford-Base32 chars (no I, L, O, U) and are exactly 26 chars — `01J00000000000000000000000`. Verify with `ID_REGEX` if unsure.
 
-- [ ] **Step 3: Wire ID generation into the scaffolder**
+- [x] **Step 3: Wire ID generation into the scaffolder**
 
 In `packages/cli/src/commands/create.ts`, extend the EJS render vars (find where `renderVars` / `projectName` / `date` are built) with generated IDs:
 
@@ -190,7 +190,7 @@ const idVars = {
 
 Merge `idVars` into the existing render-vars object used for ALL template files (currently only `intent.md` is re-rendered post-copy — extend the render loop to cover `spec.md`, `plan.md`, `CLAUDE.md`, `REVIEW.md`, `bands.yaml` in the full template; read the current create.ts render logic first and follow its pattern).
 
-- [ ] **Step 4: Restore the skipped test files**
+- [x] **Step 4: Restore the skipped test files**
 
 ```bash
 cd "D:/workspace/3.my/SDLC"
@@ -198,7 +198,7 @@ git mv packages/cli/tests/lib/validate.test.ts.skip packages/cli/tests/lib/valid
 git mv packages/cli/tests/commands/state.test.ts.skip packages/cli/tests/commands/state.test.ts
 ```
 
-- [ ] **Step 5: Remove the excludes**
+- [x] **Step 5: Remove the excludes**
 
 In `packages/cli/package.json`:
 
@@ -210,7 +210,7 @@ In `packages/cli/package.json`:
 
 Also delete `packages/cli/vitest.config.ts`'s exclude entries for those two files if present (read it first; keep the `node_modules`/`dist` excludes).
 
-- [ ] **Step 6: Run the restored tests, fix assertions against v0.6.0 behavior**
+- [x] **Step 6: Run the restored tests, fix assertions against v0.6.0 behavior**
 
 ```bash
 npx pnpm@9.0.0 --filter @loshu89/cli build
@@ -224,7 +224,7 @@ Expected failures and their correct resolutions:
 3. `--validate runs schema + cross-stage checks` — the state command's messages/guards changed in v0.6.0 (DAG). Run it, read the actual output, align assertions to actual behavior ONLY where the behavior is correct per spec `docs/superpowers/specs/doc-mgmt/3-state-machine-git.md`; if behavior is wrong, fix the command, not the test.
 4. `plan-exit transitions intent.md draft -> accepted` — the hook now requires Identity-complete intent.md (Task 1/2 changed emit flow too). Update the test fixture to a v0.6.0-valid intent.md (Identity fields + `state: draft`), keep the assertion that the hook exits 0 and the artifact ends `accepted`. This test spawns bash + stub CLI — preserve its existing stubbing approach; only update fixture content. If it times out, it has a 10s budget already (v0.4.2 fix); do not lower it.
 
-- [ ] **Step 7: Full suite green with zero excludes**
+- [x] **Step 7: Full suite green with zero excludes**
 
 ```bash
 npx pnpm@9.0.0 test
@@ -232,7 +232,7 @@ npx pnpm@9.0.0 test
 
 Expected: ALL test files run (no `--exclude`), 0 failures. Record the total test count in your report (was 136 with excludes; expect ~141+ after restoring 5).
 
-- [ ] **Step 8: Integration test still passes (scaffolder changes from Step 3)**
+- [x] **Step 8: Integration test still passes (scaffolder changes from Step 3)**
 
 ```bash
 npx pnpm@9.0.0 test -- tests/integration/scaffold.test.ts
@@ -240,7 +240,7 @@ npx pnpm@9.0.0 test -- tests/integration/scaffold.test.ts
 
 Expected: PASS — and now the scaffolded artifacts should actually VALIDATE (the old test only asserted `errors` was defined; if it's cheap, strengthen it: assert `result.valid === true` for intent.md after scaffold. This is the real proof the templates + ID generation work end-to-end).
 
-- [ ] **Step 9: Commit**
+- [x] **Step 9: Commit**
 
 ```bash
 git add packages/templates/ packages/cli/src/commands/create.ts packages/cli/tests/ packages/cli/package.json packages/cli/vitest.config.ts
