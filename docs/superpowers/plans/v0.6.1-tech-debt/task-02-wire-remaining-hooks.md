@@ -78,7 +78,7 @@ Place this after the bands→accepted transition block (currently ends at line ~
 
 ## Steps
 
-- [ ] **Step 1: Read all 4 hooks; note each one's final `exit 0` line number and success-path structure**
+- [x] **Step 1: Read all 4 hooks; note each one's final `exit 0` line number and success-path structure**
 
 ```bash
 cd "D:/workspace/3.my/SDLC"
@@ -87,11 +87,11 @@ grep -n "exit 0" packages/plugin/hooks/design-exit.sh packages/plugin/hooks/buil
 
 Beware: several scripts have MULTIPLE `exit 0` statements (early-outs for missing artifacts / rejected-archived states). The emit block goes before the FINAL one only (the success path). Early-outs (`artifact not found`, `rejected|archived` revision-allowed) should NOT emit `validate` events.
 
-- [ ] **Step 2: Apply pattern A + B to design-exit.sh**
-- [ ] **Step 3: Apply pattern A + B to build-exit.sh**
-- [ ] **Step 4: Apply pattern A + B to deploy-exit.sh**
-- [ ] **Step 5: Apply pattern A + B (+ incident emit) to maintain-exit.sh**
-- [ ] **Step 6: Syntax check all 4**
+- [x] **Step 2: Apply pattern A + B to design-exit.sh**
+- [x] **Step 3: Apply pattern A + B to build-exit.sh**
+- [x] **Step 4: Apply pattern A + B to deploy-exit.sh**
+- [x] **Step 5: Apply pattern A + B (+ incident emit) to maintain-exit.sh**
+- [x] **Step 6: Syntax check all 4**
 
 ```bash
 for h in design build deploy maintain; do bash -n "packages/plugin/hooks/$h-exit.sh" && echo "$h OK"; done
@@ -99,7 +99,7 @@ for h in design build deploy maintain; do bash -n "packages/plugin/hooks/$h-exit
 
 Expected: 4 × OK.
 
-- [ ] **Step 7: Smoke test one hook (design-exit) with the Task-1 fixture pattern**
+- [x] **Step 7: Smoke test one hook (design-exit) with the Task-1 fixture pattern**
 
 ```bash
 cd "D:/workspace/3.my/SDLC"
@@ -141,7 +141,7 @@ rm -rf "$TMP"
 
 Expected: events.jsonl contains a line with `"stage":"design"`. (The stub CLI makes `validate`/`state` calls succeed; if the hook's cross-stage check greps intent.md for `state: accepted` — the fixture provides it.)
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add packages/plugin/hooks/design-exit.sh packages/plugin/hooks/build-exit.sh packages/plugin/hooks/deploy-exit.sh packages/plugin/hooks/maintain-exit.sh
