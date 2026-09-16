@@ -1,3 +1,10 @@
+id: <%= bandsId %>
+schema_version: 0.5.0
+cycle_id: 1
+stage: maintain
+state: draft
+created_by: <%= createdBy %>
+created_at: <%= today %>
 version: 1
 project: <%= projectName %>
 generated: <%= date %>

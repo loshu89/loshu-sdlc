@@ -1,11 +1,16 @@
 ---
-title: <First feature>
-status: draft
+id: <%= specId %>
+schema_version: 0.5.0
+cycle_id: 1
+stage: design
+state: draft
+created_by: <%= createdBy %>
+created_at: <%= today %>
+title: <%= projectName %>
 intent: intent.md
-date: <%= date %>
-architecture: TBD
+architecture: "[System design — fill in during /sdlc-design]"
 verificationCriteria:
-  - TBD
+  - "[How we'll know this works]"
 ---
 
 # Spec: <First feature>

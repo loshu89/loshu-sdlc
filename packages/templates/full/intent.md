@@ -1,7 +1,12 @@
 ---
+id: <%= intentId %>
+schema_version: 0.5.0
+cycle_id: 1
+stage: plan
+state: draft
+created_by: <%= createdBy %>
+created_at: <%= today %>
 title: <%= projectName %>
-status: draft
-cycle: 1
 problem: "[What's broken or missing]"
 proposedOutcome: "[Ideal end state]"
 affectedUsersAndSystems:

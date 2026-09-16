@@ -1,12 +1,16 @@
 ---
+id: <%= claudeId %>
+schema_version: 0.5.0
+cycle_id: 1
+stage: test
+state: draft
+created_by: <%= createdBy %>
+created_at: <%= today %>
 title: <%= projectName %>
-generatedBy: loshu-sdlc v0.1.0
-generatedAt: <%= date %>T00:00:00Z
 verification:
-  build: <build-command>
-  test: <test-command>
-  lint: <lint-command>
-  typecheck: <typecheck-command>
+  build: "[build command]"
+  test: "[test command]"
+  lint: "[lint command]"
 ---
 
 # <%= projectName %>

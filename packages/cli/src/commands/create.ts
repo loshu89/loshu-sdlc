@@ -5,6 +5,7 @@ import { ensureDir, ensureSymlink, copy, writeFile } from 'fs-extra';
 import chalk from 'chalk';
 import process from 'node:process';
 import { renderFile } from '../lib/render.js';
+import { generateId } from '../lib/identity.js';
 import { initGit, isGitRepo } from '../lib/git.js';
 import { bundlePlugin } from '../lib/plugin-bundler.js';
 import { runPrompts, type ScaffoldOptions } from '../lib/prompts.js';
@@ -71,18 +72,46 @@ export async function create(args: CreateArgs): Promise<void> {
     filter: (src) => !src.includes('.git') && !src.includes('node_modules'),
   });
 
-  // Render EJS placeholders
+  // Render EJS placeholders. v0.6.0 schemas require Identity fields on every
+  // artifact, so the scaffolder generates real IDs (stage-c##-slug-####-ULID)
+  // and provides them on every render path.
+  const slug = projectName.toLowerCase().replace(/[^a-z0-9-]+/g, '-').slice(0, 30) || 'app';
+  const idVars = {
+    intentId: generateId({ stage: 'plan', cycle: 1, slug }),
+    specId: generateId({ stage: 'design', cycle: 1, slug }),
+    planId: generateId({ stage: 'build', cycle: 1, slug }),
+    claudeId: generateId({ stage: 'test', cycle: 1, slug }),
+    reviewId: generateId({ stage: 'deploy', cycle: 1, slug }),
+    bandsId: generateId({ stage: 'maintain', cycle: 1, slug }),
+    createdBy: `human:${
+      process.env.GITHUB_USER ?? process.env.USERNAME ?? process.env.USER ?? 'unknown'
+    }`,
+    today: new Date().toISOString(),
+  };
   const renderVars = {
     projectName,
     date,
     coverageLine: String(options.coverageLine),
     coverageBranch: String(options.coverageBranch),
+    ...idVars,
   };
 
-  const intentPath = join(targetPath, 'intent.md');
-  if (existsSync(intentPath)) {
-    const rendered = await renderFile(intentPath, renderVars);
-    await writeFile(intentPath, rendered);
+  // Render every artifact template present in the target (the minimal template
+  // ships intent.md only; the full template ships all six).
+  const artifactTemplates = [
+    'intent.md',
+    'spec.md',
+    'plan.md',
+    'CLAUDE.md',
+    'REVIEW.md',
+    'bands.yaml',
+  ];
+  for (const rel of artifactTemplates) {
+    const artifactPath = join(targetPath, rel);
+    if (existsSync(artifactPath)) {
+      const rendered = await renderFile(artifactPath, renderVars);
+      await writeFile(artifactPath, rendered);
+    }
   }
 
   const configPath = join(targetPath, '.loshu-sdlc', 'config.yaml');

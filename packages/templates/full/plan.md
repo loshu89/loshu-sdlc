@@ -1,16 +1,21 @@
 ---
-title: <First feature>
-status: draft
+id: <%= planId %>
+schema_version: 0.5.0
+cycle_id: 1
+stage: build
+state: draft
+created_by: <%= createdBy %>
+created_at: <%= today %>
+title: <%= projectName %>
 spec: spec.md
-date: <%= date %>
 tasks:
   - id: task-1
-    title: TBD
+    title: "[First task]"
 verification:
-  build: pnpm build
-  test: pnpm test
-  lint: pnpm lint
-  typecheck: pnpm typecheck
+  build: "[build command]"
+  test: "[test command]"
+  lint: "[lint command]"
+  typecheck: "[typecheck command]"
 ---
 
 # Plan: <First feature>

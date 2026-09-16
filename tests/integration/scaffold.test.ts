@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { mkdtemp, rm, readFile, existsSync } from 'fs-extra';
+import { mkdtemp, rm, existsSync } from 'fs-extra';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { create } from '../../packages/cli/src/commands/create.js';
@@ -32,14 +32,14 @@ describe('end-to-end scaffold', () => {
 
     for (const { type, path } of artifacts) {
       expect(existsSync(path)).toBe(true);
-      // Schema validation only runs on populated artifacts
-      const content = await readFile(path, 'utf8');
-      if (content.includes('---')) {
-        const result = await validateArtifact(type, path);
-        // Templates are minimal; some may not validate until filled in
-        // We just check the file is parseable
-        expect(result.errors).toBeDefined();
+      // v0.6.0: the scaffolder renders Identity-complete artifacts with real
+      // generated IDs, so every artifact must actually pass schema validation.
+      const result = await validateArtifact(type, path);
+      if (!result.valid) {
+        console.error(`${type} errors:`, result.errors);
       }
+      expect(result.errors).toEqual([]);
+      expect(result.valid).toBe(true);
     }
   });
 });

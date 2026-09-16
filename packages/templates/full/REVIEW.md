@@ -1,8 +1,12 @@
 ---
-title: <First feature>
-spec: spec.md
-plan: plan.md
-date: <%= date %>
+id: <%= reviewId %>
+schema_version: 0.5.0
+cycle_id: 1
+stage: deploy
+state: draft
+created_by: <%= createdBy %>
+created_at: <%= today %>
+title: <%= projectName %>
 bugs:
   status: pending
 security:

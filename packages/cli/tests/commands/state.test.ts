@@ -254,11 +254,18 @@ verificationCriteria: [a]
   it('--validate runs schema + cross-stage checks', async () => {
     const tmp = await mkdtemp(join(tmpdir(), 'loshu-state-'));
     const intent = join(tmp, 'intent.md');
+    // v0.6.0: schema check requires Identity fields in frontmatter.
     await writeFile(
       intent,
       `---
-title: Demo
+id: plan-c01-demo-0000-01J00000000000000000000000
+schema_version: 0.5.0
+cycle_id: 1
+stage: plan
 state: draft
+created_by: human:test
+created_at: 2026-09-16T00:00:00Z
+title: Demo
 problem: x
 proposedOutcome: y
 openQuestions: []
@@ -299,11 +306,18 @@ describe('hook integration', () => {
   it('plan-exit transitions intent.md draft -> accepted', async () => {
     const tmp = await mkdtemp(join(tmpdir(), 'loshu-hook-'));
     const file = join(tmp, 'intent.md');
+    // v0.6.0: the hook path requires an Identity-complete intent.md.
     await writeFile(
       file,
       `---
-title: Hook demo
+id: plan-c01-demo-0000-01J00000000000000000000000
+schema_version: 0.5.0
+cycle_id: 1
+stage: plan
 state: draft
+created_by: human:test
+created_at: 2026-09-16T00:00:00Z
+title: Hook demo
 problem: x
 proposedOutcome: y
 openQuestions: []
