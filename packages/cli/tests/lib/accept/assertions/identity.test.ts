@@ -214,6 +214,78 @@ describe('A3 — id global uniqueness', () => {
   });
 });
 
+describe('A6 — state is in enum', () => {
+  let tmpDir: string;
+
+  beforeEach(() => {
+    tmpDir = mkdtempSync(join(tmpdir(), 'loshu-a6-'));
+  });
+
+  afterEach(() => {
+    rmSync(tmpDir, { recursive: true });
+  });
+
+  it('passes for valid StageState values', async () => {
+    const p = writeArtifact(tmpDir, 'intent.md', {
+      id: 'plan-c01-test-7f3a-01HXYZABCDEFGHJKMNPQRSTVWX',
+      schema_version: '0.5.0',
+      cycle_id: '1',
+      stage: 'plan',
+      state: 'draft',
+      created_at: '2026-09-15T10:00:00Z',
+    });
+    const artifact: Artifact = {
+      stage: 'plan',
+      filePath: p,
+      id: 'plan-c01-test-7f3a-01HXYZABCDEFGHJKMNPQRSTVWX',
+      rootPath: tmpDir,
+    };
+    const result = await findRule('A6')!.run(artifact);
+    expect(result.pass).toBe(true);
+  });
+
+  it('rejects state: merged (merged is PRRef state, not StageState)', async () => {
+    const p = writeArtifact(tmpDir, 'intent.md', {
+      id: 'plan-c01-test-7f3a-01HXYZABCDEFGHJKMNPQRSTVWX',
+      schema_version: '0.5.0',
+      cycle_id: '1',
+      stage: 'plan',
+      state: 'merged',
+      created_at: '2026-09-15T10:00:00Z',
+    });
+    const artifact: Artifact = {
+      stage: 'plan',
+      filePath: p,
+      id: 'plan-c01-test-7f3a-01HXYZABCDEFGHJKMNPQRSTVWX',
+      rootPath: tmpDir,
+    };
+    const result = await findRule('A6')!.run(artifact);
+    expect(result.pass).toBe(false);
+    if (!result.pass) {
+      expect(result.message).toContain('not in enum');
+    }
+  });
+
+  it('rejects unknown state values', async () => {
+    const p = writeArtifact(tmpDir, 'intent.md', {
+      id: 'plan-c01-test-7f3a-01HXYZABCDEFGHJKMNPQRSTVWX',
+      schema_version: '0.5.0',
+      cycle_id: '1',
+      stage: 'plan',
+      state: 'bogus-state',
+      created_at: '2026-09-15T10:00:00Z',
+    });
+    const artifact: Artifact = {
+      stage: 'plan',
+      filePath: p,
+      id: 'plan-c01-test-7f3a-01HXYZABCDEFGHJKMNPQRSTVWX',
+      rootPath: tmpDir,
+    };
+    const result = await findRule('A6')!.run(artifact);
+    expect(result.pass).toBe(false);
+  });
+});
+
 describe('A7 — created_at is ISO 8601', () => {
   let tmpDir: string;
 

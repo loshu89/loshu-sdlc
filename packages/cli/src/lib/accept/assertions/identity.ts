@@ -86,7 +86,7 @@ export const identityAssertions: Assertion[] = [
     description: 'state is in enum',
     run: async (a) => {
       const fm = await readFrontmatter(a.filePath);
-      const allowed = ['draft', 'accepted', 'iterating', 'blocked', 'rejected', 'merged', 'archived'];
+      const allowed = ['draft', 'accepted', 'iterating', 'blocked', 'rejected', 'archived'];
       if (!allowed.includes(String(fm?.state)))
         return fail('A6', `state "${String(fm?.state)}" not in enum`);
       return pass('A6');
