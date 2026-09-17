@@ -20,19 +20,20 @@ const STAGES: Stage[] = ['plan', 'design', 'build', 'test', 'deploy', 'maintain'
 //   pending    → draft | archived
 //   draft      → accepted | iterating | blocked | rejected | archived
 //   iterating  → accepted | blocked | rejected | archived
-//   accepted   → iterating | blocked | rejected | merged | archived
+//   accepted   → iterating | blocked | rejected | archived
 //   blocked    → draft | archived
 //   rejected   → draft | archived
-//   merged     → archived
 //   archived   → draft               (unarchive — conservative allow)
+// Note: 'merged' is intentionally absent — it's a PRRef['state'], not a
+// StageState; recording 'merged' at stage level would conflict with
+// cycle.ts:48-55's type. The PR-level state lives in cycleEntry.pr.state.
 const TRANSITIONS: Record<string, string[]> = {
   pending: ['draft', 'archived'],
   draft: ['accepted', 'iterating', 'blocked', 'rejected', 'archived'],
   iterating: ['accepted', 'blocked', 'rejected', 'archived'],
-  accepted: ['iterating', 'blocked', 'rejected', 'merged', 'archived'],
+  accepted: ['iterating', 'blocked', 'rejected', 'archived'],
   blocked: ['draft', 'archived'],
   rejected: ['draft', 'archived'],
-  merged: ['archived'],
   archived: ['draft'],
 };
 
