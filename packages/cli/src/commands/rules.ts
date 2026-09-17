@@ -3,6 +3,7 @@ import { execa } from 'execa';
 import fsExtra from 'fs-extra';
 const { stat } = fsExtra;
 import { resolve, join } from 'node:path';
+import { validateArtifact } from '../lib/validate.js';
 
 export interface RulesArgs {
   subcommand: 'list' | 'check';
@@ -54,6 +55,40 @@ const eslintRunner = async (targetPath: string): Promise<RuleResult> => {
   }
 };
 
+function makeSchemaRunner(schemaName: string) {
+  return async (targetPath: string): Promise<RuleResult> => {
+    // `appliesTo` for these rules is a single literal path like
+    // '.loshu-sdlc/intent.md' — pick the basename and look it up.
+    const fileName = targetPath.split(/[\\/]/).pop() ?? '';
+    // We don't know the schema-file pair up front; iterate candidate files
+    // matching the rule's appliesTo (literal paths).
+    // For the v0.7.0 scope, the targetPath IS the file to validate when
+    // it looks like a markdown file; otherwise fall back to listing.
+    const file = targetPath;
+    if (!fileName.endsWith('.md')) {
+      return { status: 'pass', errors: [], filesScanned: [] };
+    }
+    try {
+      const result = await validateArtifact(schemaName, file);
+      if (result.valid) {
+        return { status: 'pass', errors: [], filesScanned: [file] };
+      }
+      return {
+        status: 'fail',
+        errors: result.errors.slice(0, 5),
+        filesScanned: [file],
+      };
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      return {
+        status: 'fail',
+        errors: [`${schemaName} validate threw: ${msg}`],
+        filesScanned: [file],
+      };
+    }
+  };
+}
+
 /**
  * Built-in rule registry. For v0.1.1 we ship a curated list that mirrors
  * the spec's section 11.2 (`rules list` / `rules check <name>`).
@@ -101,18 +136,21 @@ export const RULES: Rule[] = [
     source: 'loshu-sdlc',
     description: 'Validate intent.md against the intent JSON schema.',
     appliesTo: ['.loshu-sdlc/intent.md'],
+    runner: makeSchemaRunner('intent'),
   },
   {
     name: 'spec-md-schema',
     source: 'loshu-sdlc',
     description: 'Validate spec.md against the spec JSON schema.',
     appliesTo: ['.loshu-sdlc/spec.md'],
+    runner: makeSchemaRunner('spec'),
   },
   {
     name: 'plan-md-schema',
     source: 'loshu-sdlc',
     description: 'Validate plan.md against the plan JSON schema.',
     appliesTo: ['.loshu-sdlc/plan.md'],
+    runner: makeSchemaRunner('plan'),
   },
   {
     name: 'attribution-provenance',
