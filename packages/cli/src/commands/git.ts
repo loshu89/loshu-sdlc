@@ -102,7 +102,7 @@ async function commitIfStaged(
     console.log(`git sync: nothing to commit for ${artifactRelPath} (already committed)`);
     return false;
   }
-  await execa('git', ['commit', '-m', message], { cwd: rootPath });
+  await runGit(['commit', '-m', message], rootPath, { dryRun });
   return true;
 }
 
@@ -196,7 +196,12 @@ export async function git(args: GitArgs): Promise<number> {
       for (const [stageName, stageEntry] of stagesWithArtifact) {
         const artifactRel = stageEntry.artifact!;
         const message = `sdlc(${stageName}): ${artifactRel} accepted for cycle ${cycleId}`;
-        await commitIfStaged(artifactRel, rootPath, message, dryRun);
+        try {
+          await commitIfStaged(artifactRel, rootPath, message, dryRun);
+        } catch (e) {
+          console.error(`git sync: commit failed for ${stageName}: ${(e as Error).message}`);
+          return 1;
+        }
         if (dryRun) {
           console.log(
             `git sync: would commit ${artifactRel} -> branch ${branch} (message: "${message}")`,
