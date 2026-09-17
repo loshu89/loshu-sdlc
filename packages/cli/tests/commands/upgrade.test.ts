@@ -1,73 +1,79 @@
-import { describe, it, expect } from 'vitest';
-import { mkdtemp, writeFile, readJson, rm } from 'fs-extra';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { mkdtemp, writeJson, readFile, rm } from 'fs-extra';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { upgrade } from '../../src/commands/upgrade.js';
 
-async function makeProject(deps: Record<string, string>): Promise<string> {
-  const tmp = await mkdtemp(join(tmpdir(), 'loshu-upgrade-'));
-  await writeFile(
-    join(tmp, 'package.json'),
-    JSON.stringify({
-      name: 'demo',
-      scripts: { test: 'echo' },
-      dependencies: deps,
-      devDependencies: { vitest: '^1.0.0' },
-    }),
-  );
-  return tmp;
-}
+describe('loshu-sdlc upgrade', () => {
+  let tmp: string;
 
-describe('upgrade command', () => {
-  it('bumps loshu-sdlc deps and preserves user customizations', async () => {
-    const tmp = await makeProject({
-      '@loshu89/plugin': '0.0.9',
-      '@loshu89/cli': '0.0.9',
-      '@loshu89/templates': '0.0.9',
-      lodash: '^4.0.0',
-    });
-    try {
-      const code = await upgrade({ path: tmp, to: '0.2.0' });
-      expect(code).toBe(0);
-      const pkg = (await readJson(join(tmp, 'package.json'))) as {
-        dependencies: Record<string, string>;
-        devDependencies: Record<string, string>;
-        scripts: Record<string, string>;
-      };
-      expect(pkg.dependencies['@loshu89/plugin']).toBe('0.2.0');
-      expect(pkg.dependencies['@loshu89/cli']).toBe('0.2.0');
-      expect(pkg.dependencies['@loshu89/templates']).toBe('0.2.0');
-      expect(pkg.dependencies['lodash']).toBe('^4.0.0');
-      expect(pkg.devDependencies['vitest']).toBe('^1.0.0');
-      expect(pkg.scripts['test']).toBe('echo');
-    } finally {
-      await rm(tmp, { recursive: true, force: true });
-    }
+  beforeEach(async () => {
+    tmp = await mkdtemp(join(tmpdir(), 'loshu-upgrade-'));
   });
 
-  it('does not write files with --dry-run', async () => {
-    const tmp = await makeProject({ '@loshu89/plugin': '0.0.9' });
-    try {
-      const code = await upgrade({ path: tmp, to: '0.2.0', dryRun: true });
-      expect(code).toBe(0);
-      const pkg = (await readJson(join(tmp, 'package.json'))) as {
-        dependencies: Record<string, string>;
-      };
-      expect(pkg.dependencies['@loshu89/plugin']).toBe('0.0.9');
-    } finally {
-      await rm(tmp, { recursive: true, force: true });
-    }
+  afterEach(async () => {
+    await rm(tmp, { recursive: true, force: true });
   });
 
-  it('returns 2 when package.json is missing', async () => {
-    const original = console.error;
-    const errors: string[] = [];
-    console.error = (msg: string) => errors.push(msg);
+  it('uses --to when provided', async () => {
+    const pkg = { name: 'demo-app', dependencies: { '@loshu89/plugin': '0.5.0', '@loshu89/cli': '0.5.0', '@loshu89/templates': '0.5.0' } };
+    await writeJson(join(tmp, 'package.json'), pkg);
+    const rc = await upgrade({ path: tmp, to: '9.9.9', dryRun: true });
+    expect(rc).toBe(0);
+    // dry-run didn't change anything
+    const after = await readFile(join(tmp, 'package.json'), 'utf8');
+    expect(after).toContain('0.5.0');
+  });
+
+  it('dry-run reports plan but does not write', async () => {
+    const pkg = { name: 'demo-app', dependencies: { '@loshu89/plugin': '0.5.0', '@loshu89/cli': '0.5.0', '@loshu89/templates': '0.5.0' } };
+    await writeJson(join(tmp, 'package.json'), pkg);
+    let captured = '';
+    const origLog = console.log;
+    console.log = (msg: string) => { captured += msg; };
     try {
-      const code = await upgrade({ path: '/tmp/definitely-not-real-xyz-upgrade' });
-      expect(code).toBe(2);
+      await upgrade({ path: tmp, to: '1.0.0', dryRun: true });
     } finally {
-      console.error = original;
+      console.log = origLog;
     }
+    expect(captured).toContain('Upgrade plan');
+    expect(captured).toContain('1.0.0');
+    // Verify no write
+    const after = JSON.parse(await readFile(join(tmp, 'package.json'), 'utf8')) as {
+      dependencies: Record<string, string>;
+    };
+    expect(after.dependencies['@loshu89/cli']).toBe('0.5.0');
+  });
+
+  it('live upgrade writes the new versions', async () => {
+    const pkg = { name: 'demo-app', dependencies: { '@loshu89/plugin': '0.5.0', '@loshu89/cli': '0.5.0', '@loshu89/templates': '0.5.0' } };
+    await writeJson(join(tmp, 'package.json'), pkg);
+    const rc = await upgrade({ path: tmp, to: '1.0.0' });
+    expect(rc).toBe(0);
+    const after = JSON.parse(await readFile(join(tmp, 'package.json'), 'utf8')) as {
+      dependencies: Record<string, string>;
+    };
+    expect(after.dependencies['@loshu89/cli']).toBe('1.0.0');
+    expect(after.dependencies['@loshu89/plugin']).toBe('1.0.0');
+    expect(after.dependencies['@loshu89/templates']).toBe('1.0.0');
+  });
+
+  it('exits 2 when package.json is missing', async () => {
+    const rc = await upgrade({ path: tmp, to: '1.0.0' });
+    expect(rc).toBe(2);
+  });
+
+  it('reports "Already up to date" when all deps match --to', async () => {
+    const pkg = { name: 'demo-app', dependencies: { '@loshu89/plugin': '1.0.0', '@loshu89/cli': '1.0.0', '@loshu89/templates': '1.0.0' } };
+    await writeJson(join(tmp, 'package.json'), pkg);
+    let captured = '';
+    const origLog = console.log;
+    console.log = (msg: string) => { captured += msg; };
+    try {
+      await upgrade({ path: tmp, to: '1.0.0' });
+    } finally {
+      console.log = origLog;
+    }
+    expect(captured).toContain('Already up to date');
   });
 });

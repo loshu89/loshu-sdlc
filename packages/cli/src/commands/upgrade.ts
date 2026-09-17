@@ -1,7 +1,8 @@
 import chalk from 'chalk';
 import fsExtra from 'fs-extra';
-const { readJson, writeJson, pathExists } = fsExtra;
-import { resolve, join } from 'node:path';
+const { readJson, readJsonSync, writeJson, pathExists } = fsExtra;
+import { resolve, join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 export interface UpgradeArgs {
   path: string;
@@ -32,6 +33,24 @@ Options:
 
 const LOSHU_PACKAGES = ['@loshu89/plugin', '@loshu89/cli', '@loshu89/templates'];
 
+function currentCliVersion(): string {
+  // Resolve the CLI's own package.json from the module URL.
+  // Works in both published (node_modules/@loshu89/cli/...) and
+  // monorepo (packages/cli/...) layouts.
+  const here = dirname(fileURLToPath(import.meta.url));
+  // Walk up to find package.json (handles dist/ vs src/ build layouts).
+  for (let dir = here; dir !== dirname(dir); dir = dirname(dir)) {
+    const candidate = join(dir, 'package.json');
+    try {
+      const pkg = readJsonSync(candidate) as { name?: string; version?: string };
+      if (pkg.name === '@loshu89/cli') return pkg.version ?? '0.0.0';
+    } catch {
+      // not a package.json or unreadable; keep walking
+    }
+  }
+  return '0.0.0';  // last-ditch fallback
+}
+
 /**
  * Upgrade a project's pinned loshu-sdlc packages to `to`. Only edits the
  * `dependencies` field of `package.json`; user customizations (scripts,
@@ -44,7 +63,7 @@ export async function upgrade(args: UpgradeArgs): Promise<number> {
   }
 
   const targetPath = resolve(args.path);
-  const to = args.to ?? '0.1.0';
+  const to = args.to ?? currentCliVersion();
 
   const pkgPath = join(targetPath, 'package.json');
   if (!(await pathExists(pkgPath))) {
