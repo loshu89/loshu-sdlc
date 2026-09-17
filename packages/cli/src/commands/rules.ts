@@ -1,4 +1,5 @@
 import chalk from 'chalk';
+import { execa } from 'execa';
 import fsExtra from 'fs-extra';
 const { stat } = fsExtra;
 import { resolve, join } from 'node:path';
@@ -28,6 +29,31 @@ export interface Rule {
   runner?: (targetPath: string) => Promise<RuleResult>;
 }
 
+const eslintRunner = async (targetPath: string): Promise<RuleResult> => {
+  // Apply ESLint to the rule's appliesTo globs against the target.
+  // We use npx eslint --no-install so we don't trigger install prompts.
+  try {
+    await execa('npx', [
+      '--no-install',
+      'eslint',
+      '--no-error-on-unmatched-pattern',
+      ...['packages/*/src/**/*.ts', 'packages/*/src/**/*.tsx'],  // conservative
+    ], { cwd: targetPath });
+    return { status: 'pass', errors: [], filesScanned: [] };
+  } catch (e) {
+    const err = e as { stdout?: string; stderr?: string; exitCode?: number };
+    const lines = (err.stdout ?? err.stderr ?? '')
+      .split('\n')
+      .filter((l) => l.trim().length > 0)
+      .slice(0, 5);
+    return {
+      status: 'fail',
+      errors: lines.length > 0 ? lines : [`eslint exited with code ${err.exitCode ?? 'unknown'}`],
+      filesScanned: [],
+    };
+  }
+};
+
 /**
  * Built-in rule registry. For v0.1.1 we ship a curated list that mirrors
  * the spec's section 11.2 (`rules list` / `rules check <name>`).
@@ -44,6 +70,7 @@ export const RULES: Rule[] = [
     source: 'loshu-sdlc',
     description: 'Run ESLint with the project ESLint config.',
     appliesTo: ['packages/*/src/**/*.ts'],
+    runner: eslintRunner,
   },
   {
     name: 'a11y-wcag',
