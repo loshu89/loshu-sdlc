@@ -4,6 +4,12 @@ const { readdir, readFile } = fsExtra;
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
+// Honor $HOME for testability; fall back to os.homedir() on hosts where
+// $HOME is unset (e.g. Windows native shells where USERPROFILE drives it).
+function resolveHome(): string {
+  return process.env.HOME ?? homedir();
+}
+
 export interface LogsArgs {
   tail?: number | undefined;
   cycle?: number | undefined;
@@ -42,7 +48,7 @@ export async function logs(args: LogsArgs): Promise<number> {
     return 0;
   }
 
-  const logDir = join(homedir(), '.loshu-sdlc/logs');
+  const logDir = join(resolveHome(), '.loshu-sdlc/logs');
   const files = await readdir(logDir).catch(() => [] as string[]);
   const logFiles = files.filter((f) => f.endsWith('.log'));
 
