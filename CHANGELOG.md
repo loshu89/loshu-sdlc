@@ -15,6 +15,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.7.0] - 2026-09-17
+
+Push the v0.1.1-era print-only stubs to real implementations and close three v0.6.4 follow-up items.
+
+### Added
+
+- **`loshu-sdlc git sync` real implementation** — when invoked with `--execute`, validates git/cycle.json preflight, creates or resets the `sdlc/cycle-NN-<slug>` branch, commits each accepted stage's artifact, pushes to origin, opens a PR via the GitHub/GitLab adapter when all stages are accepted, and persists `cycleEntry.platform` + `cycleEntry.pr` to `cycle.json`. Reviewers are the union of CODEOWNERS matches across all stage artifacts. **`--dry-run` is the v0.7.0 default** — real work requires explicit `--execute` (safety: opt-in to blast radius).
+- **`loshu-sdlc rules check` real runners** — 4 rules now have actual implementations: `eslint` (shells out to `npx --no-install eslint`, surfaces first 5 errors), and `intent-md-schema` / `spec-md-schema` / `plan-md-schema` (reuse `validateArtifact` from `lib/validate.ts`). The other 7 rules remain on the borrowed-skill stub path per spec phasing (real impls require external skill ecosystems, deferred).
+- **`loshu-sdlc logs` tests** — 5 new tests covering filter by cycle/stage, tail, JSON output shape, and empty-dir handling. (The command itself already worked; this release adds the missing test coverage.)
+- **`Rule.runner` optional field** — the `Rule` interface gains an optional `(targetPath) => Promise<RuleResult>` runner. When present, `rules check <name>` invokes it; when absent, the borrowed-skill stub path is preserved. (Used by the 4 real rules above; a future release can wire in the remaining 7.)
+- **`packages/cli/src/lib/stage-schema.ts`** — canonical `STAGE_TO_SCHEMA: Record<Stage, string>` extracted from `state.ts`. Reused by `versioning.ts` V2/V3/V4 to fix a latent bug where the registry was being looked up by stage name (threw for 4 of 6 stages).
+- **`packages/cli/src/lib/accept/frontmatter.ts`** — shared `readFrontmatterFile` and `readFrontmatterFileOrEmpty` extracted from three near-identical copies in `identity.ts`, `state.ts`, `versioning.ts`.
+
+### Changed
+
+- **`loshu-sdlc upgrade` default version** — reads the CLI's own `package.json` (via `fileURLToPath(import.meta.url)`) instead of the hardcoded `'0.1.0'` that would have downgraded post-v0.1.0 users. (No behavior change when `--to <version>` is provided.)
+- **State assertion `C1` DAG transitions** — dropped the `accepted → merged` and `merged → archived` rows added in v0.6.4. `merged` is a `PRRef['state']`, not a `StageState`, so the v0.6.4 TRANSITIONS table was a type-time lie. The PR-level state lives in `cycleEntry.pr.state`, populated by the platform adapter. The spec's `accepted → merged` diagram node manifests at the PR level, not stage level.
+
+### Notes
+
+- 12 implementation commits + plan/spec docs = 14 total this release.
+- Test count: 201 → 222 passing (+21).
+- Deferred to a future release per spec phasing: webhook receiver, branch protection enforcement, auto-revert on failed merge, C5/C6/C7/C8 acceptance assertions, real implementations of `a11y-wcag` / `security-owasp` / `code-review` / `coverage-threshold` / `attribution-provenance` / `tdd` / `verification-before-completion` rules.
+
+---
+
 ## [0.6.4] - 2026-09-16
 
 Close the spec-vs-implementation gap in the acceptance test framework per the v0.6.4 audit. Five new assertions + the foundation change enabling project-scope assertions + fill missing test coverage on existing assertions.
