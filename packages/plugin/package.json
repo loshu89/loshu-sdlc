@@ -1,6 +1,6 @@
 {
   "name": "@loshu89/plugin",
-  "version": "0.6.4",
+  "version": "0.7.0",
   "description": "Claude Code plugin for AI-Native SDLC",
   "license": "MIT",
   "type": "module",
