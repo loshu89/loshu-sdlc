@@ -1,13 +1,11 @@
 import { readFile } from 'node:fs/promises';
-import { parse as parseYaml } from 'yaml';
 import type { Assertion, AssertionResult } from '../types.js';
 import type { Stage } from '../../identity.js';
 import type { CycleStateFile } from '../../cycle.js';
 import { STAGE_TO_SCHEMA } from '../../stage-schema.js';
 import { discoverArtifacts } from '../discover.js';
 import { validateArtifact } from '../../validate.js';
-
-const FRONTMATTER_RE = /^---\n([\s\S]*?)\n---/;
+import { readFrontmatterFileOrEmpty as readFrontmatter } from '../frontmatter.js';
 
 const STAGES: Stage[] = ['plan', 'design', 'build', 'test', 'deploy', 'maintain'];
 
@@ -40,13 +38,6 @@ const TRANSITIONS: Record<string, string[]> = {
 // Stage → schema artifact name (used by C2 schema validate). The map
 // itself lives in `lib/stage-schema.ts` and is also reused by versioning
 // assertions V2/V3/V4 — see that module for the canonical definition.
-
-async function readFrontmatter(path: string): Promise<Record<string, unknown>> {
-  const content = await readFile(path, 'utf-8');
-  const m = FRONTMATTER_RE.exec(content);
-  if (!m) return {};
-  return parseYaml(m[1]!) as Record<string, unknown>;
-}
 
 function pass(rule: string): AssertionResult {
   return { pass: true, rule };

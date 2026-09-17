@@ -7,15 +7,9 @@ import { loadRegistry, getArtifactTypeRegistry } from '../../registry.js';
 import type { RegistryVersion } from '../../migrate.js';
 import type { CycleStateFile } from '../../cycle.js';
 import { STAGE_TO_SCHEMA } from '../../stage-schema.js';
+import { readFrontmatterFile as readFrontmatter } from '../frontmatter.js';
 
 const FRONTMATTER_RE = /^---\n([\s\S]*?)\n---/;
-
-async function readFrontmatter(path: string): Promise<Record<string, unknown>> {
-  const content = await readFile(path, 'utf-8');
-  const m = FRONTMATTER_RE.exec(content);
-  if (!m) return {};
-  return parseYaml(m[1]!) as Record<string, unknown>;
-}
 
 function pass(rule: string): AssertionResult {
   return { pass: true, rule };
@@ -81,7 +75,7 @@ export const versioningAssertions: Assertion[] = [
     description: 'schema_version exists',
     run: async (a) => {
       const fm = await readFrontmatter(a.filePath);
-      if (!fm.schema_version) return fail('V1', 'missing schema_version');
+      if (!fm?.schema_version) return fail('V1', 'missing schema_version');
       return pass('V1');
     },
   },
@@ -91,7 +85,7 @@ export const versioningAssertions: Assertion[] = [
     description: 'schema_version exists in registry',
     run: async (a) => {
       const fm = await readFrontmatter(a.filePath);
-      const ver = String(fm.schema_version);
+      const ver = String(fm?.schema_version);
       const reg = await loadRegistry();
       const typeReg = getArtifactTypeRegistry(reg, STAGE_TO_SCHEMA[a.stage]);
       if (!typeReg[ver]) return fail('V2', `version ${ver} not in registry for ${a.stage}`);
@@ -104,7 +98,7 @@ export const versioningAssertions: Assertion[] = [
     description: 'version is not deprecated',
     run: async (a) => {
       const fm = await readFrontmatter(a.filePath);
-      const ver = String(fm.schema_version);
+      const ver = String(fm?.schema_version);
       const reg = await loadRegistry();
       const typeReg = getArtifactTypeRegistry(reg, STAGE_TO_SCHEMA[a.stage]);
       const entry = typeReg[ver] as RegistryVersion | undefined;
@@ -118,12 +112,8 @@ export const versioningAssertions: Assertion[] = [
     layer: 2,
     description: 'cross-cycle parent schema is consistent (no deprecated/unknown versions)',
     run: async (a) => {
-      let fm: Record<string, unknown>;
-      try {
-        fm = await readFrontmatter(a.filePath);
-      } catch {
-        return pass('V4');
-      }
+      const fm = await readFrontmatter(a.filePath);
+      if (!fm) return pass('V4');
       const parents = (fm.parent_ids as string[] | undefined) ?? [];
       if (parents.length === 0) return pass('V4');
 
