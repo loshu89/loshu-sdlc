@@ -6,6 +6,7 @@ import type { Assertion, AssertionResult } from '../types.js';
 import { loadRegistry, getArtifactTypeRegistry } from '../../registry.js';
 import type { RegistryVersion } from '../../migrate.js';
 import type { CycleStateFile } from '../../cycle.js';
+import { STAGE_TO_SCHEMA } from '../../stage-schema.js';
 
 const FRONTMATTER_RE = /^---\n([\s\S]*?)\n---/;
 
@@ -92,7 +93,7 @@ export const versioningAssertions: Assertion[] = [
       const fm = await readFrontmatter(a.filePath);
       const ver = String(fm.schema_version);
       const reg = await loadRegistry();
-      const typeReg = getArtifactTypeRegistry(reg, a.stage);
+      const typeReg = getArtifactTypeRegistry(reg, STAGE_TO_SCHEMA[a.stage]);
       if (!typeReg[ver]) return fail('V2', `version ${ver} not in registry for ${a.stage}`);
       return pass('V2');
     },
@@ -105,7 +106,7 @@ export const versioningAssertions: Assertion[] = [
       const fm = await readFrontmatter(a.filePath);
       const ver = String(fm.schema_version);
       const reg = await loadRegistry();
-      const typeReg = getArtifactTypeRegistry(reg, a.stage);
+      const typeReg = getArtifactTypeRegistry(reg, STAGE_TO_SCHEMA[a.stage]);
       const entry = typeReg[ver] as RegistryVersion | undefined;
       if (entry?.deprecated)
         return fail('V3', `version ${ver} is deprecated`, 'loshu-sdlc migrate <file>');
@@ -135,7 +136,7 @@ export const versioningAssertions: Assertion[] = [
       }
 
       const reg = await loadRegistry();
-      const typeReg = getArtifactTypeRegistry(reg, a.stage);
+      const typeReg = getArtifactTypeRegistry(reg, STAGE_TO_SCHEMA[a.stage]);
 
       const currentCycleId = Number(fm.cycle_id ?? 0);
       const parentIndex = buildParentIndex(cycle, a.rootPath);

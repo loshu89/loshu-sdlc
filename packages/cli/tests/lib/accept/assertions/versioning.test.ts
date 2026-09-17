@@ -72,6 +72,77 @@ describe('versioningAssertions', () => {
   });
 });
 
+describe('V2 — design stage lookup (regression: a.stage vs STAGE_TO_SCHEMA)', () => {
+  let tmp: string;
+  beforeEach(() => {
+    tmp = mkdtempSync(join(tmpdir(), 'ver-design-'));
+  });
+  afterEach(() => {
+    rmSync(tmp, { recursive: true });
+  });
+
+  const findRule = (rule: string) =>
+    versioningAssertions.find((a) => a.rule === rule);
+
+  it('passes when design stage artifact has schema_version registered under "spec"', async () => {
+    // Regression: before the fix, V2 called getArtifactTypeRegistry(reg, a.stage)
+    // which threw for non-plan/build stages because the registry is keyed by
+    // schema name (e.g. 'spec') not stage name (e.g. 'design'). With the
+    // STAGE_TO_SCHEMA map in place, 'design' → 'spec' and the lookup succeeds.
+    const id = 'design-c01-test-7f3a-01HXYZABCDEFGHJKMNPQRSTVWX';
+    const p = join(tmp, 'spec.md');
+    writeFileSync(
+      p,
+      `---\nid: ${id}\nschema_version: 0.5.0\n---\n`,
+    );
+    const r = await findRule('V2')!.run({
+      stage: 'design',
+      filePath: p,
+      id,
+      rootPath: tmp,
+    });
+    expect(r.pass).toBe(true);
+  });
+
+  it('passes V3 for design stage (lookup via "spec" schema)', async () => {
+    const id = 'design-c01-test-7f3a-01HXYZABCDEFGHJKMNPQRSTVWX';
+    const p = join(tmp, 'spec.md');
+    writeFileSync(
+      p,
+      `---\nid: ${id}\nschema_version: 0.5.0\n---\n`,
+    );
+    const r = await findRule('V3')!.run({
+      stage: 'design',
+      filePath: p,
+      id,
+      rootPath: tmp,
+    });
+    expect(r.pass).toBe(true);
+  });
+
+  it('fails V2 for design stage when schema_version is unknown to the "spec" registry', async () => {
+    // Negative path on the "registry": unknown version should report
+    // 'not in registry for design' rather than throw.
+    const id = 'design-c01-test-7f3a-01HXYZABCDEFGHJKMNPQRSTVWX';
+    const p = join(tmp, 'spec.md');
+    writeFileSync(
+      p,
+      `---\nid: ${id}\nschema_version: 99.0.0\n---\n`,
+    );
+    const r = await findRule('V2')!.run({
+      stage: 'design',
+      filePath: p,
+      id,
+      rootPath: tmp,
+    });
+    expect(r.pass).toBe(false);
+    if (!r.pass) {
+      expect(r.message).toContain('99.0.0');
+      expect(r.message).toContain('design');
+    }
+  });
+});
+
 // Helpers (mirroring state.test.ts fixture pattern).
 function writeArtifact(
   dir: string,

@@ -3,6 +3,7 @@ import { parse as parseYaml } from 'yaml';
 import type { Assertion, AssertionResult } from '../types.js';
 import type { Stage } from '../../identity.js';
 import type { CycleStateFile } from '../../cycle.js';
+import { STAGE_TO_SCHEMA } from '../../stage-schema.js';
 import { discoverArtifacts } from '../discover.js';
 import { validateArtifact } from '../../validate.js';
 
@@ -35,16 +36,9 @@ const TRANSITIONS: Record<string, string[]> = {
   archived: ['draft'],
 };
 
-// Stage → schema artifact name (used by C2 schema validate). Mirrors the
-// mapping used by the `loshu-sdlc validate` command.
-const STAGE_TO_SCHEMA: Record<Stage, string> = {
-  plan: 'intent',
-  design: 'spec',
-  build: 'plan',
-  test: 'claude-md',
-  deploy: 'review',
-  maintain: 'bands',
-};
+// Stage → schema artifact name (used by C2 schema validate). The map
+// itself lives in `lib/stage-schema.ts` and is also reused by versioning
+// assertions V2/V3/V4 — see that module for the canonical definition.
 
 async function readFrontmatter(path: string): Promise<Record<string, unknown>> {
   const content = await readFile(path, 'utf-8');
