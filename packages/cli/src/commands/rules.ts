@@ -11,11 +11,21 @@ export interface RulesArgs {
   help?: boolean | undefined;
 }
 
+export interface RuleResult {
+  status: 'pass' | 'fail';
+  errors: string[];        // first N error messages; surfaced in the report
+  filesScanned: string[];  // paths examined (for human display)
+}
+
 export interface Rule {
   name: string;
   source: string;
   description: string;
   appliesTo: string[];
+  // Optional runner: when present, `rules check <name>` invokes it
+  // (returning a real check result). When absent, the borrowed-skill
+  // stub path is preserved.
+  runner?: (targetPath: string) => Promise<RuleResult>;
 }
 
 /**
@@ -141,6 +151,38 @@ export async function rules(args: RulesArgs): Promise<number> {
     }
 
     const targetPath = resolve(args.path ?? '.');
+
+    if (rule.runner) {
+      let result: RuleResult;
+      try {
+        result = await rule.runner(targetPath);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        if (args.json) {
+          console.log(JSON.stringify({ rule: rule.name, status: 'error', error: msg }));
+        } else {
+          console.error(`✗ ${rule.name}: runner threw — ${msg}`);
+        }
+        return 1;
+      }
+      if (args.json) {
+        console.log(JSON.stringify({ rule: rule.name, source: rule.source, path: targetPath, ...result }, null, 2));
+      } else {
+        const mark = result.status === 'pass' ? '✔' : '✗';
+        const color = result.status === 'pass' ? chalk.green : chalk.red;
+        console.log(color(`${mark} ${rule.name} [${rule.source}] — ${result.status}`));
+        if (result.errors.length > 0) {
+          for (const err of result.errors.slice(0, 5)) {
+            console.log(chalk.dim(`    ${err}`));
+          }
+        }
+      }
+      return result.status === 'pass' ? 0 : 1;
+    }
+
+    // Borrowed-skill stub: preserved exactly as today (with the file-walk
+    // loop for backward compatibility with anyone scripting around the
+    // stub's output shape).
     const files: string[] = [];
     for (const glob of rule.appliesTo) {
       // For v0.1.1 we treat globs as literal relative paths under the
@@ -174,7 +216,7 @@ export async function rules(args: RulesArgs): Promise<number> {
     if (args.json) {
       console.log(JSON.stringify(report, null, 2));
     } else {
-      console.log(chalk.green(`✔ ${rule.name} [${rule.source}] — pass`));
+      console.log(chalk.green(`✔ ${rule.name} [${rule.source}] — pass (borrowed)`));
       console.log(chalk.dim(`  Scanned ${files.length} path(s) under ${targetPath}`));
     }
     return 0;
