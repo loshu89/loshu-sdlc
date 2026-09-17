@@ -31,6 +31,7 @@ const { values, positionals } = parseArgs({
     validate: { type: 'boolean' },
     path: { type: 'string' },
     'dry-run': { type: 'boolean' },
+    execute: { type: 'boolean' },
     metric: { type: 'string', multiple: true },
     value: { type: 'string', multiple: true },
     'observations-json': { type: 'string' },
@@ -78,7 +79,7 @@ Commands:
   cycle append-event --gate ...          Append a gate event (for hooks)
   migrate <file> [--from V] [--to V]     Migrate artifact to a schema version
        [--check] [--dry-run]
-  git <sync|status|merge|abandon> [--cycle N] [--dry-run]
+  git <sync|status|merge|abandon> [--cycle N] [--dry-run] [--execute]
                                        Drive git lifecycle for a cycle
   help [command]                         Show help for a command
   version                                Show version`);
@@ -433,6 +434,7 @@ switch (command) {
       subcommand: sub as 'sync' | 'status' | 'merge' | 'abandon',
       ...(values.cycle !== undefined ? { cycleId: Number(values.cycle) } : {}),
       ...(values['dry-run'] !== undefined ? { dryRun: values['dry-run'] } : {}),
+      ...(values.execute !== undefined ? { execute: values.execute } : {}),
     });
     process.exit(code);
     // falls through
