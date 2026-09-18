@@ -33,21 +33,23 @@ function mockExeca(stdout = '', stderr = '', exitCode = 0): ExecaReturn {
 // Capture console.log + console.error + console.warn so tests can
 // assert on the printed intended commands without polluting test
 // output.
-function captureConsole(): { logs: string[]; errors: string[]; restore: () => void } {
+function captureConsole(): { logs: string[]; errors: string[]; warns: string[]; restore: () => void } {
   const logs: string[] = [];
   const errors: string[] = [];
+  const warns: string[] = [];
   const origLog = console.log;
-  const origErr = console.error;
+  const origError = console.error;
   const origWarn = console.warn;
   console.log = (msg: string) => logs.push(msg);
   console.error = (msg: string) => errors.push(msg);
-  console.warn = (msg: string) => errors.push(msg);
+  console.warn = (msg: string) => warns.push(msg);
   return {
     logs,
     errors,
+    warns,
     restore: () => {
       console.log = origLog;
-      console.error = origErr;
+      console.error = origError;
       console.warn = origWarn;
     },
   };
