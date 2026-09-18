@@ -126,8 +126,8 @@ commit. Never tag locally without running the script first.
 |---|---|
 | `docs/superpowers/specs/loshu-sdlc/` | Authoritative project spec |
 | `docs/superpowers/specs/doc-mgmt/` | Upstream Doc-mgmt spec this plugin implements |
-| `docs/superpowers/specs/2026-09-*.md` | v0.x design specs (v0.6.0, v0.6.4, v0.7.0, v0.8.0) |
-| `docs/superpowers/plans/2026-09-*.md` | Implementation plans for the v0.x releases |
+| `docs/superpowers/specs/2026-09-*.md` | v0.7.0+ design specs (convention started with v0.7.0) |
+| `docs/superpowers/plans/2026-09-*.md` | Implementation plans for all v0.x releases (incl. v0.6.x) |
 | `docs/internal/` | Internal reports, release retros, design rationale |
 | `.superpowers/sdd/<plan>/progress.md` | In-flight SDD ledger (gitignored) |
 | `CHANGELOG.md` | Per-version release notes |
