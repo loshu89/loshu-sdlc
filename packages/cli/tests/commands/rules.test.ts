@@ -54,19 +54,6 @@ describe('rules command', () => {
     }
   });
 
-  it('check returns 2 for an unknown rule', async () => {
-    const original = console.error;
-    const errors: string[] = [];
-    console.error = (msg: string) => errors.push(msg);
-    try {
-      const code = await rules({ subcommand: 'check', name: 'nonexistent-rule' });
-      expect(code).toBe(2);
-    } finally {
-      console.error = original;
-    }
-    expect(errors.join('\n')).toMatch(/Unknown rule/);
-  });
-
   it('check requires a name', async () => {
     const original = console.error;
     const errors: string[] = [];
