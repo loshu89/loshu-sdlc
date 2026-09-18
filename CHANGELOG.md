@@ -15,6 +15,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.8.0] - 2026-09-18
+
+Close the two highest-ROI gaps from `docs/internal/playbook-coverage-analysis.md`: missing institutional-knowledge file and uncleared spec backlog. Text-only release — no source code changed.
+
+### Added
+
+- **`/CLAUDE.md`** — institutional knowledge file at the project root. Captures the conventions any AI agent or human needs to navigate the repo: install / test / lint / build / release commands; the SDLC artifact chain (plan → design → build → test → deploy → maintain); the plugin/skills architecture and the five stage-exit hooks; the SDD workflow for adding new features; commit and release conventions; pitfalls; and a pointer table to where things live. Called out by the AI-Native SDLC playbook as the institutional-knowledge file every agent should have available; previously absent.
+
+### Notes
+
+- `docs/superpowers/specs/2026-09-18-v0.8.0-backlog.md` — one-page addendum to `docs/superpowers/specs/doc-mgmt/6-scope-acceptance.md` §6.1.2 / §6.2.2-4 with one-line dispositions per deferred item so future brainstorming doesn't relitigate the same questions. Headlines:
+  - **Webhook receiver** — deferred indefinitely (playbook supports polling+push; v0.6.4 already has the 3σ fork primitive).
+  - **Branch protection enforcement** — deferred to v1.0 (write requires OAuth scopes not negotiated).
+  - **Auto-revert on failed merge** — deferred to v0.8.x as part of the broader Maintain closure spec.
+  - **Performance items 24-27** — dropped (CLI tool, not high-throughput service).
+  - **Events.jsonl secrets** — deferred to v0.9.x if any secret-handling use case emerges.
+  - **Hook signatures, migrate unknown ver, compatibility items 31-33** — already covered / convention enforced.
+- 5 commits this release (CLAUDE.md + pointer-table fix + backlog addendum + CHANGELOG + release.mjs `chore: release v0.8.0`).
+- Test count: unchanged (229/229; no source code touched).
+- Maintain → Plan loop closure (`playbook-coverage-analysis.md` flagged partial) deferred to v0.8.x spec design.
+
+---
+
 ## [0.7.1] - 2026-09-18
 
 Polish pass: clear the six Minor items the v0.7.0 final whole-branch review parked as deferred.
