@@ -2,7 +2,6 @@ import chalk from 'chalk';
 import fsExtra from 'fs-extra';
 const { readFile, writeFile, stat } = fsExtra;
 import { resolve, join } from 'node:path';
-import { parse as parseYaml } from 'yaml';
 import {
   ARTIFACT_STATES,
   canTransition,
@@ -14,6 +13,7 @@ import {
   type ArtifactState,
 } from '../lib/state-machine.js';
 import { validateArtifact } from '../lib/validate.js';
+import { readFrontmatterFile as readFrontmatter } from '../lib/accept/frontmatter.js';
 
 export interface StateArgs {
   subcommand?: 'show' | undefined;
@@ -65,13 +65,6 @@ Stages: plan, design, build, test, deploy, maintain
 States: ${ARTIFACT_STATES.join(', ')}
 `;
 
-function readFrontmatter(content: string): Record<string, unknown> {
-  const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
-  if (!fmMatch) return {};
-  const raw = (fmMatch[1] ?? '').replace(/<%=[^%]+%>/g, '');
-  return (parseYaml(raw) ?? {}) as Record<string, unknown>;
-}
-
 function serializeFrontmatter(
   fm: Record<string, unknown>,
   body: string,
@@ -102,14 +95,17 @@ function serializeFrontmatter(
   return `${lines.join('\n')}\n${body}`;
 }
 
-function splitFrontmatterAndBody(content: string): {
+async function splitFrontmatterAndBody(
+  content: string,
+  filePath: string,
+): Promise<{
   fm: Record<string, unknown>;
   body: string;
   hasFrontmatter: boolean;
-} {
+}> {
   const fmMatch = content.match(/^---\n([\s\S]*?)\n---\n?/);
   if (!fmMatch) return { fm: {}, body: content, hasFrontmatter: false };
-  const fm = readFrontmatter(content);
+  const fm = (await readFrontmatter(filePath)) ?? {};
   const body = content.slice(fmMatch[0].length);
   return { fm, body, hasFrontmatter: true };
 }
@@ -119,8 +115,7 @@ async function readArtifactState(
 ): Promise<{ state: ArtifactState | 'pending' | 'missing'; mtime: string | null }> {
   try {
     const st = await stat(filePath);
-    const content = await readFile(filePath, 'utf8');
-    const fm = readFrontmatter(content);
+    const fm = (await readFrontmatter(filePath)) ?? {};
     const raw = fm.state ?? fm.status;
     if (typeof raw === 'string' && (ARTIFACT_STATES as readonly string[]).includes(raw)) {
       return {
@@ -265,7 +260,7 @@ async function transitionCommand(args: StateArgs): Promise<number> {
     console.error(`Cannot read ${filePath}: ${message}`);
     return 2;
   }
-  const { fm, body } = splitFrontmatterAndBody(content);
+  const { fm, body } = await splitFrontmatterAndBody(content, filePath);
   const from: unknown = fm.state ?? fm.status;
   const fromState: ArtifactState | 'pending' =
     typeof from === 'string' && (ARTIFACT_STATES as readonly string[]).includes(from)
