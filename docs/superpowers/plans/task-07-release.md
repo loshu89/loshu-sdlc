@@ -1,32 +1,51 @@
-# Task 7: Release v0.6.4
+# Task 7: Release v0.7.1
 
-**Goal:** Run `scripts/release.mjs 0.6.4` to bump versions, run the gauntlet, refresh lockfile, and commit. Then manually create the local tag `v0.6.4`.
+**Goal:** Run `scripts/release.mjs 0.7.1` to bump versions, run the gauntlet, refresh lockfile, and commit. Then manually create the local `v0.7.1` tag. Do NOT push.
 
-**Depends on:** Task 6 done (CHANGELOG entry exists).
+**Spec:** Same release flow as v0.6.0–v0.7.0.
 
-## Steps
+**Files:**
+- (release.mjs creates the version bumps and the `chore: release v0.7.1` commit automatically.)
 
-1. **Verify clean tree:** `git status --porcelain` should be empty (except possibly `tests/evals/results.json` if the gauntlet ran and refreshed the timestamp).
-2. **If results.json changed:** `git add tests/evals/results.json && git -c user.name=loshu-sdlc -c user.email=loshu-sdlc@local commit -m "chore(eval): refresh eval results timestamp (30/30 strict still passing)"`
-3. **Run release script:** `node scripts/release.mjs 0.6.4`
-   - It will re-run the gauntlet (typecheck + test + build + lint + eval:strict).
-   - It will bump versions in all 3 workspace packages (`@loshu89/plugin`, `@loshu89/cli`, `@loshu89/templates`) from 0.6.3 → 0.6.4.
-   - It will run `pnpm install --lockfile-only` to refresh the lockfile.
-   - It will create a `chore: release v0.6.4` commit.
-4. **Tag:** `git tag -a v0.6.4 -m "v0.6.4 — accept gap fill (A3, V4, realign state with spec)"`
-5. **Report:** Show the commit + tag, and tell the user how to push (`git push origin main v0.6.4`).
+- [ ] **Step 1: Verify clean tree**
 
-## Verification
+Run: `git status --porcelain`
+- Expected: empty (or only `tests/evals/results.json` if the gauntlet ran and refreshed the timestamp).
+- If `tests/evals/results.json` changed, commit it: `git add tests/evals/results.json && git -c user.name=loshu-sdlc -c user.email=loshu-sdlc@local commit -m "chore(eval): refresh eval results timestamp (30/30 strict still passing)"`
+- If a stray file exists at repo root (a known shell artifact pattern), `rm` it before running release.mjs.
 
-1. `git tag -l "v0.6*"` shows v0.6.4.
-2. `git log --oneline -8` shows the new release commit.
-3. `cat packages/cli/package.json | grep version` shows `0.6.4`.
+- [ ] **Step 2: Run the release script**
 
-## Notes
+Run: `node scripts/release.mjs 0.7.1`
+Expected output:
+- CI gauntlet passes (typecheck + test + build + lint + eval:strict).
+- Versions bumped in all 3 workspace packages (`@loshu89/plugin`, `@loshu89/cli`, `@loshu89/templates`) from 0.7.0 → 0.7.1.
+- `pnpm install --lockfile-only` refreshes the lockfile.
+- `git add -A && git commit -m "chore: release v0.7.1"` creates the release commit.
 
-- Don't push — the user does that manually.
-- If the release script fails the gauntlet, fix the issue and re-run.
+- [ ] **Step 3: Create the local tag**
 
-## Commit
+Run: `git tag -a v0.7.1 -m "v0.7.1 — polish 6 parked Minors from v0.7.0 final review"`
+Expected: tag created locally.
 
-(No manual commit here — `release.mjs` creates the `chore: release v0.6.4` commit. The tag is local only.)
+- [ ] **Step 4: Verify final state**
+
+```bash
+git tag -l "v0.7*"
+git log --oneline -10
+cat packages/cli/package.json | grep version
+```
+
+Expected:
+- `v0.7.0`, `v0.7.1` listed.
+- Log shows all 7 v0.7.1 commits + the release commit.
+- `packages/cli/package.json` shows `"version": "0.7.1"`.
+
+- [ ] **Step 5: Report to the user**
+
+Tell the user:
+- v0.7.1 is ready to ship at `<commit>` with local tag `v0.7.1`.
+- Push command: `git push origin main v0.7.1` (the user does this manually).
+- Watch https://github.com/loshu89/loshu-sdlc/actions for the publish-ghcr.yml workflow to go green.
+
+(No commit in this task beyond release.mjs — release.mjs creates the `chore: release v0.7.1` commit. The tag is local-only.)
