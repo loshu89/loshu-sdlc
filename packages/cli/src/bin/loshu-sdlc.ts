@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 import { parseArgs } from 'node:util';
-import { resolve } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import fsExtra from 'fs-extra';
+const { readJsonSync } = fsExtra;
 import { validate } from '../commands/validate.js';
 import { doctor } from '../commands/doctor.js';
 import { bands } from '../commands/bands.js';
@@ -86,8 +89,27 @@ Commands:
   process.exit(0);
 }
 
+// Read the CLI's own package.json to print a real version. Mirrors
+// packages/cli/src/commands/upgrade.ts:36-52 (v0.7.0 Task 11). Resolves
+// `import.meta.url` to the CLI module location and walks up until
+// finding a package.json whose `name === '@loshu89/cli'`. Works for
+// both the published tarball and the monorepo build layouts.
+function currentCliVersion(): string {
+  const here = dirname(fileURLToPath(import.meta.url));
+  for (let dir = here; dir !== dirname(dir); dir = dirname(dir)) {
+    const candidate = join(dir, 'package.json');
+    try {
+      const pkg = readJsonSync(candidate) as { name?: string; version?: string };
+      if (pkg.name === '@loshu89/cli') return pkg.version ?? '0.0.0';
+    } catch {
+      // not a package.json or unreadable; keep walking
+    }
+  }
+  return '0.0.0';
+}
+
 if (values.version) {
-  console.log('loshu-sdlc 0.1.0');
+  console.log(`loshu-sdlc ${currentCliVersion()}`);
   process.exit(0);
 }
 
