@@ -272,6 +272,27 @@ describe('rules check eslint', () => {
     // At least one error line should appear in the human-readable output.
     expect(cap.logs.join('\n')).toMatch(/no-unused-vars/);
   });
+
+  it('falls back to stderr when stdout is empty on eslint failure', async () => {
+    // v0.7.0 final-review Minor #3 regression: empty stdout must not
+    // mask stderr output (nullish coalescing would silently drop it).
+    vi.mocked(execa).mockRejectedValue({
+      stdout: '',
+      stderr: 'src/foo.ts\n  1:5  error  no-unused-vars  bar',
+      exitCode: 1,
+    } as never);
+    const cap = captureLog();
+    let rc = -1;
+    try {
+      rc = await rules({ subcommand: 'check', name: 'eslint', path: tmp, json: true });
+    } finally {
+      cap.restore();
+    }
+    expect(rc).toBe(1);
+    // The captured output must surface the stderr message, not the
+    // generic "eslint exited with code 1" fallback.
+    expect(cap.logs.join('\n')).toContain('no-unused-vars');
+  });
 });
 
 // Borrowed-skill stub fallback (no runner field on the rule) and the

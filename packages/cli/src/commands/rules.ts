@@ -30,6 +30,11 @@ export interface Rule {
   runner?: (targetPath: string) => Promise<RuleResult>;
 }
 
+// Hoisted so both the runner and the rule's appliesTo reference the
+// same list. v0.7.0 final-review Minor #2 (previously the runner
+// inlined the globs instead of reading from the rule entry).
+const ESLINT_GLOBS = ['packages/*/src/**/*.ts', 'packages/*/src/**/*.tsx'];
+
 const eslintRunner = async (targetPath: string): Promise<RuleResult> => {
   // Apply ESLint to the rule's appliesTo globs against the target.
   // We use npx eslint --no-install so we don't trigger install prompts.
@@ -38,12 +43,16 @@ const eslintRunner = async (targetPath: string): Promise<RuleResult> => {
       '--no-install',
       'eslint',
       '--no-error-on-unmatched-pattern',
-      ...['packages/*/src/**/*.ts', 'packages/*/src/**/*.tsx'],  // conservative
+      ...ESLINT_GLOBS,
     ], { cwd: targetPath });
     return { status: 'pass', errors: [], filesScanned: [] };
   } catch (e) {
     const err = e as { stdout?: string; stderr?: string; exitCode?: number };
-    const lines = (err.stdout ?? err.stderr ?? '')
+    // Use || (not ??) so empty-string stdout falls through to stderr;
+    // real eslint writes lint errors to stdout, but some configs route
+    // them via stderr instead — nullish coalescing would silently drop
+    // stderr-only output. v0.7.0 final-review Minor #3.
+    const lines = (err.stdout || err.stderr || '')
       .split('\n')
       .filter((l) => l.trim().length > 0)
       .slice(0, 5);
@@ -104,7 +113,7 @@ export const RULES: Rule[] = [
     name: 'eslint',
     source: 'loshu-sdlc',
     description: 'Run ESLint with the project ESLint config.',
-    appliesTo: ['packages/*/src/**/*.ts'],
+    appliesTo: ESLINT_GLOBS,
     runner: eslintRunner,
   },
   {
