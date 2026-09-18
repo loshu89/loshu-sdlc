@@ -15,6 +15,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.7.1] - 2026-09-18
+
+Polish pass: clear the six Minor items the v0.7.0 final whole-branch review parked as deferred.
+
+### Changed
+
+- **`commands/rules.ts` eslint runner** — hoisted the `eslint` glob list to a module-scope `ESLINT_GLOBS` constant referenced from both the runner and the rule entry's `appliesTo` (previously the runner inlined the globs instead of reading the rule entry). Also fixed the stderr fallback from `??` to `||` so empty-string stdout falls through to stderr — some eslint configs route output via stderr; the previous nullish-coalescing silently dropped stderr-only output.
+- **`commands/state.ts`** — replaced its local `readFileSync + parseYaml + FRONTMATTER_RE` frontmatter reader with the shared `readFrontmatterFile` helper from `lib/accept/frontmatter.js` (Task 3's dedupe only covered the three acceptance assertion files; this CLI command was explicitly out of scope at the time).
+- **`bin/loshu-sdlc.ts` `--version`** — now reads the CLI's own `package.json` version via `currentCliVersion()` (same package-walk pattern as v0.7.0 Task 11's upgrade default) instead of the hardcoded `'loshu-sdlc 0.1.0'` literal.
+
+### Notes
+
+- 6 commits this release (5 fix commits + this CHANGELOG).
+- Test count: 228 → 229 (+1 for the new `bin/loshu-sdlc.ts --version` regression test; other fixes are refactors that rely on existing test coverage).
+- Spec deferred items (webhook receiver, branch protection enforcement, auto-revert on failed merge) remain deferred per spec phasing — see v0.7.0 design §6.1.2 and the brainstorming discussion for why webhook was judged not worth building.
+- `tests/commands/git.test.ts` `captureConsole()` now returns separate `logs`/`errors`/`warns` arrays (forward-looking; no current test asserts `warns`).
+
+---
+
 ## [0.7.0] - 2026-09-17
 
 Push the v0.1.1-era print-only stubs to real implementations and close three v0.6.4 follow-up items.
