@@ -3,25 +3,51 @@ description: Run Maintain stage (bands.yaml evaluation + incident handling)
 argument-hint: ""
 ---
 
-# /sdlc-maintain — Maintain stage
+# /sdlc-maintain — Maintain stage command
 
-You are running the **Maintain stage**. Evaluate `bands.yaml`, handle incidents, and close the loop by producing new `intent.md` if needed.
+When the maintain-exit hook detects a 3σ breach on `bands.yaml`,
+it auto-diagnoses via `loshu-sdlc maintain diagnose`, which writes
+a stub `intent.md` with structured fields populated (cycle_id,
+origin, title, suggested ID) and natural-language fields marked
+TODO.
 
-## Required skills
+This command is the **manual override** path — use it when:
+  - The auto-diagnose stub isn't enough (you want full natural-language
+    content immediately rather than filling in TODOs).
+  - You're working offline / the maintain-exit hook is not installed.
+  - You want to author a custom incident intent from scratch.
 
-- `superpowers:using-superpowers`
-- `superpowers:systematic-debugging` (Tier-1) — drives incident root-cause analysis
+## Usage
 
-## Workflow
+```
+/sdlc-maintain
+```
 
-1. Read `bands.yaml`; evaluate current metrics.
-2. If all 1σ: log only. Done.
-3. If any 2σ: warn; suggest investigation. Done.
-4. If any 3σ: **block maintain-exit**. Invoke `superpowers:systematic-debugging` for root-cause.
-5. Wrap findings in a new `intent.md` (incident-driven).
-6. Loop closes when PO accepts the new intent.md → next cycle starts at Plan.
+This invokes `loshu-sdlc maintain diagnose <bands.yaml> <intent.md>` —
+or, if you want full control, write `intent.md` directly with the
+following required fields:
 
-## Exit gates
+  - `id`: ULID-format (use `generateId` from `lib/identity.ts` or copy
+    the suggested ID from `loshu-sdlc bands diagnose`).
+  - `schema_version`: '0.5.0'
+  - `cycle_id`: number
+  - `stage`: 'plan'
+  - `state`: 'draft'
+  - `created_at`: ISO 8601 timestamp
+  - `created_by`: author tag
+  - `origin`: 'maintain/3sigma:<metric>' (so the maintain-exit hook
+    recognizes this is an incident intent)
+  - `title`: human-readable summary
+  - `problem`: detailed problem statement
+  - `proposedOutcome`: what success looks like
+  - `affectedUsersAndSystems`: list of impacted components
+  - `openQuestions`: list (may be empty)
 
-- If 3σ incident: new intent.md produced and accepted
-- Otherwise: bands.yaml evaluated; status logged
+After writing `intent.md`, run the maintain-exit hook (or `git push`)
+and the gate will pass.
+
+## See also
+
+- `loshu-sdlc bands diagnose` — extract breach metrics as JSON.
+- `loshu-sdlc maintain diagnose` — synthesize incident intent.md.
+- `loshu-sdlc bands record` — write metric observations.
