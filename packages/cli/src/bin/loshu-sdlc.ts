@@ -7,6 +7,7 @@ const { readJsonSync } = fsExtra;
 import { validate } from '../commands/validate.js';
 import { doctor } from '../commands/doctor.js';
 import { bands } from '../commands/bands.js';
+import { bandsDiagnose } from '../commands/bands-diagnose.js';
 import { lint } from '../commands/lint.js';
 import { rules } from '../commands/rules.js';
 import { status } from '../commands/status.js';
@@ -66,6 +67,7 @@ Commands:
   state <stage> <file> --validate       Check whether file can transition to 'accepted'
   bands evaluate <file> [--metric=NAME --value=N]  Evaluate bands against an observation
   bands record [path] --metric=NAME --value=N   Record metric observation(s) into <path>/.sdlc/metrics.json
+  bands diagnose <file> [metrics.json]           Extract breached metrics as JSON proposal (no LLM)
   lint [path] [--fix]                    Lint artifacts against policy-default
   rules list                             List all active rules
   rules check <name> [path]              Run a specific rule
@@ -142,6 +144,10 @@ switch (command) {
       console.error('Usage: loshu-sdlc bands evaluate <file> [--metric=NAME --value=N]');
       process.exit(2);
     }
+    if (sub !== 'record' && sub !== 'diagnose' && sub !== 'evaluate') {
+      console.error(`Unknown bands subcommand: ${sub}`);
+      process.exit(2);
+    }
     if (sub === 'record') {
       const metricNames = values.metric ?? [];
       const metricValues = values.value ?? [];
@@ -161,6 +167,23 @@ switch (command) {
         metrics,
       });
       process.exit(code);
+      // falls through
+    }
+    if (sub === 'diagnose') {
+      const bandsPath = positionals[2];
+      const metricsPath = positionals[3];
+      if (!bandsPath) {
+        console.error('Usage: loshu-sdlc bands diagnose <bands.yaml> [metrics.json]');
+        process.exit(2);
+      }
+      const rootPath = process.cwd();
+      const proposal = await bandsDiagnose({
+        bandsPath,
+        ...(metricsPath ? { metricsPath } : {}),
+        rootPath,
+      });
+      console.log(JSON.stringify(proposal, null, 2));
+      process.exit(0);
       // falls through
     }
     const filePath = positionals[2];
