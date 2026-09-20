@@ -2,10 +2,15 @@
 //
 // Proves that the AI-Native SDLC closed loop works end-to-end for the first
 // time. The contract under test:
-//   (a) recording a 3σ metric into .sdlc/metrics.json makes maintain-exit BLOCK
-//       (exit 2) until an incident-driven intent.md is provided;
-//   (b) once that intent.md exists, maintain-exit closes the loop (forks a new
-//       cycle with origin "maintain/3sigma:<metric>") and leaves evidence in
+//   (a) recording a 3σ metric into .sdlc/metrics.json triggers the maintain
+//       loop; with v0.9.0's auto-diagnose, maintain-exit first tries to
+//       synthesize an incident intent.md via `loshu-sdlc maintain diagnose`.
+//       On success the hook exits 0 and writes the incident intent.md (no
+//       manual /sdlc-maintain step). On diagnose failure the hook falls back
+//       to BLOCK (exit 2) with "Run /sdlc-maintain" guidance, matching v0.6.x.
+//   (b) once that intent.md exists (auto-diagnosed or manual), maintain-exit
+//       closes the loop (forks a new cycle with origin
+//       "maintain/3sigma:<metric>") and leaves evidence in
 //       .loshu-sdlc/state/{events.jsonl,cycle.json}.
 //   (c) an unknown metric name (not in bands.yaml) is silently ignored by the
 //       evaluate side (per lib/bands.ts contract) — it does NOT error and
@@ -288,15 +293,23 @@ describe('closed loop (3σ incident → new cycle)', () => {
       force: true,
     });
 
-    // 6. Fire maintain-exit — expect BLOCK (exit 2): 3σ incident, no
-    //    incident-driven intent.md yet.
+    // 6. Fire maintain-exit — v0.9.0 first tries `loshu-sdlc maintain
+    //    diagnose` to auto-write an incident intent.md. On success the hook
+    //    exits 0 (the gate is satisfied by the auto-diagnosed intent.md and
+    //    the fork-and-emit branch runs). On diagnose failure the hook falls
+    //    back to today's BLOCK behavior (exit 2).
     const first = await run('bash', [join(HOOKS_DIR, 'maintain-exit.sh'), tmp], {
       timeoutMs: HOOK_TIMEOUT_MS,
       cwd: tmp,
       env: { LOSHU_SDLC_CLI: cliUnixPath },
     });
-    expect(first.exitCode).toBe(2);
+    expect(first.exitCode).toBe(0);
     expect(first.stderr).toMatch(/3σ|3sigma/i);
+    // The auto-diagnose step should have written the incident intent.md so
+    // the loop can close without manual /sdlc-maintain invocation.
+    const autoIntentPath = join(tmp, 'intent.md');
+    const autoIntentExists = await pathExists(autoIntentPath);
+    expect(autoIntentExists).toBe(true);
 
     // 7. Simulate /sdlc-maintain producing the incident intent.md.
     const incidentIntentId = generateId({

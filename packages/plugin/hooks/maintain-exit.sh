@@ -128,11 +128,18 @@ fi
 # If any 3σ incident and no new intent.md, block
 if echo "$TRIPPED" | grep -q '"tier":[[:space:]]*"3sigma"'; then
   LATEST_INTENT="$ROOT/intent.md"
+  # v0.9.0: try to auto-diagnose via `loshu-sdlc maintain diagnose` (10s timeout).
+  # On success, this writes incident intent.md and the gate passes.
+  # On failure or timeout, fall through to the existing block branch.
   if [ ! -f "$LATEST_INTENT" ] || ! grep -qE 'origin:[[:space:]]*maintain' "$LATEST_INTENT"; then
-    echo "Maintain-exit: 3σ incident detected but no incident-driven intent.md found" >&2
-    echo "Run /sdlc-maintain to investigate and generate a new intent.md" >&2
-    log_event "maintain-exit" "block" "$BANDS"
-    exit 2
+    if timeout 10 node "$CLI_BIN" maintain diagnose "$BANDS" "$LATEST_INTENT" >/dev/null 2>&1; then
+      echo "Maintain-exit: auto-diagnosed incident, wrote $LATEST_INTENT" >&2
+    else
+      echo "Maintain-exit: 3σ incident detected but no incident-driven intent.md found" >&2
+      echo "Run /sdlc-maintain to investigate and generate a new intent.md" >&2
+      log_event "maintain-exit" "block" "$BANDS"
+      exit 2
+    fi
   fi
 
   # Loop closure: archive the current cycle and fork a new incident-driven cycle.
