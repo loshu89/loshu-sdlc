@@ -9,6 +9,7 @@ import { doctor } from '../commands/doctor.js';
 import { bands } from '../commands/bands.js';
 import { bandsDiagnose } from '../commands/bands-diagnose.js';
 import { lint } from '../commands/lint.js';
+import { maintainDiagnose } from '../commands/maintain.js';
 import { rules } from '../commands/rules.js';
 import { status } from '../commands/status.js';
 import { state as stateCmd } from '../commands/state.js';
@@ -84,6 +85,10 @@ Commands:
   cycle append-event --gate ...          Append a gate event (for hooks)
   migrate <file> [--from V] [--to V]     Migrate artifact to a schema version
        [--check] [--dry-run]
+  maintain diagnose <bands.yaml> <output.md>
+                                       Synthesize incident intent.md from 3σ breach
+                                       (stub mode: structured fields populated,
+                                       TODO markers for natural-language fields)
   git <sync|status|merge|abandon> [--cycle N] [--dry-run] [--execute]
                                        Drive git lifecycle for a cycle
   help [command]                         Show help for a command
@@ -491,6 +496,28 @@ switch (command) {
       ...(values['dry-run'] !== undefined ? { dryRun: values['dry-run'] } : {}),
     });
     process.exit(code);
+    // falls through
+  }
+  case 'maintain': {
+    const sub = positionals[1];
+    if (!sub) {
+      console.error('Usage: loshu-sdlc maintain diagnose <bands.yaml> <output.md>');
+      process.exit(2);
+    }
+    if (sub !== 'diagnose') {
+      console.error(`Unknown maintain subcommand: ${sub}`);
+      process.exit(2);
+    }
+    const bandsPath = positionals[2];
+    const outputPath = positionals[3];
+    if (!bandsPath || !outputPath) {
+      console.error('Usage: loshu-sdlc maintain diagnose <bands.yaml> <output.md>');
+      process.exit(2);
+    }
+    const rootPath = process.cwd();
+    const result = await maintainDiagnose({ bandsPath, outputPath, rootPath });
+    console.log(JSON.stringify(result, null, 2));
+    process.exit(result.status === 'written' ? 0 : 1);
     // falls through
   }
   default:
