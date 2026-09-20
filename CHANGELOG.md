@@ -40,8 +40,6 @@ Close the Maintain → Plan loop per the AI-Native SDLC playbook. Two new CLI su
 
 ## [0.8.0] - 2026-09-18
 
-## [0.8.0] - 2026-09-18
-
 Close the two highest-ROI gaps from `docs/internal/playbook-coverage-analysis.md`: missing institutional-knowledge file and uncleared spec backlog. Text-only release — no source code changed.
 
 ### Added
