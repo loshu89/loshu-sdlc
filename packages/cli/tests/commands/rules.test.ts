@@ -11,6 +11,27 @@ import { rules, RULES } from '../../src/commands/rules.js';
 // execa.
 vi.mock('execa');
 
+// File-scope helper, extracted from the three duplicated `captureLog`
+// definitions that used to live inside the describe blocks below.
+// Returns the captured logs/errors plus a `restore` that puts the
+// original console.log / console.error back.
+function captureLog(): { logs: string[]; errors: string[]; restore: () => void } {
+  const logs: string[] = [];
+  const errors: string[] = [];
+  const origLog = console.log;
+  const origError = console.error;
+  console.log = (msg: string) => logs.push(msg);
+  console.error = (msg: string) => errors.push(msg);
+  return {
+    logs,
+    errors,
+    restore: () => {
+      console.log = origLog;
+      console.error = origError;
+    },
+  };
+}
+
 describe('rules command', () => {
   it('list prints all rules', async () => {
     const logs: string[] = [];
@@ -88,13 +109,6 @@ describe('rules check <schema-rule>', () => {
   const SPEC_ID = 'design-c01-rule-0001-01H00000000000000000000000';
   const PLAN_ID = 'build-c01-rule-0001-01H00000000000000000000000';
   const CREATED_AT = '2026-01-01T00:00:00Z';
-
-  function captureLog(): { logs: string[]; restore: () => void } {
-    const logs: string[] = [];
-    const original = console.log;
-    console.log = (msg: string) => logs.push(msg);
-    return { logs, restore: () => (console.log = original) };
-  }
 
   it('intent-md-schema: passes for a valid intent.md', async () => {
     const intent = join(tmp, 'intent.md');
@@ -231,13 +245,6 @@ describe('rules check eslint', () => {
     await rm(tmp, { recursive: true, force: true });
   });
 
-  function captureLog(): { logs: string[]; restore: () => void } {
-    const logs: string[] = [];
-    const original = console.log;
-    console.log = (msg: string) => logs.push(msg);
-    return { logs, restore: () => (console.log = original) };
-  }
-
   it('passes when eslint exits 0', async () => {
     vi.mocked(execa).mockResolvedValue({ stdout: '', stderr: '', exitCode: 0 } as never);
 
@@ -307,13 +314,6 @@ describe('rules check (borrowed / unknown)', () => {
   afterEach(async () => {
     await rm(tmp, { recursive: true, force: true });
   });
-
-  function captureLog(): { logs: string[]; restore: () => void } {
-    const logs: string[] = [];
-    const original = console.log;
-    console.log = (msg: string) => logs.push(msg);
-    return { logs, restore: () => (console.log = original) };
-  }
 
   function captureError(): { errors: string[]; restore: () => void } {
     const errors: string[] = [];
