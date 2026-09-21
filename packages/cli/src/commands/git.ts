@@ -88,6 +88,12 @@ async function runGit(
 // (already-committed artifact). In dry-run we only print `git add`
 // and return true; the surrounding loop prints the would-commit
 // message for clarity.
+//
+// After v0.7.0 Task 4 fix round 1, the commit call routes through
+// runGit (which propagates execa failures). The caller (case 'sync')
+// wraps this call in try/catch and emits 'git sync: commit failed
+// for ...' + exits 1 on any failure (including the v0.9.0
+// maintain-exit hook's contract that this never throws unhandled).
 async function commitIfStaged(
   artifactRelPath: string,
   rootPath: string,
