@@ -36,4 +36,23 @@ describe('readFrontmatterFile', () => {
   it('returns empty object for readFrontmatterFileOrEmpty on missing file', async () => {
     expect(await readFrontmatterFileOrEmpty(join(tmp, 'nope.md'))).toEqual({});
   });
+
+  it('preserves ERB-style tags within frontmatter content (no auto-strip)', async () => {
+    // Per inventory B.1: shared helper does NOT strip <%= ... %> tags.
+    // The sibling assertion modules also don't strip, so this matches
+    // the convention. ERB template rendering is the caller's
+    // responsibility (see create.ts which EJS-renders before files
+    // land on disk).
+    const filePath = join(tmp, 'erb.md');
+    await writeFile(filePath, [
+      '---',
+      'id: plan-c01-test-0001-01HXYZERB',
+      'title: <%= projectName %>',
+      '---',
+      'body',
+    ].join('\n'));
+    const fm = await readFrontmatterFile(filePath);
+    expect(fm).not.toBeNull();
+    expect(fm!.title).toBe('<%= projectName %>');
+  });
 });

@@ -379,4 +379,157 @@ describe('closed loop (3σ incident → new cycle)', () => {
       `loop must leave evidence: events.jsonl=${eventsExist}, incidentCycle=${hasIncidentCycle}; cycle=${JSON.stringify(cycle)}`,
     ).toBe(true);
   }, HOOK_TIMEOUT_MS);
+
+  it('does NOT call maintain diagnose when no 3σ breach exists (B.3 stub-call-counter)', async (ctx) => {
+    // Inventory B.3: maintain-exit.sh only shells out to `loshu-sdlc maintain
+    // diagnose` when a 3σ breach is detected. Verify that contract by
+    // pointing LOSHU_SDLC_CLI at a wrapper that records every invocation
+    // (args joined to one line) into a log file, then asserting the log
+    // contains zero "maintain diagnose" entries for a no-breach run.
+    if (!bash.ok) {
+      // eslint-disable-next-line no-console
+      console.warn(`SKIPPED closed-loop no-breach stub — ${bash.reason}`);
+      return ctx.skip();
+    }
+
+    // Wrap the real CLI bin: log every argv (one line per call) and then
+    // exec the real binary so behavior is unchanged. The wrapper must be
+    // a Node script (not bash) because the hook invokes it via
+    // `node "$CLI_BIN" …`.
+    const cliUnixPath = CLI_BIN.replace(/\\/g, '/');
+    const stubLog = join(tmp, 'cli-stub.log');
+    const stubScript = join(tmp, 'cli-stub.js');
+    const stubBody = [
+      '#!/usr/bin/env node',
+      `const fs = require('node:fs');`,
+      `const { spawnSync } = require('node:child_process');`,
+      `const cliBin = ${JSON.stringify(cliUnixPath)};`,
+      `fs.appendFileSync(${JSON.stringify(stubLog.replace(/\\/g, '/'))}, process.argv.slice(2).join(' ') + '\\n');`,
+      `const r = spawnSync(process.execPath, [cliBin, ...process.argv.slice(2)], { stdio: 'inherit' });`,
+      `process.exit(r.status ?? 1);`,
+      '',
+    ].join('\n');
+    await writeFile(stubScript, stubBody, 'utf8');
+    // Truncate any pre-existing log so we only count this test's
+    // invocations. `tmp` is created in beforeAll and reused across
+    // tests in the file.
+    await writeFile(stubLog, '', 'utf8');
+
+    // Build a fresh scratch dir for this test (do not reuse `tmp` —
+    // test 2's incident cycle / metrics.json side effects would leak).
+    const scratch = await mkdtemp(join(tmpdir(), 'loshu-loop-nobreach-'));
+    try {
+      // 1. bands.yaml with a tight band but a metric value that does NOT
+      //    breach 3σ (0.005 is below sigma_1 0.015, so no incident).
+      const { generateId } = (await import(IDENTITY_LIB)) as {
+        generateId: (opts: {
+          stage: 'plan' | 'design' | 'build' | 'test' | 'deploy' | 'maintain';
+          cycle: number;
+          slug: string;
+        }) => string;
+      };
+      const bandsId = generateId({ stage: 'maintain', cycle: 1, slug: 'no-breach' });
+      const bandsYaml = [
+        `id: ${bandsId}`,
+        'schema_version: 0.5.0',
+        'cycle_id: 1',
+        'stage: maintain',
+        'state: draft',
+        'created_by: human:test',
+        `created_at: ${new Date().toISOString()}`,
+        'version: 1',
+        'metrics:',
+        '  - name: error_rate',
+        '    baseline: 0.01',
+        '    sigma_1: 0.015',
+        '    sigma_2: 0.02',
+        '    sigma_3: 0.03',
+        '    unit: ratio',
+        '    window: 1h',
+        'evaluation:',
+        '  interval: 5m',
+        '  on_3sigma: block_maintain_exit',
+        '  on_2sigma: warn',
+        '  on_1sigma: log',
+        '',
+      ].join('\n');
+      await writeFile(join(scratch, 'bands.yaml'), bandsYaml, 'utf8');
+
+      // 2. REVIEW.md accepted (cross-stage guard for maintain).
+      const reviewId = generateId({ stage: 'deploy', cycle: 1, slug: 'no-breach' });
+      const reviewBody = [
+        '---',
+        `id: ${reviewId}`,
+        'schema_version: 0.5.0',
+        'cycle_id: 1',
+        'stage: deploy',
+        'state: accepted',
+        'created_by: human:test',
+        `created_at: ${new Date().toISOString()}`,
+        'title: no-breach test',
+        'bugs: { status: pass }',
+        'security: { status: pass }',
+        'compliance: { status: pass }',
+        '---',
+        '',
+      ].join('\n');
+      await writeFile(join(scratch, 'REVIEW.md'), reviewBody, 'utf8');
+
+      // 3. Seed cycle.json so CURRENT_CYCLE=1 exists.
+      const seed = await run('node', [CLI_BIN, 'cycle', 'new', 'no-breach test', scratch]);
+      if (seed.exitCode !== 0) {
+        throw new Error(
+          `cycle new failed (exit ${seed.exitCode}):\nstdout=${seed.stdout}\nstderr=${seed.stderr}`,
+        );
+      }
+
+      // 4. Record a non-breaching metric (0.005 < sigma_1 0.015).
+      const rec = await run('node', [
+        CLI_BIN,
+        'bands',
+        'record',
+        scratch,
+        '--metric',
+        'error_rate',
+        '--value',
+        '0.005',
+      ]);
+      expect(rec.exitCode).toBe(0);
+
+      // Pre-clear debounce markers (parity with test 2).
+      await rm(join(scratch, '.loshu-sdlc/state/.debounce'), {
+        recursive: true,
+        force: true,
+      });
+
+      // 5. Fire maintain-exit via the stub wrapper.
+      const stubUnixPath = stubScript.replace(/\\/g, '/');
+      const result = await run('bash', [join(HOOKS_DIR, 'maintain-exit.sh'), scratch], {
+        timeoutMs: HOOK_TIMEOUT_MS,
+        cwd: scratch,
+        env: { LOSHU_SDLC_CLI: stubUnixPath },
+      });
+      expect(result.exitCode).toBe(0);
+      // Sanity: the stub wrapper itself MUST have logged at least one
+      // invocation (proves the stub was wired correctly before we assert
+      // what it did NOT receive).
+      const preCheckLog = await readFile(stubLog, 'utf-8');
+      expect(preCheckLog.trim().length).toBeGreaterThan(0);
+
+      // 6. Inspect the stub invocation log. The hook MUST have called
+      //    `bands evaluate` (to assess the metric) but MUST NOT have called
+      //    `maintain diagnose` — that path is gated by the 3σ breach check.
+      const logLines = preCheckLog.split('\n').filter((l) => l.trim().length > 0);
+      // Defensive: every invocation must be either bands-evaluate-side
+      // (validate bands, bands evaluate, cycle append-event, state
+      // maintain, cycle set, cycle new/archive) — but NEVER "maintain
+      // diagnose" because there is no 3σ incident.
+      const diagnoseCalls = logLines.filter((l) =>
+        /\bmaintain\b.*\bdiagnose\b/.test(l) || /\bdiagnose\b.*\bmaintain\b/.test(l),
+      );
+      expect(diagnoseCalls).toEqual([]);
+    } finally {
+      await rm(scratch, { recursive: true, force: true });
+    }
+  }, HOOK_TIMEOUT_MS);
 });
