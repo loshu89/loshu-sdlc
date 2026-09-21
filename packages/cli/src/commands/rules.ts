@@ -27,7 +27,9 @@ export interface Rule {
   // Optional runner: when present, `rules check <name>` invokes it
   // (returning a real check result). When absent, the borrowed-skill
   // stub path is preserved.
-  runner?: (targetPath: string) => Promise<RuleResult>;
+  // v0.9.1 A3: runner may receive the rule's appliesTo so it can scope
+  // its work to the rule's globs rather than hard-coding.
+  runner?: (targetPath: string, appliesTo?: string[]) => Promise<RuleResult>;
 }
 
 // Hoisted so both the runner and the rule's appliesTo reference the
@@ -35,15 +37,19 @@ export interface Rule {
 // inlined the globs instead of reading from the rule entry).
 const ESLINT_GLOBS = ['packages/*/src/**/*.ts', 'packages/*/src/**/*.tsx'];
 
-const eslintRunner = async (targetPath: string): Promise<RuleResult> => {
+const eslintRunner = async (targetPath: string, appliesTo?: string[]): Promise<RuleResult> => {
   // Apply ESLint to the rule's appliesTo globs against the target.
   // We use npx eslint --no-install so we don't trigger install prompts.
+  // v0.9.1 A3: read appliesTo from the rule so future eslint-like rules
+  // with different globs work without code changes. Fallback to
+  // ESLINT_GLOBS keeps direct callers (outside the dispatch site) usable.
+  const globs = appliesTo ?? ESLINT_GLOBS;
   try {
     await execa('npx', [
       '--no-install',
       'eslint',
       '--no-error-on-unmatched-pattern',
-      ...ESLINT_GLOBS,
+      ...globs,
     ], { cwd: targetPath });
     return { status: 'pass', errors: [], filesScanned: [] };
   } catch (e) {
@@ -229,11 +235,13 @@ export async function rules(args: RulesArgs): Promise<number> {
     if (rule.runner) {
       let result: RuleResult;
       try {
-        result = await rule.runner(targetPath);
+        result = await rule.runner(targetPath, rule.appliesTo);
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
         if (args.json) {
-          console.log(JSON.stringify({ rule: rule.name, status: 'error', error: msg }));
+          // v0.9.1 A2: route the error JSON to stderr so it doesn't pollute
+          // stdout (which CI tools treat as the success payload stream).
+          console.error(JSON.stringify({ rule: rule.name, status: 'error', error: msg }));
         } else {
           console.error(`✗ ${rule.name}: runner threw — ${msg}`);
         }
