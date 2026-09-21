@@ -295,6 +295,58 @@ affectedUsersAndSystems: [a]
       await rm(tmp, { recursive: true, force: true });
     }
   });
+
+  // Inventory A5: cycle.json read used to crash when missing or corrupt.
+  // The current loadCycle() wraps the read in try/catch and falls back to
+  // sensible defaults. This test locks in that graceful behavior — both for
+  // the missing-file case (ENOENT) and the corrupt-JSON case (SyntaxError).
+  it('state show does not crash when cycle.json is missing or corrupt', async () => {
+    const tmp = await mkdtemp(join(tmpdir(), 'loshu-state-nocycle-'));
+    try {
+      // Case 1: no cycle.json at all
+      const logs: string[] = [];
+      const originalLog = console.log;
+      console.log = (msg: string) => logs.push(msg);
+      try {
+        const code = await state({ subcommand: 'show', path: tmp, json: true });
+        expect(code).toBe(0);
+      } finally {
+        console.log = originalLog;
+      }
+      const parsed = JSON.parse(logs.join('\n')) as {
+        cycle: number;
+        cycleTitle: string;
+        stages: unknown[];
+      };
+      // Defaults: cycle=1, title='inferred' (loadCycle's fallback string)
+      expect(parsed.cycle).toBe(1);
+      expect(typeof parsed.cycleTitle).toBe('string');
+      expect(parsed.cycleTitle.length).toBeGreaterThan(0);
+      expect(parsed.stages.length).toBe(6);
+
+      // Case 2: cycle.json exists but contains invalid JSON
+      const loshuDir = join(tmp, '.loshu-sdlc');
+      const { mkdir } = await import('node:fs/promises');
+      await mkdir(join(loshuDir, 'state'), { recursive: true });
+      await writeFile(join(loshuDir, 'state/cycle.json'), '{ not valid json');
+      const logs2: string[] = [];
+      console.log = (msg: string) => logs2.push(msg);
+      try {
+        const code = await state({ subcommand: 'show', path: tmp, json: true });
+        expect(code).toBe(0);
+      } finally {
+        console.log = originalLog;
+      }
+      const parsed2 = JSON.parse(logs2.join('\n')) as {
+        cycle: number;
+        cycleTitle: string;
+      };
+      expect(parsed2.cycle).toBe(1);
+      expect(parsed2.cycleTitle.length).toBeGreaterThan(0);
+    } finally {
+      await rm(tmp, { recursive: true, force: true });
+    }
+  });
 });
 
 describe('hook integration', () => {

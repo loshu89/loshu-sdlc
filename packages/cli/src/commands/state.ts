@@ -2,6 +2,7 @@ import chalk from 'chalk';
 import fsExtra from 'fs-extra';
 const { readFile, writeFile, stat } = fsExtra;
 import { resolve, join } from 'node:path';
+import { parse as parseYaml } from 'yaml';
 import {
   ARTIFACT_STATES,
   canTransition,
@@ -95,17 +96,21 @@ function serializeFrontmatter(
   return `${lines.join('\n')}\n${body}`;
 }
 
-async function splitFrontmatterAndBody(
-  content: string,
-  filePath: string,
-): Promise<{
+function splitFrontmatterAndBody(content: string): {
   fm: Record<string, unknown>;
   body: string;
   hasFrontmatter: boolean;
-}> {
+} {
   const fmMatch = content.match(/^---\n([\s\S]*?)\n---\n?/);
   if (!fmMatch) return { fm: {}, body: content, hasFrontmatter: false };
-  const fm = (await readFrontmatter(filePath)) ?? {};
+  let fm: Record<string, unknown> = {};
+  try {
+    fm = (parseYaml(fmMatch[1] ?? '') ?? {}) as Record<string, unknown>;
+  } catch {
+    // Malformed YAML → treat as no frontmatter so the caller falls
+    // through to its pending/draft default rather than crashing.
+    fm = {};
+  }
   const body = content.slice(fmMatch[0].length);
   return { fm, body, hasFrontmatter: true };
 }
@@ -260,7 +265,7 @@ async function transitionCommand(args: StateArgs): Promise<number> {
     console.error(`Cannot read ${filePath}: ${message}`);
     return 2;
   }
-  const { fm, body } = await splitFrontmatterAndBody(content, filePath);
+  const { fm, body } = splitFrontmatterAndBody(content);
   const from: unknown = fm.state ?? fm.status;
   const fromState: ArtifactState | 'pending' =
     typeof from === 'string' && (ARTIFACT_STATES as readonly string[]).includes(from)
