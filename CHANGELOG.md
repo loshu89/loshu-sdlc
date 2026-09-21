@@ -17,30 +17,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.9.1] - 2026-09-21
 
-Clear the 17 actionable parked-Minor items cataloged in `docs/internal/parked-minors-v0.6.4-to-v0.9.0.md` (commit `101f4cf`). One real latent bug (A6 enum `'merged'` lie) plus 16 stylistic / test-coverage items. Items tagged D in the inventory (out-of-scope deferred features) remain deferred.
+Clear the 17 actionable parked-Minor items cataloged in `docs/internal/parked-minors-v0.6.4-to-v0.9.0.md` (commit `101f4cf`). Two real latent bugs plus 15 stylistic / test-coverage items. Items tagged D in the inventory (out-of-scope deferred features) remain deferred.
 
 ### Fixed
 
-- **A1 — A6 enum `'merged'` lie** — `packages/cli/src/lib/accept/assertions/identity.ts:105` no longer includes `'merged'` in the A6 enum. Sibling of the v0.7.0 Task 2 TRANSITIONS fix; after this commit, A6 (enum membership) and C1 (DAG transition check) both reject `state: merged` consistently with `StageState` in `cycle.ts:48-55`. Adds 1 regression test (`A6 rejects state: merged`).
+- **A3 — rules.ts eslint runner** — now accepts `appliesTo` as a second argument and falls back to a conservative default for direct callers. The eslint rule's `appliesTo` produces the same glob list, so behavior is unchanged; future eslint-like rules with different `appliesTo` now work correctly without code changes.
+- **A6 — commands/state.ts `splitFrontmatterAndBody`** — refactored to take pre-parsed content (eliminates the double file read per invocation). Caller reads once and passes content. The pre-existing try/catch on cycle.json read in `state.ts:137-152` was tested via a new locking test (see Tests B.3 below — note: the cycle.json read lives in `bands-diagnose.ts:56` is a separate candidate for future try/catch hardening, out of scope for this release).
 
 ### Changed
 
 - **A2 — rules.ts JSON error path** — when a runner throws, the structured error JSON is now printed via `console.error` (was `console.log`) so stdout stays clean for the success path and CI consumers don't mistake errors for success payloads.
-- **A3 — rules.ts eslint runner** — now accepts `appliesTo` as a second argument and falls back to a conservative default for direct callers. The eslint rule's `appliesTo` produces the same glob list, so behavior is unchanged; future eslint-like rules with different `appliesTo` now work correctly without code changes.
-- **A5 — commands/state.ts cycle.json read** — wrapped in try/catch; missing or corrupt `cycle.json` now defaults to null and downstream code falls back to `cycleId=1, title='(unknown)'`.
-- **A6 — commands/state.ts `splitFrontmatterAndBody`** — refactored to take pre-parsed content (eliminates the double file read per invocation). Caller reads once and passes content.
+- **A7 — git.ts stale doc comment** — `commitIfStaged` doc now reflects the post-v0.7.0-fix behavior (routes through `runGit`, caller wraps in try/catch).
 
 ### Docs
 
-- **A7 — git.ts stale doc comment** — `commitIfStaged` doc now reflects the post-v0.7.0-fix behavior (routes through `runGit`, caller wraps in try/catch).
-- **C2 — v0.9.0 spec drift on `sigmaMagnitude`** — `docs/superpowers/specs/2026-09-20-v0.9.0-design.md` example now matches the implementation (normalized magnitude `(current - baseline) / (sigma_3 - baseline) = 1.75` for current=0.045, baseline=0.01, sigma_3=0.03) with a clarifying note about the formula.
+- **C2 — v0.9.0 spec drift on `sigmaMagnitude`** — `docs/superpowers/specs/2026-09-20-v0.9.0-design.md` example now matches the implementation (normalized magnitude `(current - baseline) / (sigma_3 - baseline) = 1.75` for current=0.045, baseline=0.01, sigma_3=0.03) with a clarifying note about the formula. Similar drift remains in §Components.1 step 3 ("0.045 vs baseline 0.01, 4.5σ") — parked for follow-up.
 
 ### Tests
 
 - **B1 — ERB-stripping test** — verifies `readFrontmatterFile` does NOT auto-strip `<%= ... %>` tags (matches sibling assertion modules' convention).
-- **B2 — `currentCliVersion()` unit test** — verifies CLI `--version` output matches the `package.json` version field.
-- **B3 — closed-loop.test.ts stub-call-counter** — adds a stub-invocation counter; the no-breach test now asserts `maintain diagnose` was NOT called when no 3σ breach exists.
+- **B3 — closed-loop.test.ts stub-call-counter** — adds a stub-invocation counter; the no-breach test now asserts `maintain diagnose` was NOT called when no 3σ breach exists (defensive against future regressions that remove the magnitude guard).
 - **B4 — upgrade non-loshu deps preservation test** — verifies upgrade modifies only the 3 loshu-* deps and leaves other deps, devDependencies, and scripts untouched.
+- **Lock-in test for `state.ts` cycle.json fallback** — `loadCycle` (state.ts:137-152) was already in a try/catch (since `50eda4b`); added a locking test that exercises both ENOENT and SyntaxError paths.
 
 ### Style
 
@@ -49,10 +47,14 @@ Clear the 17 actionable parked-Minor items cataloged in `docs/internal/parked-mi
 
 ### Notes
 
-- 9 commits this release (8 fix/test/refactor commits + CHANGELOG + release.mjs `chore: release v0.9.1`).
-- Test count: 234 → ≥240 (≥6 new tests added across B.1, B.2, B.3, B.4, A.1 regression).
-- Out of scope (explicitly deferred): A8 (vitest `pool: 'forks'` reversal — requires `git` command refactor first), D1-D6 (already dispositioned in v0.8.0 backlog addendum).
-- Items C3 (commit message wording), C5 (v0.7.1 CHANGELOG duplicate), C7 (`bin/loshu-sdlc.ts:90` hardcoded version) were already fixed in earlier releases; included in the inventory for historical reference only.
+- 6 commits this release (T2 A2+A3, T3 A6 + locking test, T4 A7 doc, T5 B.1+B.3+B.4, T6 C1+C4, T7 C2 spec) + CHANGELOG + release.mjs `chore: release v0.9.1` = 8 commits total.
+- Test count: 234 → 238 (+4 new tests across B.1, B.3, B.4, locking-test).
+- Out of scope (explicitly deferred):
+  - **A1** (A6 enum `'merged'` lie) — already fixed by commit `83fa3ad` in v0.7.0. Inventory was stale.
+  - **A5** (state.ts cycle.json try/catch) — already in place via `50eda4b`. Inventory was stale (misattributed to `state.ts:138` when the read is in `bands-diagnose.ts:56`, which is a separate candidate for future hardening).
+  - **A8** (vitest `pool: 'forks'` reversal) — requires `git` command refactor first.
+  - **D1-D6** (out-of-scope deferred features) — already dispositioned in v0.8.0 backlog addendum.
+- Items B2, C3, C5, C7 already handled in earlier releases; included for historical reference only.
 
 ---
 
