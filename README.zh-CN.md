@@ -57,17 +57,17 @@ cd my-app
 /sdlc-status
 ```
 
-完整走一个真实项目的教程见 **[快速上手](docs/getting-started.md)**。
+完整走一个真实项目的教程见 **[快速上手](docs/getting-started.zh-CN.md)**。
 
 ## 选择你的路径
 
 | 我想... | 阅读 |
 |---|---|
-| 安装 loshu-sdlc（脚手架 / 仅插件 / GitHub Packages） | **[installation.md](docs/installation.md)** |
-| 跟着端到端示例走一遍 | **[getting-started.md](docs/getting-started.md)** |
-| 日常使用（斜杠命令、CLI、Hook、制品） | **[usage-guide.md](docs/usage-guide.md)** |
-| 为 loshu-sdlc 本身做贡献 | **[contributing.md](docs/contributing.md)** |
-| 发布版本、管理 dependabot、重生成 eval golden | **[maintenance.md](docs/maintenance.md)** |
+| 安装 loshu-sdlc（脚手架 / 仅插件 / GitHub Packages） | **[installation.zh-CN.md](docs/installation.zh-CN.md)** |
+| 跟着端到端示例走一遍 | **[getting-started.zh-CN.md](docs/getting-started.zh-CN.md)** |
+| 日常使用（斜杠命令、CLI、Hook、制品） | **[usage-guide.zh-CN.md](docs/usage-guide.zh-CN.md)** |
+| 为 loshu-sdlc 本身做贡献 | **[contributing.zh-CN.md](docs/contributing.zh-CN.md)** |
+| 发布版本、管理 dependabot、重生成 eval golden | **[maintenance.zh-CN.md](docs/maintenance.zh-CN.md)** |
 
 ## 必需的外部插件
 
@@ -76,7 +76,7 @@ loshu-sdlc 依赖一套外部插件（Tier 1，必需）和强烈推荐另一套
 - **Tier 1（必需）：** `superpowers:*` —— 提供 brainstorming、writing-plans、TDD、verification 等技能。
 - **Tier 2（推荐）：** `ui-ux-pro-max` 和 `ecc:*` —— 设计智能和代码评审技能。
 
-安装命令见 **[installation.md → 必需的外部插件](docs/installation.md#必需的外部插件)**。
+安装命令见 **[installation.zh-CN.md → 必需的外部插件](docs/installation.zh-CN.md#必需的外部插件)**。
 
 ## 包
 
@@ -88,13 +88,13 @@ loshu-sdlc 依赖一套外部插件（Tier 1，必需）和强烈推荐另一套
 
 ## 故障排查
 
-- **`✔ Tier-1 dep missing`** —— 安装 superpowers（见 [installation.md](docs/installation.md#必需的外部插件)）。没有它 loshu-sdlc 拒绝运行。
+- **`✔ Tier-1 dep missing`** —— 安装 superpowers（见 [installation.zh-CN.md](docs/installation.zh-CN.md#必需的外部插件)）。没有它 loshu-sdlc 拒绝运行。
 - **Hook 阻止了我的编辑** —— Hook 用 `exit 2` 阻止并在 stderr 给出具体原因。读消息、修复、然后重试。
 - **Claude Code 里看不到插件命令** —— 通过 `claude plugin install loshu-sdlc@loshu-sdlc` 安装后，重启 Claude Code 会话。斜杠命令在会话开始时发现。
 - **脚手架创建了项目但 Hook 不触发** —— 脚手架创建符号链接 `.claude/hooks → .claude/plugins/loshu-sdlc/hooks/`。如果文件系统不支持符号链接（某些 Windows 配置），Hook 不会触发。解决方案：脚手架完成后手动复制 `hooks/` 目录。
 - **GitHub Packages 发布失败 E401** —— 几乎总是组织的第三方应用限制。两种解决方法：在组织设置 → 第三方访问 → 批准 GitHub Actions 应用；或使用 PAT（作为 `GHCR_TOKEN` secret 添加）。
 
-其他问题见 [usage-guide.md → Hooks](docs/usage-guide.md#hooks) 和 [maintenance.md](docs/maintenance.md)。
+其他问题见 [usage-guide.zh-CN.md → Hooks](docs/usage-guide.zh-CN.md#hooks) 和 [maintenance.zh-CN.md](docs/maintenance.zh-CN.md)。
 
 ## 许可证
 

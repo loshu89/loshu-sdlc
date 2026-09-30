@@ -1,5 +1,7 @@
 # Installation
 
+> [English](installation.md) · [简体中文](installation.zh-CN.md)
+
 Three install paths. Pick the one that matches your situation.
 
 | Path | When to use it |

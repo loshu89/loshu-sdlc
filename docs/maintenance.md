@@ -1,5 +1,7 @@
 # Maintenance guide
 
+> [English](maintenance.md) · [简体中文](maintenance.zh-CN.md)
+
 This page is for people running loshu-sdlc day-to-day — releasing versions, managing dependencies, regenerating eval goldens, and handling the occasional incident. If you're a user of the plugin (not a maintainer), see [usage-guide.md](usage-guide.md) instead.
 
 ## Release process

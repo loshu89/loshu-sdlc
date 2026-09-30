@@ -1,5 +1,7 @@
 # Getting started
 
+> [English](getting-started.md) · [简体中文](getting-started.zh-CN.md)
+
 This walkthrough gets you from a fresh install to your first complete SDLC cycle in about 15 minutes. We'll build a tiny `todos` CLI as a running example — small enough to finish in one sitting, real enough to exercise every stage.
 
 If you just want a checklist and don't need the running example, jump to the [Quickstart checklist](#quickstart-checklist) at the bottom of this page.
@@ -205,7 +207,7 @@ If you don't need the running example, this is the minimum:
 
 ---
 
-## Where to go from here**
+## Where to go from here
 
 - **[usage-guide.md](usage-guide.md)** — full reference for every slash command, CLI subcommand, hook, and artifact
 - **[contributing.md](contributing.md)** — for working on loshu-sdlc itself

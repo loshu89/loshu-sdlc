@@ -1,5 +1,7 @@
 # Contributing to loshu-sdlc
 
+> [English](contributing.md) · [简体中文](contributing.zh-CN.md)
+
 Thanks for your interest! loshu-sdlc is a Claude Code plugin implementing the AI-Native SDLC. This page is for people working **on loshu-sdlc itself** — not for users of the plugin (see [usage-guide.md](usage-guide.md) for that).
 
 ## Development setup

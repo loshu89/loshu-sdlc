@@ -1,5 +1,7 @@
 # Usage guide
 
+> [English](usage-guide.md) · [简体中文](usage-guide.zh-CN.md)
+
 Reference documentation for loshu-sdlc. Read this when you need to know exactly what a command does, what an artifact looks like, or how a hook behaves.
 
 If you're new to loshu-sdlc, start with [getting-started.md](getting-started.md) instead — it's a tutorial.
