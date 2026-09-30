@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
   packages: write
 
 jobs:
@@ -47,3 +47,50 @@ jobs:
           pnpm -r --filter './packages/*' publish --access public --no-git-checks --tag latest --registry=https://registry.npmjs.org/
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # Build a self-contained CLI tarball and attach it to the GitHub Release.
+      # Useful for users who can't or won't use npmjs.com / GitHub Packages
+      # (e.g., users in regions where registration is restricted, or orgs
+      # that forbid installing from public registries).
+      #
+      # Resulting tarball structure (npm-installable):
+      #   package/
+      #   ├── package.json
+      #   ├── dist/         (compiled CLI + scaffolder)
+      #   ├── plugin/       (bundled plugin contents)
+      #   └── templates/    (bundled starter templates — CLI resolves these
+      #                      via a relative path from dist/commands/create.js)
+      #
+      # Install with:
+      #   npm install -g https://github.com/loshu89/loshu-sdlc/releases/download/<TAG>/cli-v${GITHUB_REF_NAME}.tar.gz
+      - name: Build CLI release tarball
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          set -euo pipefail
+          mkdir -p release-assets/staging/package
+          cp packages/cli/package.json release-assets/staging/package/
+          cp -r packages/cli/dist release-assets/staging/package/dist
+          cp -r packages/cli/plugin release-assets/staging/package/plugin
+          cp -r packages/templates release-assets/staging/package/templates
+          # Templates are bundled, so the @loshu89/templates workspace dep is
+          # no longer needed at runtime — strip it from the staged manifest.
+          node -e "
+            const fs = require('fs');
+            const path = 'release-assets/staging/package/package.json';
+            const p = JSON.parse(fs.readFileSync(path, 'utf8'));
+            if (p.dependencies) delete p.dependencies['@loshu89/templates'];
+            fs.writeFileSync(path, JSON.stringify(p, null, 2) + '\n');
+          "
+          tar -czf release-assets/cli-${GITHUB_REF_NAME}.tar.gz \
+            -C release-assets/staging package
+          rm -rf release-assets/staging
+          ls -la release-assets/
+
+      - name: Upload CLI tarball to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-assets/cli-${GITHUB_REF_NAME}.tar.gz
+          fail_on_unmatched_files: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

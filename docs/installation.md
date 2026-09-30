@@ -100,6 +100,31 @@ Most users should use the public npm registry path (the default). Direct GitHub 
 
 ---
 
+## Install from a GitHub Release tarball (no registry required)
+
+If neither the public npm registry nor GitHub Packages is an option for you (e.g., you can't reach `registry.npmjs.org`, or your org blocks both), every tagged release attaches a self-contained CLI tarball:
+
+```bash
+npm install -g https://github.com/loshu89/loshu-sdlc/releases/download/<TAG>/cli-v<TAG>.tar.gz
+```
+
+For example, to install v0.9.1:
+
+```bash
+npm install -g https://github.com/loshu89/loshu-sdlc/releases/download/v0.9.1/cli-v0.9.1.tar.gz
+```
+
+The tarball is built by `.github/workflows/publish-ghcr.yml` on every tag push. It bundles the compiled CLI, the plugin, and the templates into a single npm-installable package — no registry authentication required.
+
+Verify the binary is on your PATH:
+
+```bash
+which create-loshu-sdlc-app
+create-loshu-sdlc-app --help
+```
+
+---
+
 ## Required external plugins
 
 loshu-sdlc depends on two external plugin sets. **Tier 1 is required** — without it, loshu-sdlc refuses to run. **Tier 2 is recommended** for full functionality.

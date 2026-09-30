@@ -100,6 +100,31 @@ npx --yes @loshu89/cli --help   # 一次性使用，无需安装
 
 ---
 
+## 从 GitHub Release tarball 安装（无需任何 registry）
+
+如果公共 npm 仓库和 GitHub Packages 都不能用（比如你无法访问 `registry.npmjs.org`，或者组织禁用了这两个），每个 tag 都会自动生成一个自包含的 CLI tarball：
+
+```bash
+npm install -g https://github.com/loshu89/loshu-sdlc/releases/download/<TAG>/cli-v<TAG>.tar.gz
+```
+
+例如，安装 v0.9.1：
+
+```bash
+npm install -g https://github.com/loshu89/loshu-sdlc/releases/download/v0.9.1/cli-v0.9.1.tar.gz
+```
+
+这个 tarball 由 `.github/workflows/publish-ghcr.yml` 在每次 tag 推送时构建，把编译好的 CLI、plugin 和 templates 打包成一个 npm 可装的完整包——不需要任何 registry 认证。
+
+验证二进制在 PATH 里：
+
+```bash
+which create-loshu-sdlc-app
+create-loshu-sdlc-app --help
+```
+
+---
+
 ## 必需的外部插件
 
 loshu-sdlc 依赖两组外部插件。**Tier 1 是必需的**——没有它 loshu-sdlc 拒绝运行。**Tier 2 推荐安装**以获得完整功能。
