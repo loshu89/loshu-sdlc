@@ -34,6 +34,18 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "@changesets/cli"
         update-types: ["version-update:semver-major"]
+      # chalk v6 requires Node 22 (we target >=20). Hold at v5 until engines bump.
+      - dependency-name: "chalk"
+        update-types: ["version-update:semver-major"]
+      # ejs jumped 3 majors (3 → 6); removed `client` option, full re-audit needed.
+      - dependency-name: "ejs"
+        update-types: ["version-update:semver-major"]
+      # inquirer jumped 5 majors (9 → 14); umbrella-package rewrite, API audit needed.
+      - dependency-name: "inquirer"
+        update-types: ["version-update:semver-major"]
+      # ulid v3 dropped `factory`/`detectPrng`; verify no usage before bumping.
+      - dependency-name: "ulid"
+        update-types: ["version-update:semver-major"]
       # v10 broke closed-loop.test.ts via TEXT_ENCODINGS.union API change;
       # cap at v9 until closed-loop.test.ts is updated to handle the new API.
       - dependency-name: "execa"
