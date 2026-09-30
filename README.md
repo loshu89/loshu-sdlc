@@ -19,18 +19,10 @@ loshu-sdlc turns every change into a version-controlled, schema-validated, hook-
 
 ## The six stages
 
-```
-   ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌──────────┐    ┌───────────┐    ┌────────────┐
-   │ intent  │ ─▶ │  spec   │ ─▶ │  plan   │ ─▶ │ CLAUDE   │ ─▶ │  REVIEW   │ ─▶ │  bands    │
-   │   .md   │    │   .md   │    │   .md   │    │   .md    │    │   .md     │    │   .yaml   │
-   └─────────┘    └─────────┘    └─────────┘    └──────────┘    └───────────┘    └────────────┘
-        └───────────────┴──────────────┴──────────────┴───────────────┘               │
-                                  ▼                                                   │
-                          project history                                            │
-                          (all git-tracked)                                           │
-                                                                                      │
-                                  ◀───────────── 3σ incident ────────────────────────┘
-                                          (auto-generates new intent.md)
+```mermaid
+flowchart LR
+  intent["intent.md<br/>Plan"] --> spec["spec.md<br/>Design"] --> plan["plan.md<br/>Build"] --> claude["CLAUDE.md<br/>Test"] --> review["REVIEW.md<br/>Deploy"] --> bands["bands.yaml<br/>Maintain"]
+  bands -. "3σ incident<br/>auto-generates intent" .-> intent
 ```
 
 | Stage | Slash command | Output |

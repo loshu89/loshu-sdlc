@@ -19,18 +19,10 @@ loshu-sdlc 把每一次改动都转成版本受控、Schema 校验、Hook 强制
 
 ## 六阶段
 
-```
-   ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌──────────┐    ┌───────────┐    ┌────────────┐
-   │ intent  │ ─▶ │  spec   │ ─▶ │  plan   │ ─▶ │ CLAUDE   │ ─▶ │  REVIEW   │ ─▶ │  bands    │
-   │   .md   │    │   .md   │    │   .md   │    │   .md    │    │   .md     │    │   .yaml   │
-   └─────────┘    └─────────┘    └─────────┘    └──────────┘    └───────────┘    └────────────┘
-        └───────────────┴──────────────┴──────────────┴───────────────┘               │
-                                  ▼                                                   │
-                          项目历史                                                  │
-                          （全部 git 受控）                                          │
-                                                                                      │
-                                  ◀────────── 3σ 事故 ────────────────────────────────┘
-                                          （自动生成新的 intent.md）
+```mermaid
+flowchart LR
+  intent["intent.md<br/>Plan"] --> spec["spec.md<br/>Design"] --> plan["plan.md<br/>Build"] --> claude["CLAUDE.md<br/>Test"] --> review["REVIEW.md<br/>Deploy"] --> bands["bands.yaml<br/>Maintain"]
+  bands -. "3σ incident<br/>auto-generates intent" .-> intent
 ```
 
 | 阶段 | 斜杠命令 | 产出 |

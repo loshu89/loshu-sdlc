@@ -215,21 +215,12 @@ When a hook blocks, it prints the specific reason to stderr. Read the message, f
 
 ## The artifact chain
 
-Each stage produces a version-controlled artifact. Together they form an auditable decision trail:
+Each stage produces a version-controlled artifact. Together they form an auditable decision trail — all artifacts live in git history.
 
-```
-   ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌──────────┐    ┌───────────┐    ┌────────────┐
-   │ intent  │ ─▶ │  spec   │ ─▶ │  plan   │ ─▶ │ CLAUDE   │ ─▶ │  REVIEW   │ ─▶ │  bands    │
-   │   .md   │    │   .md   │    │   .md   │    │   .md    │    │   .md     │    │   .yaml   │
-   └─────────┘    └─────────┘    └─────────┘    └──────────┘    └───────────┘    └────────────┘
-        │               │              │              │               │               │
-        └───────────────┴──────────────┴──────────────┴───────────────┘               │
-                                  ▼                                                   │
-                          project history                                            │
-                          (all git-tracked)                                           │
-                                                                                      │
-                                  ◀───────────── 3σ incident ────────────────────────┘
-                                          (auto-generates new intent.md)
+```mermaid
+flowchart LR
+  intent["intent.md<br/>Plan"] --> spec["spec.md<br/>Design"] --> plan["plan.md<br/>Build"] --> claude["CLAUDE.md<br/>Test"] --> review["REVIEW.md<br/>Deploy"] --> bands["bands.yaml<br/>Maintain"]
+  bands -. "3σ incident<br/>auto-generates intent" .-> intent
 ```
 
 Each artifact has a JSON schema in `packages/plugin/schemas/`. `loshu-sdlc validate <artifact> <file>` runs the schema check.
