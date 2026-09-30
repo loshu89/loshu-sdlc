@@ -180,11 +180,13 @@ For dependabot PRs that fail CI in a non-trivial way, prefer closing with a comm
 
 | Resource | Path |
 |---|---|
-| Current spec | `docs/superpowers/specs/loshu-sdlc/spec.md` |
-| Version-specific designs (v0.7.0+) | `docs/superpowers/specs/2026-09-*.md` |
-| Implementation plans | `docs/superpowers/plans/2026-09-*.md` |
-| Internal reports + retros | `docs/internal/` |
+| Current spec | `docs/superpowers/specs/loshu-sdlc/spec.md` (local-only — see note below) |
+| Version-specific designs (v0.7.0+) | `docs/superpowers/specs/2026-09-*.md` (local-only) |
+| Implementation plans | `docs/superpowers/plans/2026-09-*.md` (local-only) |
+| Internal reports + retros | `docs/internal/` (local-only) |
 | In-flight SDD ledger | `.superpowers/sdd/<plan>/progress.md` (gitignored) |
 | CI workflow | `.github/workflows/ci.yml` |
 | Publish workflow | `.github/workflows/publish-ghcr.yml` |
 | Release script | `scripts/release.mjs` |
+
+> **Note:** Design specs, plans, and internal reports live under `docs/superpowers/` and `docs/internal/`. These directories are kept on the maintainer's local disk but excluded from the public repository (see `.gitignore`). If you need to reference the current spec, ask the maintainer — or check the latest published design at the linked spec file's commit history in git.

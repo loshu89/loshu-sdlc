@@ -7,7 +7,9 @@ Institutional knowledge for AI agents and humans working in this repo.
 `loshu-sdlc` is an AI-Native SDLC plugin for Claude Code. Implements the
 6-stage lifecycle (plan / design / build / test / deploy / maintain) with
 version-controlled artifacts, schema validation, and tiered enforcement
-hooks. Authoritative spec: `docs/superpowers/specs/loshu-sdlc/spec.md`.
+hooks. Authoritative spec lives at `docs/superpowers/specs/loshu-sdlc/spec.md`
+**on the maintainer's local disk** (see `.gitignore` — design specs, plans,
+and internal reports are gitignored).
 
 Monorepo layout:
 
@@ -112,8 +114,9 @@ commit. Never tag locally without running the script first.
 
 ## Pitfalls
 
-- **Don't edit** `docs/superpowers/specs/**` content — historical record.
-  Status lines may change; the spec body doesn't.
+- **Don't edit** `docs/superpowers/specs/**` content — historical record
+  (on the maintainer's local disk; see note at top). Status lines may change;
+  the spec body doesn't.
 - **Don't** `pnpm install --no-frozen-lockfile` — CI uses frozen, breaks.
 - **Don't** skip typecheck before commit — strict mode catches things.
 - **Don't** dispatch subagents in parallel for the same files — SDD rule.
@@ -124,11 +127,11 @@ commit. Never tag locally without running the script first.
 
 | Path | What's in it |
 |---|---|
-| `docs/superpowers/specs/loshu-sdlc/` | Authoritative project spec |
-| `docs/superpowers/specs/doc-mgmt/` | Upstream Doc-mgmt spec this plugin implements |
-| `docs/superpowers/specs/2026-09-*.md` | v0.7.0+ design specs (convention started with v0.7.0) |
-| `docs/superpowers/plans/2026-09-*.md` | Implementation plans for all v0.x releases (incl. v0.6.x) |
-| `docs/internal/` | Internal reports, release retros, design rationale |
+| `docs/superpowers/specs/loshu-sdlc/` | Authoritative project spec (local-only) |
+| `docs/superpowers/specs/doc-mgmt/` | Upstream Doc-mgmt spec this plugin implements (local-only) |
+| `docs/superpowers/specs/2026-09-*.md` | v0.7.0+ design specs (local-only) |
+| `docs/superpowers/plans/2026-09-*.md` | Implementation plans (local-only) |
+| `docs/internal/` | Internal reports, release retros, design rationale (local-only) |
 | `.superpowers/sdd/<plan>/progress.md` | In-flight SDD ledger (gitignored) |
 | `CHANGELOG.md` | Per-version release notes |
 | `scripts/release.mjs` | Release automation |

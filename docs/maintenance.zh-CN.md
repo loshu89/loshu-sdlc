@@ -179,11 +179,13 @@ CHANGELOG 在发布 commit 之前写好（属于每次发布的 SDD 计划的一
 
 | Resource | Path |
 |---|---|
-| Current spec | `docs/superpowers/specs/loshu-sdlc/spec.md` |
-| Version-specific designs (v0.7.0+) | `docs/superpowers/specs/2026-09-*.md` |
-| Implementation plans | `docs/superpowers/plans/2026-09-*.md` |
-| Internal reports + retros | `docs/internal/` |
+| Current spec | `docs/superpowers/specs/loshu-sdlc/spec.md`（仅本地，见下方说明）|
+| Version-specific designs (v0.7.0+) | `docs/superpowers/specs/2026-09-*.md`（仅本地）|
+| Implementation plans | `docs/superpowers/plans/2026-09-*.md`（仅本地）|
+| Internal reports + retros | `docs/internal/`（仅本地）|
 | In-flight SDD ledger | `.superpowers/sdd/<plan>/progress.md` (gitignored) |
 | CI workflow | `.github/workflows/ci.yml` |
 | Publish workflow | `.github/workflows/publish-ghcr.yml` |
 | Release script | `scripts/release.mjs` |
+
+> **说明：** 设计规范、实施计划和内部报告位于 `docs/superpowers/` 和 `docs/internal/`。这些目录保留在维护者的本地磁盘上，但被排除在公共仓库之外（见 `.gitignore`）。如需参考当前规范，请联系维护者；或在 git 历史中找到该规范文件最后提交的版本。

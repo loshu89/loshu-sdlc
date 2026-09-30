@@ -26,3 +26,8 @@ packages/cli/plugin/
 !packages/templates/*/
 !packages/templates/*/.loshu-sdlc/
 !packages/templates/*/.loshu-sdlc/*
+
+# Personal-only docs: design specs, plans, and internal retros.
+# Kept locally for the maintainer's reference; not pushed to GitHub.
+docs/superpowers/
+docs/internal/

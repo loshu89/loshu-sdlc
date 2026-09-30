@@ -41,12 +41,11 @@ loshu-sdlc/
 │   ├── usage-guide.md              # 参考手册
 │   ├── contributing.md             # 本文件
 │   └── maintenance.md              # 面向维护者
-├── docs/superpowers/specs/         # 设计规范（不要修改内容；只能改状态行）
-├── docs/superpowers/plans/         # 实施计划
-├── docs/internal/                  # 内部报告、回顾、设计依据
 ├── scripts/                        # release.mjs + copy-plugin.mjs
 └── .github/workflows/              # ci.yml + publish-ghcr.yml
 ```
+
+> 设计规范、实施计划和内部回顾位于 `docs/superpowers/` 和 `docs/internal/`。这些目录保留在维护者的本地磁盘上，但被排除在公共仓库之外（见 `.gitignore`）。贡献者无需编写或阅读它们——维护者会为每个版本驱动规范和计划。
 
 ## 提交规范
 
@@ -56,7 +55,6 @@ Conventional Commits。Scope：`feat:` / `fix:` / `refactor:` / `test:` / `docs:
 - 提交信息正文解释**为什么**，而不是做了什么
 - 破坏性变更使用 `BREAKING CHANGE:` footer
 - 永远不要提交 `.superpowers/sdd/`（已在 .gitignore 中）
-- 永远不要编辑 `docs/superpowers/specs/**` 的内容——那是历史记录；只有状态行可以修改
 
 ## 新增一个斜杠命令
 
@@ -117,7 +115,7 @@ Conventional Commits。Scope：`feat:` / `fix:` / `refactor:` / `test:` / `docs:
 5. 由维护者评审——预计会有几轮反馈
 6. 通过后 squash-merge
 
-如果你的改动比小修更大，先写一份设计规范（`docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`）和一份实施计划（`docs/superpowers/plans/YYYY-MM-DD-<topic>.md`）——见 [maintenance.zh-CN.md](maintenance.zh-CN.md) 的工作流。
+如果你的改动比小修更大，先开一个 issue 讨论——维护者会为任何重要改动驱动设计规范和实施计划。见 [maintenance.zh-CN.md](maintenance.zh-CN.md) 的发布工作流。
 
 ## 上报 Bug
 

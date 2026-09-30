@@ -41,12 +41,11 @@ loshu-sdlc/
 │   ├── usage-guide.md              # reference
 │   ├── contributing.md             # this file
 │   └── maintenance.md              # for maintainers
-├── docs/superpowers/specs/         # design specs (don't edit content; only status lines)
-├── docs/superpowers/plans/         # implementation plans
-├── docs/internal/                  # internal reports, retros, design rationale
 ├── scripts/                        # release.mjs + copy-plugin.mjs
 └── .github/workflows/              # ci.yml + publish-ghcr.yml
 ```
+
+> Design specs, implementation plans, and internal retros live under `docs/superpowers/` and `docs/internal/`. These directories are kept on the maintainer's local disk but excluded from the public repo (see `.gitignore`). Contributors don't need to write or read them — the maintainer drives specs and plans for each release.
 
 ## Commit conventions
 
@@ -56,7 +55,6 @@ Conventional Commits. Scopes: `feat:` / `fix:` / `refactor:` / `test:` / `docs:`
 - Commit message body explains **why**, not what
 - Use the `BREAKING CHANGE:` footer for breaking changes
 - Never commit `.superpowers/sdd/` (gitignored)
-- Never edit `docs/superpowers/specs/**` content — historical record; only status lines may change
 
 ## Adding a slash command
 
@@ -117,7 +115,7 @@ Conventional Commits. Scopes: `feat:` / `fix:` / `refactor:` / `test:` / `docs:`
 5. A maintainer reviews — expect a few rounds of feedback
 6. Squash-merge once green
 
-If your change is bigger than a small fix, write a design spec first (`docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`) and an implementation plan (`docs/superpowers/plans/YYYY-MM-DD-<topic>.md`) — see [maintenance.md](maintenance.md) for the workflow.
+If your change is bigger than a small fix, open an issue first to discuss — the maintainer will drive the design spec and implementation plan for any significant work. See [maintenance.md](maintenance.md) for the release workflow.
 
 ## Reporting bugs
 
