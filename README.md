@@ -40,7 +40,7 @@ Five commands, ten minutes:
 
 ```bash
 # 1. Scaffold a new project (with the optional ui-ux and ecc plugins)
-/sdlc-install npx create-loshu-sdlc-app my-app --with-ux --with-ecc
+npx create-loshu-sdlc-app my-app --with-ux --with-ecc
 cd my-app
 
 # 2. Capture your first intent (brainstorms with you, then writes intent.md)
@@ -56,6 +56,8 @@ cd my-app
 # Check progress anytime
 /sdlc-status
 ```
+
+> If `npx` 404s on `create-loshu-sdlc-app`, the package may not yet be on the public npm registry — see [installation.md → Install from GitHub Packages](docs/installation.md#install-from-github-packages-advanced) for the alternative.
 
 See **[Getting started](docs/getting-started.md)** for a full walkthrough that builds a real project end-to-end.
 

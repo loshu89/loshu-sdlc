@@ -74,7 +74,9 @@ claude plugin install loshu-sdlc@loshu-sdlc
 
 ## 从 GitHub Packages 安装（高级）
 
-`@loshu89/*` 包发布到 **GitHub Packages**，而不是 npm。想通过 npm 直接安装它们：
+`@loshu89/*` 包**同时**发布到公共 npm 仓库（`registry.npmjs.org`）和 GitHub Packages（`npm.pkg.github.com`）。公共仓库是默认的——`npx create-loshu-sdlc-app` 直接走它，无需任何配置。
+
+只有以下情况才需要走 GitHub Packages：公共 npm 仓库的发布还没完成，或你的组织只允许从 GitHub Packages 安装。从 GitHub Packages 安装：
 
 ```bash
 # 1. 告诉 npm 对 @loshu89 scope 使用 GitHub Packages
@@ -94,7 +96,7 @@ npx --yes @loshu89/cli --help   # 一次性使用，无需安装
 
 > **注意：** GitHub Packages 即便是公开包也需要认证——不像 `npmjs.com`，不允许匿名下载。在 <https://github.com/settings/tokens/new> 创建一个带 `read:packages` scope 的 token。
 
-大多数用户应该走上面的脚手架或插件路径。直接通过 GitHub Packages 安装只用于插件作者或特殊部署场景。
+大多数用户应该走默认的公共 npm 仓库路径。直接通过 GitHub Packages 安装只用于插件作者、镜像用户或特殊部署场景。
 
 ---
 

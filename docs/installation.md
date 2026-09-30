@@ -74,7 +74,9 @@ You get all 9 slash commands and the 7 hooks. You'll need to create the artifact
 
 ## Install from GitHub Packages (advanced)
 
-The `@loshu89/*` packages are published to **GitHub Packages**, not npm. To install them via npm directly:
+The `@loshu89/*` packages are published to **both** the public npm registry (`registry.npmjs.org`) and GitHub Packages (`npm.pkg.github.com`). The public registry is the default — `npx create-loshu-sdlc-app` resolves through it without any setup.
+
+You only need the GitHub Packages path if the public npm publish hasn't completed yet, or if your organization restricts installs to GitHub Packages only. To install from GitHub Packages:
 
 ```bash
 # 1. Tell npm to use GitHub Packages for the @loshu89 scope
@@ -94,7 +96,7 @@ npx --yes @loshu89/cli --help   # one-off, no install
 
 > **Note:** GitHub Packages requires authentication even for public packages — unlike `npmjs.com`, anonymous download is not allowed. Create a token at <https://github.com/settings/tokens/new> with the `read:packages` scope.
 
-Most users should use the scaffold or plugin path above. Direct GitHub Packages install is for plugin authors or unusual deployment setups.
+Most users should use the public npm registry path (the default). Direct GitHub Packages install is for plugin authors, mirror users, or unusual deployment setups.
 
 ---
 

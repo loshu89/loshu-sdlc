@@ -57,6 +57,8 @@ cd my-app
 /sdlc-status
 ```
 
+> 如果 `npx` 报 `create-loshu-sdlc-app` 404，说明包可能还没上公共 npm 仓库——见 [installation.zh-CN.md → 从 GitHub Packages 安装（进阶）](docs/installation.zh-CN.md#从-github-packages-安装进阶) 的替代方案。
+
 完整走一个真实项目的教程见 **[快速上手](docs/getting-started.zh-CN.md)**。
 
 ## 选择你的路径
