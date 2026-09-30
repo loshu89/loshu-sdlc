@@ -1,87 +1,133 @@
 # Installation
 
-## Fresh project (recommended)
+Three install paths. Pick the one that matches your situation.
+
+| Path | When to use it |
+|---|---|
+| **[Scaffold a new project](#scaffold-a-new-project)** | Starting greenfield. The scaffolder sets up a project, the plugin, and the artifacts all at once. |
+| **[Add to an existing repo](#add-to-an-existing-repo)** | You have a codebase and want to adopt loshu-sdlc in place. |
+| **[Plugin only](#plugin-only)** | You only want the slash commands and hooks — bring your own project structure. |
+
+All paths require the **[required external plugins](#required-external-plugins)** below.
+
+---
+
+## Scaffold a new project
 
 ```bash
 npx create-loshu-sdlc-app my-app [--with-ux] [--with-ecc]
+cd my-app
 ```
 
-Flags:
+This creates a new directory with:
 
-- `--with-ux` — also install ui-ux-pro-max
-- `--with-ecc` — also install ECC
-- `--with-all` — shorthand for `--with-ux --with-ecc`
-- `--template full` — use the full template (default: minimal)
-- `--existing` — install into existing repo (don't scaffold)
-- `--coverage 80` — coverage threshold (default 80)
-- `--branch 75` — branch coverage threshold (default 75)
-- `--no-git` — skip git init
-- `--yes` / `-y` — skip interactive prompts
-- `--strict` — enable strict eval mode
-- `--help` / `-h` — show help
+- The `@loshu89/plugin` plugin installed in `.claude/`
+- Slash commands (`/sdlc-plan`, `/sdlc-design`, ...) and hooks wired up
+- A starter `intent.md` and `.loshu-sdlc/config.yaml`
+- A git repo with the initial scaffold as the first commit
 
-## Existing project (in-place)
+### Flags
+
+| Flag | Effect |
+|---|---|
+| `--with-ux` | Also install `ui-ux-pro-max` (UI/UX design intelligence) |
+| `--with-ecc` | Also install `ecc` (Everything Claude Code) |
+| `--with-all` | Shorthand for `--with-ux --with-ecc` |
+| `--template full` | Use the full SDLC template — all 6 artifacts + 2 CI workflows (default: `minimal`) |
+| `--existing` | Install into an existing repo instead of scaffolding (see [next section](#add-to-an-existing-repo)) |
+| `--coverage 80` | Line coverage threshold for the verification block (default: 80) |
+| `--branch 75` | Branch coverage threshold (default: 75) |
+| `--no-git` | Skip `git init` and the initial commit |
+| `--yes` / `-y` | Skip interactive prompts (use defaults) |
+| `--strict` | Enable strict eval mode |
+| `--help` / `-h` | Show the full help text |
+
+---
+
+## Add to an existing repo
 
 ```bash
 cd ~/projects/legacy-app
 npx create-loshu-sdlc-app . --existing
 ```
 
-This installs loshu-sdlc into an existing repo without scaffolding. Run `/sdlc-plan` to start the SDLC at your next change.
+This installs the plugin and writes `.claude/` + `.loshu-sdlc/config.yaml` into your existing repo without disturbing your code. Run `/sdlc-plan` at your next change to start the SDLC cycle.
 
-## Plugin-only (no scaffolder)
+If you have an unusual filesystem (some Windows configs without symlinks), see the **[troubleshooting entry](#hook-doesnt-fire-after-scaffold)** at the bottom of this page.
 
-If you want just the plugin without the scaffolder:
+---
+
+## Plugin only
+
+If you want the plugin without the scaffolder — e.g., you're experimenting or your project has a non-standard layout:
 
 ```bash
-/plugin marketplace add loshu89/loshu-sdlc
-/plugin install loshu-sdlc@loshu-sdlc
+claude plugin marketplace add loshu89/loshu-sdlc
+claude plugin install loshu-sdlc@loshu-sdlc
 ```
 
-## Install from GitHub Packages
+You get all 9 slash commands and the 7 hooks. You'll need to create the artifact files (`intent.md`, etc.) yourself — see [`docs/usage-guide.md`](usage-guide.md) for the schema requirements.
 
-The `@loshu89/*` packages are published to GitHub Packages. To install them via npm, configure your npm scope:
+---
+
+## Install from GitHub Packages (advanced)
+
+The `@loshu89/*` packages are published to **GitHub Packages**, not npm. To install them via npm directly:
 
 ```bash
-# Tell npm to use GitHub Packages for the @loshu89 scope
+# 1. Tell npm to use GitHub Packages for the @loshu89 scope
 echo "@loshu89:registry=https://npm.pkg.github.com" >> ~/.npmrc
 
-# Authenticate with a GitHub personal access token (needs `read:packages` scope)
+# 2. Authenticate with a GitHub personal access token (needs `read:packages`)
 npm login --registry=https://npm.pkg.github.com
 ```
 
-Then install:
+Then:
 
 ```bash
-npm install -g @loshu89/cli
+npm install -g @loshu89/cli     # scaffolder + maintenance CLI
+# or
+npx --yes @loshu89/cli --help   # one-off, no install
 ```
 
-Or one-off:
+> **Note:** GitHub Packages requires authentication even for public packages — unlike `npmjs.com`, anonymous download is not allowed. Create a token at <https://github.com/settings/tokens/new> with the `read:packages` scope.
 
-```bash
-npx --yes @loshu89/cli --help
-```
+Most users should use the scaffold or plugin path above. Direct GitHub Packages install is for plugin authors or unusual deployment setups.
+
+---
 
 ## Required external plugins
 
-For full functionality, install these plugins:
+loshu-sdlc depends on two external plugin sets. **Tier 1 is required** — without it, loshu-sdlc refuses to run. **Tier 2 is recommended** for full functionality.
 
-### Tier 1 (required)
-
-```bash
-/plugin marketplace add superpowers/superpowers
-/plugin install superpowers@superpowers
-```
-
-### Tier 2 (recommended)
+### Tier 1 — required
 
 ```bash
-/plugin marketplace add <ui-ux-pro-max-marketplace>
-/plugin install ui-ux-pro-max
-
-/plugin marketplace add affaan-m/everything-claude-code
-/plugin install ecc@ecc
+claude plugin marketplace add superpowers/superpowers
+claude plugin install superpowers@superpowers
 ```
+
+Provides the brainstorming, writing-plans, TDD, and verification skills that drive each `/sdlc-*` command.
+
+### Tier 2 — recommended
+
+```bash
+# UI/UX design intelligence
+claude plugin marketplace add <ui-ux-pro-max-marketplace>
+claude plugin install ui-ux-pro-max
+
+# Everything Claude Code (architect, code-reviewer, security-reviewer)
+claude plugin marketplace add affaan-m/everything-claude-code
+claude plugin install ecc@ecc
+```
+
+Without Tier 2, loshu-sdlc still runs but design and review quality degrade.
+
+### Tier 3 — opportunistic
+
+Any other `ecc:*` skills (frontend-patterns, backend-patterns, api-design, database-migrations, etc.) are picked up automatically if installed.
+
+---
 
 ## Verifying installation
 
@@ -89,15 +135,27 @@ For full functionality, install these plugins:
 loshu-sdlc doctor
 ```
 
-Should print `✔ All checks passed`.
+Should print `✔ All checks passed`. If it reports missing plugins or skills, the error message tells you exactly which `claude plugin install` to run.
 
-## Environment variables (for git lifecycle automation, v0.6.0+)
+---
 
-`loshu-sdlc git` requires platform credentials:
+## Git lifecycle credentials (v0.6.0+)
+
+The `loshu-sdlc git` command family (used by `/sdlc-deploy` and `/sdlc-maintain` for cross-repo sync) needs platform credentials:
 
 | Variable | Purpose | Example |
 |---|---|---|
-| `GHCR_TOKEN` (or `GITLAB_TOKEN`) | Platform token with `repo` + `write:packages` | `ghp_xxx…` (**never paste in chat**) |
+| `GHCR_TOKEN` (or `GITLAB_TOKEN`) | Platform token with `repo` + `write:packages` | `ghp_xxx…` (never paste in chat) |
 | `LOSHU_REPO` | `owner/name` of target repository | `loshu89/loshu-sdlc` |
 
 `loshu-sdlc git status` and `loshu-sdlc git sync --dry-run` work without tokens (read-only).
+
+---
+
+## Troubleshooting
+
+**Hook doesn't fire after scaffold.** The scaffolder creates a symlink `.claude/hooks → .claude/plugins/loshu-sdlc/hooks/`. If your filesystem doesn't support symlinks (some Windows configs), hooks won't fire. Workaround: copy the `hooks/` directory manually after scaffold.
+
+**Plugin commands don't appear in Claude Code.** After `claude plugin install`, restart your Claude Code session — slash commands are discovered at session start.
+
+**GitHub Packages install fails with E401.** Usually an org-level third-party app restriction. Either approve the GitHub Actions app in org settings, or use a PAT added as the `GHCR_TOKEN` secret. See [the README troubleshooting entry](../README.md#troubleshooting) for details.

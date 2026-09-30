@@ -9,59 +9,46 @@
 
 [English](README.md) · [简体中文](README.zh-CN.md)
 
-loshu-sdlc implements the six-stage **AI-Native Software Development Lifecycle** described in the [Anthropic AI-Native SDLC Playbook](https://claude.com/blog/the-ai-native-sdlc-playbook) (Aug 2026) as a Claude Code plugin.
+loshu-sdlc turns every change into a version-controlled, schema-validated, hook-enforced artifact (`intent.md → spec.md → plan.md → CLAUDE.md → REVIEW.md → bands.yaml`), and **closes the loop** by turning production incidents back into new intent documents.
 
-The plugin turns every change into a version-controlled, schema-validated, hook-enforced artifact (`intent.md → spec.md → plan.md → CLAUDE.md → REVIEW.md → bands.yaml`), and closes the loop by turning production incidents back into new intent documents.
+## Why loshu-sdlc?
 
----
+- **Artifacts over chat.** Every stage produces a file. Decisions are auditable, reviewable, replayable — not lost in a chat scrollback.
+- **Closed feedback loop.** A 3σ production incident auto-generates a new `intent.md`; the cycle restarts; the fix flows through the same gates as any other change. No separate hot-fix process.
+- **Thin by design.** Orchestrates existing tools (`superpowers:*`, `ui-ux-pro-max`, `ecc:*`) and ships only what's SDLC-specific.
 
-## Table of contents
+## The six stages
 
-- [Design philosophy](#design-philosophy)
-- [Quick start](#quick-start)
-- [Installation](#installation)
-- [Usage](#usage)
-  - [Slash commands](#slash-commands)
-  - [CLI commands](#cli-commands)
-  - [Hooks](#hooks)
-  - [The artifact chain](#the-artifact-chain)
-- [Project structure](#project-structure)
-- [External dependencies](#external-dependencies)
-- [Development](#development)
-- [Troubleshooting](#troubleshooting)
-- [License](#license)
+```
+   ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌──────────┐    ┌───────────┐    ┌────────────┐
+   │ intent  │ ─▶ │  spec   │ ─▶ │  plan   │ ─▶ │ CLAUDE   │ ─▶ │  REVIEW   │ ─▶ │  bands    │
+   │   .md   │    │   .md   │    │   .md   │    │   .md    │    │   .md     │    │   .yaml   │
+   └─────────┘    └─────────┘    └─────────┘    └──────────┘    └───────────┘    └────────────┘
+        └───────────────┴──────────────┴──────────────┴───────────────┘               │
+                                  ▼                                                   │
+                          project history                                            │
+                          (all git-tracked)                                           │
+                                                                                      │
+                                  ◀───────────── 3σ incident ────────────────────────┘
+                                          (auto-generates new intent.md)
+```
 
----
-
-## Design philosophy
-
-**Three principles** guided every decision:
-
-1. **Thin by design.** loshu-sdlc is an orchestrator. It composes well-built external skills (`superpowers:*`, `ui-ux-pro-max`, `ecc:*`) for intelligence and ships only what is SDLC-specific: the artifact chain, JSON schemas, tiered hooks, statistical band evaluation, and the closed feedback loop.
-2. **Artifacts over chat.** Every stage produces a version-controlled file (`intent.md`, `spec.md`, ...). Decisions are auditable, reviewable, and replayable — not lost in a chat scrollback.
-3. **Governed, not gated.** Hooks block only on critical violations (exit 2); soft warnings are logged, not enforced. The human stays in charge; the plugin catches what humans miss.
-
-**Loop closure is the headline.** A 3σ production incident (any metric tripped beyond its `bands.yaml` threshold) auto-generates a new `intent.md`, the cycle restarts, and the fix flows through the same gates as any other change. No separate hot-fix process.
-
-The closure step itself runs through `loshu-sdlc maintain diagnose`, which extracts the breach from `bands.yaml` as structured JSON, schema-validates the resulting `intent.md`, and writes it. The `maintain-exit` hook invokes it with a 10-second timeout; on failure it falls back to today's "block and tell the user to run `/sdlc-maintain`" behavior.
-
-**Three dependency tiers:**
-
-| Tier | Required | What breaks if missing |
+| Stage | Slash command | Output |
 |---|---|---|
-| **Tier 1 (required)** | `superpowers:{using-superpowers, brainstorming, writing-plans, tdd, systematic-debugging}` | Hard fail — loshu-sdlc refuses to run |
-| **Tier 2 (recommended)** | `ui-ux-pro-max`, `ecc:{architect, code-reviewer, security-reviewer}`, `superpowers:{verification-before-completion, receiving-code-review}` | Warn — degraded quality but functional |
-| **Tier 3 (opportunistic)** | Other `ecc:*` skills and frontend/backend patterns | Silent — used if installed, ignored otherwise |
+| **Plan** | `/sdlc-plan` | `intent.md` |
+| **Design** | `/sdlc-design` | `spec.md` |
+| **Build** | `/sdlc-build` | `plan.md` + `CLAUDE.md` + code |
+| **Test** | `/sdlc-test` | verification block (build / test / lint / typecheck) |
+| **Deploy** | `/sdlc-deploy` | `REVIEW.md` |
+| **Maintain** | `/sdlc-maintain` | `bands.yaml` evaluation + auto-generated incident intents |
 
----
+## Quickstart
 
-## Quick start
-
-The fastest way to use loshu-sdlc:
+Five commands, ten minutes:
 
 ```bash
-# 1. Install the CLI scaffolder
-npx create-loshu-sdlc-app my-app
+# 1. Scaffold a new project (with the optional ui-ux and ecc plugins)
+/sdlc-install npx create-loshu-sdlc-app my-app --with-ux --with-ecc
 cd my-app
 
 # 2. Capture your first intent (brainstorms with you, then writes intent.md)
@@ -78,360 +65,44 @@ cd my-app
 /sdlc-status
 ```
 
-That's the full happy path in five commands.
+See **[Getting started](docs/getting-started.md)** for a full walkthrough that builds a real project end-to-end.
 
----
+## Choose your path
 
-## Artifact identity
-
-Every artifact (`intent.md`, `spec.md`, `plan.md`, `CLAUDE.md`, `REVIEW.md`, `bands.yaml`) carries a ULID-format slug ID in its YAML frontmatter:
-
-```yaml
----
-id: spec-c03-oauth-7f3a-01HXYZABCDEFGHJKMNPQRSTWX
-schema_version: 0.5.0
-cycle_id: 3
-stage: design
-state: accepted
-created_by: human:loshu89
-created_at: 2026-09-15T10:30:00Z
-parent_ids: [01HXYZ...]
----
-```
-
-Format: `stage-c##-slug-####-ULID` where:
-- `stage` is one of `plan|design|build|test|deploy|maintain`
-- `c##` is the zero-padded cycle number
-- `slug` is a kebab-case hint (max 30 chars)
-- `####` is 4 hex chars (collision absorption)
-- The final 26-char ULID is time-ordered
-
-Run `loshu-sdlc repair <file>` to regenerate any missing fields.
-
----
-
-## Installation
-
-### Option A — Install the Claude Code plugin from the marketplace
-
-```bash
-claude plugin marketplace add loshu89/loshu-sdlc
-claude plugin install loshu-sdlc@loshu-sdlc
-```
-
-Then use the slash commands (`/sdlc-plan`, `/sdlc-design`, etc.) in any Claude Code session.
-
-### Option B — Scaffold a new project with the CLI
-
-```bash
-npx create-loshu-sdlc-app my-app [--with-ux] [--with-ecc] [--template full]
-```
-
-Flags:
-
-| Flag | Effect |
+| I want to... | Read |
 |---|---|
-| `--with-ux` | Also install `ui-ux-pro-max` |
-| `--with-ecc` | Also install `ecc` (Everything Claude Code) |
-| `--with-all` | Shorthand for `--with-ux --with-ecc` |
-| `--template full` | Use the full SDLC template (default: minimal) |
-| `--existing` | Install into an existing repo (don't scaffold) |
-| `--coverage 80` | Line coverage threshold (default 80) |
-| `--branch 75` | Branch coverage threshold (default 75) |
-| `--no-git` | Skip `git init` and the first commit |
-| `--yes` / `-y` | Skip interactive prompts |
-| `--strict` | Enable strict eval mode |
-| `--help` / `-h` | Show help |
+| Install loshu-sdlc (scaffold, plugin-only, or GitHub Packages) | **[installation.md](docs/installation.md)** |
+| Walk through an example end-to-end | **[getting-started.md](docs/getting-started.md)** |
+| Use it day-to-day (slash commands, CLI, hooks, artifacts) | **[usage-guide.md](docs/usage-guide.md)** |
+| Contribute to loshu-sdlc itself | **[contributing.md](docs/contributing.md)** |
+| Release a version, manage dependabot, regenerate eval goldens | **[maintenance.md](docs/maintenance.md)** |
 
-### Option C — Install the scaffolder CLI globally
+## Required external plugins
 
-The npm packages are published to **GitHub Packages** under the `@loshu89` scope.
+loshu-sdlc depends on one external plugin set (Tier 1) and strongly recommends another (Tier 2). **Without Tier 1, loshu-sdlc refuses to run.**
 
-```bash
-# 1. Tell npm to use GitHub Packages for the @loshu89 scope
-echo "@loshu89:registry=https://npm.pkg.github.com" >> ~/.npmrc
+- **Tier 1 (required):** `superpowers:*` — provides the brainstorming, writing-plans, TDD, and verification skills.
+- **Tier 2 (recommended):** `ui-ux-pro-max` and `ecc:*` — design intelligence and code-review skills.
 
-# 2. Authenticate with a GitHub token that has `read:packages`
-echo "//npm.pkg.github.com/:_authToken=ghp_xxxxxxxxxxxxxxxxxxxx" >> ~/.npmrc
+See **[installation.md → Required external plugins](docs/installation.md#required-external-plugins)** for the install commands.
 
-# 3. Install the CLI globally
-npm install -g @loshu89/cli
+## Packages
 
-# 4. Use it
-create-loshu-sdlc-app my-app
-```
-
-> **Note:** GitHub Packages requires authentication even for public packages. Unlike `npmjs.com`, anonymous download is not allowed. Create a personal access token at <https://github.com/settings/tokens/new> with the `read:packages` scope.
-
-### Required external skills
-
-For full functionality, install the Tier-1 superpowers plugin (the only hard requirement):
-
-```bash
-claude plugin marketplace add superpowers/superpowers
-claude plugin install superpowers@superpowers
-```
-
-Without it, loshu-sdlc refuses to run. Tier-2 and Tier-3 skills are optional — the plugin warns or silently skips when they're missing.
-
----
-
-## Usage
-
-### Slash commands
-
-Once the plugin is installed, you have nine slash commands:
-
-| Command | Stage | Purpose |
+| Package | Published as | Purpose |
 |---|---|---|
-| `/sdlc-plan` | Plan | Brainstorm with Claude and write `intent.md` |
-| `/sdlc-design` | Design | Translate intent into `spec.md` |
-| `/sdlc-build` | Build | Generate `plan.md` and scaffold `CLAUDE.md` |
-| `/sdlc-test` | Test | Run TDD discipline and the verification block |
-| `/sdlc-deploy` | Deploy | Populate `REVIEW.md` with security + compliance checks |
-| `/sdlc-maintain` | Maintain | Evaluate `bands.yaml`; auto-generate incident-driven `intent.md` on 3σ |
-| `/sdlc-status` | (meta) | Show current cycle state |
-| `/sdlc-init` | (meta) | Run plan → design → build in sequence |
-| `/sdlc-help` | (meta) | Show command reference |
-
-### CLI commands
-
-The `loshu-sdlc` CLI also ships with maintenance commands:
-
-```
-loshu-sdlc create    [path]      Scaffold a new SDLC project
-loshu-sdlc validate  <artifact> <file>
-                                Validate an artifact (intent, spec, plan, etc.) against its schema
-loshu-sdlc doctor    [path]      Health checks for an SDLC project
-loshu-sdlc bands     evaluate <file>
-                                Evaluate bands.yaml against current metrics
-loshu-sdlc bands     diagnose   <file>
-                                Extract 3σ breaches from bands.yaml as structured JSON
-loshu-sdlc maintain  diagnose   --bands <file> --output <file>
-                                Synthesize incident intent.md (invoked automatically by maintain-exit)
-loshu-sdlc lint      [path]      Lint borrowed plugin skills (with --fix)
-loshu-sdlc rules     list|check  Inspect the rule registry
-loshu-sdlc status    [path]      Render per-stage status table
-loshu-sdlc coverage  [path]      Run coverage and emit a JSON report
-loshu-sdlc logs                  Read ~/.loshu-sdlc/logs/*.log
-loshu-sdlc upgrade   [path]      Bump loshu-sdlc version pins in package.json
-loshu-sdlc migrate <file>          # Migrate artifact to current schema (--check, --dry-run, --from, --to)
-loshu-sdlc repair  <file>          # Regenerate missing ID, fill required fields
-loshu-sdlc test   [file]           # Run 4-layer acceptance tests (--strict, --fix, --reporter text|json|junit)
-loshu-sdlc git    <subcommand>     # sync | status | merge | abandon (GitHub + GitLab)
-loshu-sdlc telemetry             Toggle telemetry in ~/.loshu-sdlc/config.json
-loshu-sdlc help      [command]   Show help
-```
-
-### Hooks
-
-Hooks fire at stage transitions to enforce the artifact chain:
-
-| Hook | When | What it does |
-|---|---|---|
-| `plan-exit` | After `/sdlc-plan` writes `intent.md` | Validates the file against `intent.schema.json` |
-| `design-exit` | After `/sdlc-design` writes `spec.md` | Validates `spec.md`; ensures `intent.md` is `accepted` |
-| `build-exit` | After `/sdlc-build` writes `plan.md` | Validates `plan.md`; ensures `CLAUDE.md` has the verification block |
-| `test-exit` | After `/sdlc-test` | Runs the verification block (build / test / lint / typecheck must all exit 0) |
-| `deploy-exit` | After `/sdlc-deploy` writes `REVIEW.md` | Validates `REVIEW.md`; blocks on `status: fail` in any section |
-| `maintain-exit` | After `/sdlc-maintain` | Validates `bands.yaml`; on 3σ incidents, auto-invokes `loshu-sdlc maintain diagnose` (10s timeout) to write a stub `intent.md` — falls back to "block and tell user to run `/sdlc-maintain`" on failure |
-| `protect-artifacts` | On any Write/Edit tool call | Allow-all stub; reserved for future artifact protection |
-
-All hooks use Claude Code's `exit 0` (allow) / `exit 2` (block) semantics.
-
-### The artifact chain
-
-Each stage produces a version-controlled artifact. Together they form an auditable decision trail:
-
-```
-   ┌─────────┐    ┌─────────┐    ┌─────────┐    ┌──────────┐    ┌───────────┐    ┌────────────┐
-   │ intent  │ ─▶ │  spec   │ ─▶ │  plan   │ ─▶ │ CLAUDE   │ ─▶ │  REVIEW   │ ─▶ │  bands    │
-   │   .md   │    │   .md   │    │   .md   │    │   .md    │    │   .md     │    │   .yaml   │
-   └─────────┘    └─────────┘    └─────────┘    └──────────┘    └───────────┘    └────────────┘
-        │               │              │              │               │               │
-        └───────────────┴──────────────┴──────────────┴───────────────┘               │
-                                  ▼                                                   │
-                          project history                                            │
-                          (all git-tracked)                                           │
-                                                                                      │
-                                  ◀───────────── 3σ incident ────────────────────────┘
-                                          (auto-generates new intent.md)
-```
-
-Each artifact has a JSON schema in `packages/plugin/schemas/`. `loshu-sdlc validate <artifact> <file>` runs the schema check.
-
----
-
-## Project structure
-
-This repository is an npm-workspaces monorepo with three packages:
-
-```
-loshu-sdlc/
-├── packages/
-│   ├── plugin/                     # Claude Code plugin (markdown + JSON only)
-│   │   ├── .claude-plugin/
-│   │   │   └── plugin.json         # plugin manifest
-│   │   ├── commands/               # 9 slash commands
-│   │   │   ├── sdlc-plan.md
-│   │   │   ├── sdlc-design.md
-│   │   │   ├── sdlc-build.md
-│   │   │   ├── sdlc-test.md
-│   │   │   ├── sdlc-deploy.md
-│   │   │   ├── sdlc-maintain.md
-│   │   │   ├── sdlc-status.md
-│   │   │   ├── sdlc-init.md
-│   │   │   └── sdlc-help.md
-│   │   ├── agents/                 # 5 SDLC-specific subagents
-│   │   ├── skills/                 # authoring skills + policy defaults + UI baseline
-│   │   ├── hooks/                  # 6 tiered enforcement scripts
-│   │   └── schemas/                # 7 JSON schemas for artifacts
-│   │
-│   ├── cli/                        # Scaffolder + maintenance CLI (Node + TypeScript)
-│   │   ├── src/
-│   │   │   ├── bin/                # create-loshu-sdlc-app + loshu-sdlc entrypoints
-│   │   │   ├── commands/           # create, validate, doctor, bands, lint, rules,
-│   │   │   │                       #   status, coverage, logs, upgrade, telemetry
-│   │   │   └── lib/                # render, git, plugin-bundler, prompts,
-│   │   │                           #   validate (Ajv), bands (statistics), attribution
-│   │   ├── tests/                  # vitest unit tests
-│   │   └── plugin/                 # bundled plugin copy (gitignored, regenerated on build)
-│   │
-│   └── templates/                  # Starter projects
-│       ├── minimal/                 # minimal: README + intent.md + .loshu-sdlc/config.yaml
-│       └── full/                    # full: all 6 artifacts + 2 CI workflow stubs
-│
-├── tests/
-│   └── evals/                      # ~30 golden-file eval stories across 6 stages
-│       ├── plan/, design/, build/, test/, deploy/, maintain/
-│       └── run.ts                  # eval harness (loose + strict modes)
-│
-├── scripts/                        # release.mjs + copy-plugin.mjs
-├── docs/                           # User-facing docs
-│   ├── getting-started.md
-│   └── installation.md
-├── .github/workflows/              # ci.yml + publish-ghcr.yml
-├── .changeset/                     # changesets config + entries
-├── package.json                    # workspace root (pnpm)
-├── tsconfig.base.json              # shared TS config
-├── vitest.config.ts                # multi-project vitest config
-└── README.md (this file) / README.zh-CN.md
-```
-
-**Package purposes:**
-
-| Package | Purpose | Published as |
-|---|---|---|
-| `@loshu89/plugin` | The Claude Code plugin — slash commands, agents, skills, hooks, schemas | GitHub Packages |
-| `@loshu89/cli` | Scaffolder (`create-loshu-sdlc-app`) + maintenance CLI (`loshu-sdlc`) | GitHub Packages |
-| `@loshu89/templates` | Starter templates consumed by the scaffolder | GitHub Packages |
-
----
-
-## External dependencies
-
-loshu-sdlc orchestrates external skills. Tier-1 is required; Tier-2/3 are optional.
-
-**Tier 1 (required):**
-- `superpowers:using-superpowers`, `superpowers:brainstorming`, `superpowers:writing-plans`, `superpowers:tdd`, `superpowers:systematic-debugging`
-
-**Tier 2 (recommended):**
-- `ui-ux-pro-max` (UI/UX design intelligence)
-- `ecc:architect`, `ecc:code-reviewer`, `ecc:security-reviewer`
-- `superpowers:verification-before-completion`, `superpowers:receiving-code-review`
-
-**Tier 3 (opportunistic):**
-- Other `ecc:*` skills (frontend-patterns, backend-patterns, api-design, database-migrations, etc.)
-
-Install with `claude plugin install <name>@<marketplace>`.
-
----
-
-## Development
-
-### Prerequisites
-
-- Node.js ≥ 20
-- pnpm ≥ 9
-
-### Setup
-
-```bash
-git clone https://github.com/loshu89/loshu-sdlc.git
-cd loshu-sdlc
-pnpm install
-```
-
-### Common scripts
-
-```bash
-pnpm typecheck                    # TypeScript check across all packages
-pnpm test                         # Vitest unit + integration tests (238 tests)
-pnpm build                        # Build CLI + bundle plugin
-pnpm lint                         # ESLint
-pnpm test:eval                    # Eval suite (~30 stories, loose mode, cosine ≥ 0.85)
-pnpm test:eval:strict             # Eval suite (strict mode, CI gate)
-pnpm test:eval:json               # JSON output for tooling
-pnpm test:eval:record             # Overwrite .expected files with current output
-```
-
-### Release
-
-```bash
-# Local release (bumps all three packages, runs the gauntlet, commits, tags)
-node scripts/release.mjs 0.9.x
-
-# Push the tag to trigger publish-ghcr.yml
-git push origin main v0.9.x
-```
-
-The CI workflow (`publish-ghcr.yml`) runs `tests/eval:strict` plus the full gauntlet and publishes to GitHub Packages.
-
----
+| `@loshu89/plugin` | GitHub Packages | The Claude Code plugin — slash commands, agents, skills, hooks, schemas |
+| `@loshu89/cli` | GitHub Packages | Scaffolder (`create-loshu-sdlc-app`) + maintenance CLI (`loshu-sdlc`) |
+| `@loshu89/templates` | GitHub Packages | Starter templates consumed by the scaffolder |
 
 ## Troubleshooting
 
-**"Tier-1 dep missing"**
-Install superpowers (see [Required external skills](#required-external-skills)). loshu-sdlc refuses to run without it.
+- **`✔ Tier-1 dep missing`** — install superpowers (see [installation.md](docs/installation.md#tier-1--required)). Without it, loshu-sdlc refuses to run.
+- **Hook blocked my edit** — hooks use `exit 2` with a reason on stderr. Read the message, fix, retry.
+- **Plugin commands not appearing** — restart your Claude Code session after `claude plugin install`.
+- **Scaffold creates project but hooks don't fire** — the scaffolder uses a symlink `.claude/hooks → .claude/plugins/loshu-sdlc/hooks/`. Some Windows filesystems don't support symlinks; copy the `hooks/` directory manually as a workaround.
+- **GitHub Packages publish fails with E401** — usually an org-level third-party app restriction. Approve the GitHub Actions app, or use a PAT added as `GHCR_TOKEN`.
 
-**Hook blocked my edit**
-Hooks use `exit 2` to block with a specific reason on stderr. Read the message, fix the issue, retry.
-
-**Plugin commands not appearing in Claude Code**
-After installing via `claude plugin install loshu-sdlc@loshu-sdlc`, restart your Claude Code session. Slash commands are discovered at session start.
-
-**Scaffolder creates project but hooks don't fire**
-The `create` command creates a symlink `.claude/hooks → .claude/plugins/loshu-sdlc/hooks/`. If your filesystem doesn't support symlinks (some Windows configs), hooks won't fire. Workaround: copy the `hooks/` directory manually after scaffold.
-
-**Tests fail on fresh clone**
-Run `pnpm install --frozen-lockfile` to ensure lockfile consistency. Then `pnpm test`.
-
-**Eval suite has unexpected failures**
-Run `pnpm test:eval --loose` (default) or `pnpm test:eval --strict`. Loose mode allows shingle cosine ≥ 0.85; strict requires exact match. To regenerate golden files, use `pnpm test:eval:record`.
-
-**GitHub Packages publish fails with E401**
-This is almost always the org's third-party app restriction. Either:
-1. Approve the GitHub Actions app in org settings → Third-party access
-2. Or use a PAT (added as `GHCR_TOKEN` secret) — see workflow file for current auth approach
-
----
-
-## Dependency management
-
-The repo ships a Dependabot config (`.github/dependabot.yml`) for both npm and GitHub Actions. Dependabot runs weekly and groups PRs into production-dependencies and development-dependencies batches.
-
-**Major-version bumps are capped by default.** The following packages have their major-version updates ignored so they don't appear in weekly PRs; each one gets its own dedicated migration plan when the team is ready:
-
-- `typescript`, `eslint`, `vitest`, `@typescript-eslint/*`, `@changesets/cli`
-- `execa` (v10 broke `closed-loop.test.ts` via `TEXT_ENCODINGS.union`; held at v9)
-- `chalk` (v6 requires Node 22; we target `engines.node >=20`)
-- `ejs` (v6 removes the `client` option; needs 3-major-version audit)
-- `inquirer` (v14 is an umbrella-package rewrite; needs 5-major-version audit)
-- `ulid` (v3 dropped `factory`/`detectPrng`; needs usage audit)
-
-This means weekly Dependabot PRs are safe to merge after CI passes.
-
----
+For everything else, see [usage-guide.md → Hooks](docs/usage-guide.md#hooks) and [maintenance.md](docs/maintenance.md).
 
 ## License
 
