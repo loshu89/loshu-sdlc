@@ -43,6 +43,8 @@ loshu-sdlc 实现了 [Anthropic AI-Native SDLC Playbook](https://claude.com/blog
 
 **闭环是最大卖点**。3σ 生产事故（任何指标超出 `bands.yaml` 阈值）会自动生成新的 `intent.md`，SDLC 循环重启，修复走和其他改动一样的关卡。不需要单独的 hot-fix 流程。
 
+闭合步骤本身通过 `loshu-sdlc maintain diagnose` 执行——把 `bands.yaml` 中的违规抽取成结构化 JSON，对生成的 `intent.md` 做 schema 校验，然后落盘。`maintain-exit` hook 用 10 秒超时调用它；失败时回退到当前的"阻止并提示用户跑 `/sdlc-maintain`"行为。
+
 **三层依赖关系：**
 
 | 层级 | 必需 | 缺失时后果 |
@@ -175,6 +177,10 @@ loshu-sdlc validate  <artifact> <file>
 loshu-sdlc doctor    [path]      SDLC 项目健康检查
 loshu-sdlc bands     evaluate <file>
                                 评估 bands.yaml 与当前指标
+loshu-sdlc bands     diagnose   <file>
+                                把 bands.yaml 的 3σ 违规提取为结构化 JSON
+loshu-sdlc maintain  diagnose   --bands <file> --output <file>
+                                自动合成事故 intent.md（被 maintain-exit 自动调用）
 loshu-sdlc lint      [path]      检查借用的插件技能（带 --fix）
 loshu-sdlc rules     list|check  查看规则注册表
 loshu-sdlc status    [path]      渲染分阶段状态表
@@ -200,7 +206,7 @@ Hook 在阶段之间触发，强制制品链：
 | `build-exit` | `/sdlc-build` 写入 `plan.md` 后 | 校验 `plan.md`；确保 `CLAUDE.md` 有 verification block |
 | `test-exit` | `/sdlc-test` 后 | 跑 verification block（build / test / lint / typecheck 必须全部退出 0） |
 | `deploy-exit` | `/sdlc-deploy` 写入 `REVIEW.md` 后 | 校验 `REVIEW.md`；任何 section `status: fail` 则阻止 |
-| `maintain-exit` | `/sdlc-maintain` 后 | 校验 `bands.yaml`；3σ 事故时要求新的 `intent.md` |
+| `maintain-exit` | `/sdlc-maintain` 后 | 校验 `bands.yaml`；3σ 事故时先调用 `loshu-sdlc maintain diagnose`（10s 超时）自动写一份 `intent.md`，失败则回退到"阻止并提示用户跑 `/sdlc-maintain`" |
 | `protect-artifacts` | 任何 Write/Edit 工具调用 | 全部放行的占位；预留给将来的制品保护 |
 
 所有 Hook 使用 Claude Code 的 `exit 0`（允许）/ `exit 2`（阻止）语义。
@@ -332,7 +338,7 @@ pnpm install
 
 ```bash
 pnpm typecheck                    # 全包 TypeScript 检查
-pnpm test                         # Vitest 单元 + 集成测试（46 个测试）
+pnpm test                         # Vitest 单元 + 集成测试（238 个测试）
 pnpm build                        # 构建 CLI + 打包插件
 pnpm lint                         # ESLint
 pnpm test:eval                    # Eval 套件（~30 故事，loose 模式，cosine ≥ 0.85）
@@ -345,10 +351,10 @@ pnpm test:eval:record             # 用当前输出覆盖 .expected 文件
 
 ```bash
 # 本地发布（升级三个包版本、跑全检查、提交、打 tag）
-node scripts/release.mjs 0.2.1
+node scripts/release.mjs 0.9.x
 
 # 推送 tag 触发 publish-ghcr.yml
-git push origin main v0.2.1
+git push origin main v0.9.x
 ```
 
 CI workflow（`publish-ghcr.yml`）会跑 `tests/eval:strict` 和完整检查，然后发布到 GitHub Packages。
@@ -379,6 +385,23 @@ Hook 用 `exit 2` 阻止并在 stderr 给出具体原因。读消息、修复、
 几乎总是组织的第三方应用限制。两种解决方法：
 1. 在组织设置 → 第三方访问 → 批准 GitHub Actions 应用
 2. 或使用 PAT（作为 `GHCR_TOKEN` secret 添加）——见 workflow 文件了解当前鉴权方式
+
+---
+
+## 依赖管理
+
+仓库自带 Dependabot 配置（`.github/dependabot.yml`），同时覆盖 npm 和 GitHub Actions。Dependabot 每周跑一次，把 PR 归到 production-dependencies 和 development-dependencies 两个分组。
+
+**默认对大版本升级封顶。** 以下包的大版本升级会被忽略，不会出现在每周的 PR 里；每个包都等到准备好时另起专门的迁移计划：
+
+- `typescript`、`eslint`、`vitest`、`@typescript-eslint/*`、`@changesets/cli`
+- `execa`（v10 通过 `TEXT_ENCODINGS.union` 破坏了 `closed-loop.test.ts`；锁在 v9）
+- `chalk`（v6 要求 Node 22；我们目标 `engines.node >=20`）
+- `ejs`（v6 移除了 `client` 选项；需要审计 3 个大版本跨度）
+- `inquirer`（v14 是 umbrella 包重写；需要审计 5 个大版本跨度）
+- `ulid`（v3 移除了 `factory`/`detectPrng`；需要审计使用情况）
+
+这意味着每周的 PR 在 CI 通过后就可以合并。
 
 ---
 

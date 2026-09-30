@@ -8,7 +8,7 @@ Thanks for your interest! loshu-sdlc is a Claude Code plugin implementing the AI
 2. Install Node 20+ and pnpm 9+
 3. `pnpm install` (uses npm workspaces)
 4. `pnpm typecheck` — TypeScript strict mode across all packages
-5. `pnpm test` — 100+ unit + integration tests
+5. `pnpm test` — 238 unit + integration tests
 6. `pnpm build` — CLI compiles; bundles plugin into CLI package
 7. `pnpm test:eval` — 30 golden-file eval stories across 6 SDLC stages
 8. `pnpm lint` — ESLint

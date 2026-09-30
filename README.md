@@ -43,6 +43,8 @@ The plugin turns every change into a version-controlled, schema-validated, hook-
 
 **Loop closure is the headline.** A 3σ production incident (any metric tripped beyond its `bands.yaml` threshold) auto-generates a new `intent.md`, the cycle restarts, and the fix flows through the same gates as any other change. No separate hot-fix process.
 
+The closure step itself runs through `loshu-sdlc maintain diagnose`, which extracts the breach from `bands.yaml` as structured JSON, schema-validates the resulting `intent.md`, and writes it. The `maintain-exit` hook invokes it with a 10-second timeout; on failure it falls back to today's "block and tell the user to run `/sdlc-maintain`" behavior.
+
 **Three dependency tiers:**
 
 | Tier | Required | What breaks if missing |
@@ -203,6 +205,10 @@ loshu-sdlc validate  <artifact> <file>
 loshu-sdlc doctor    [path]      Health checks for an SDLC project
 loshu-sdlc bands     evaluate <file>
                                 Evaluate bands.yaml against current metrics
+loshu-sdlc bands     diagnose   <file>
+                                Extract 3σ breaches from bands.yaml as structured JSON
+loshu-sdlc maintain  diagnose   --bands <file> --output <file>
+                                Synthesize incident intent.md (invoked automatically by maintain-exit)
 loshu-sdlc lint      [path]      Lint borrowed plugin skills (with --fix)
 loshu-sdlc rules     list|check  Inspect the rule registry
 loshu-sdlc status    [path]      Render per-stage status table
@@ -228,7 +234,7 @@ Hooks fire at stage transitions to enforce the artifact chain:
 | `build-exit` | After `/sdlc-build` writes `plan.md` | Validates `plan.md`; ensures `CLAUDE.md` has the verification block |
 | `test-exit` | After `/sdlc-test` | Runs the verification block (build / test / lint / typecheck must all exit 0) |
 | `deploy-exit` | After `/sdlc-deploy` writes `REVIEW.md` | Validates `REVIEW.md`; blocks on `status: fail` in any section |
-| `maintain-exit` | After `/sdlc-maintain` | Validates `bands.yaml`; requires new `intent.md` on 3σ incidents |
+| `maintain-exit` | After `/sdlc-maintain` | Validates `bands.yaml`; on 3σ incidents, auto-invokes `loshu-sdlc maintain diagnose` (10s timeout) to write a stub `intent.md` — falls back to "block and tell user to run `/sdlc-maintain`" on failure |
 | `protect-artifacts` | On any Write/Edit tool call | Allow-all stub; reserved for future artifact protection |
 
 All hooks use Claude Code's `exit 0` (allow) / `exit 2` (block) semantics.
@@ -360,7 +366,7 @@ pnpm install
 
 ```bash
 pnpm typecheck                    # TypeScript check across all packages
-pnpm test                         # Vitest unit + integration tests (46 tests)
+pnpm test                         # Vitest unit + integration tests (238 tests)
 pnpm build                        # Build CLI + bundle plugin
 pnpm lint                         # ESLint
 pnpm test:eval                    # Eval suite (~30 stories, loose mode, cosine ≥ 0.85)
@@ -373,10 +379,10 @@ pnpm test:eval:record             # Overwrite .expected files with current outpu
 
 ```bash
 # Local release (bumps all three packages, runs the gauntlet, commits, tags)
-node scripts/release.mjs 0.2.1
+node scripts/release.mjs 0.9.x
 
 # Push the tag to trigger publish-ghcr.yml
-git push origin main v0.2.1
+git push origin main v0.9.x
 ```
 
 The CI workflow (`publish-ghcr.yml`) runs `tests/eval:strict` plus the full gauntlet and publishes to GitHub Packages.
@@ -407,6 +413,23 @@ Run `pnpm test:eval --loose` (default) or `pnpm test:eval --strict`. Loose mode 
 This is almost always the org's third-party app restriction. Either:
 1. Approve the GitHub Actions app in org settings → Third-party access
 2. Or use a PAT (added as `GHCR_TOKEN` secret) — see workflow file for current auth approach
+
+---
+
+## Dependency management
+
+The repo ships a Dependabot config (`.github/dependabot.yml`) for both npm and GitHub Actions. Dependabot runs weekly and groups PRs into production-dependencies and development-dependencies batches.
+
+**Major-version bumps are capped by default.** The following packages have their major-version updates ignored so they don't appear in weekly PRs; each one gets its own dedicated migration plan when the team is ready:
+
+- `typescript`, `eslint`, `vitest`, `@typescript-eslint/*`, `@changesets/cli`
+- `execa` (v10 broke `closed-loop.test.ts` via `TEXT_ENCODINGS.union`; held at v9)
+- `chalk` (v6 requires Node 22; we target `engines.node >=20`)
+- `ejs` (v6 removes the `client` option; needs 3-major-version audit)
+- `inquirer` (v14 is an umbrella-package rewrite; needs 5-major-version audit)
+- `ulid` (v3 dropped `factory`/`detectPrng`; needs usage audit)
+
+This means weekly Dependabot PRs are safe to merge after CI passes.
 
 ---
 

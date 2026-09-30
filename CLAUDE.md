@@ -21,7 +21,7 @@ Node ≥ 20.0.0, pnpm 9 workspaces.
 
 ```bash
 pnpm install            # install all workspace deps
-pnpm test               # run vitest (all 229+ tests)
+pnpm test               # run vitest (all 238 tests)
 pnpm typecheck          # tsc --noEmit across all packages
 pnpm lint               # eslint
 pnpm build              # tsc + copy-plugin + compile-migrations
