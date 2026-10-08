@@ -66,10 +66,13 @@ jobs:
                 "https://registry.npmjs.org/$encoded") && \
               echo "  http: $http_code" && \
               cat /tmp/curl-body && echo && \
-              test "$http_code" = "200" -o "$http_code" = "201" && \
               rm -f "$tarball" && \
-              echo "  -> $name published to npmjs.com" || \
-              (echo "  -> publish failed"; exit 1)
+              if [ "$http_code" = "200" ] || [ "$http_code" = "201" ]; then \
+                echo "  -> $name published to npmjs.com"; \
+              else \
+                echo "  -> $name FAILED"; \
+                exit 1; \
+              fi)
           done
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
