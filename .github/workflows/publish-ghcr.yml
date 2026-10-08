@@ -59,13 +59,17 @@ jobs:
               encoded=$(node -p "encodeURIComponent('$name')") && \
               tarball=$(npm pack 2>/dev/null | tr -d '\n') && \
               echo "  tarball: $tarball" && \
-              curl -fsS -X PUT \
+              http_code=$(curl -sS -o /tmp/curl-body -w "%{http_code}" -X PUT \
                 -H "Authorization: Bearer $NODE_AUTH_TOKEN" \
                 -H "Content-Type: application/octet-stream" \
                 --data-binary "@$tarball" \
-                "https://registry.npmjs.org/$encoded" && \
+                "https://registry.npmjs.org/$encoded") && \
+              echo "  http: $http_code" && \
+              cat /tmp/curl-body && echo && \
+              test "$http_code" = "200" -o "$http_code" = "201" && \
               rm -f "$tarball" && \
-              echo "  -> $name published to npmjs.com")
+              echo "  -> $name published to npmjs.com" || \
+              (echo "  -> publish failed"; exit 1)
           done
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
