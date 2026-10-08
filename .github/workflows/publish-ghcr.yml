@@ -42,8 +42,11 @@ jobs:
       #   4. Register the @loshu89 scope on npm if not already claimed
       # Once NPM_TOKEN is set, future tagged releases publish to both registries.
       - name: Publish packages to npmjs.com
-        if: ${{ secrets.NPM_TOKEN != '' }}
         run: |
+          if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
+            echo "NPM_TOKEN secret not configured, skipping npmjs.com publish"
+            exit 0
+          fi
           pnpm -r --filter './packages/*' publish --access public --no-git-checks --tag latest --registry=https://registry.npmjs.org/
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
