@@ -47,20 +47,23 @@ jobs:
             echo "NPM_TOKEN secret not configured, skipping npmjs.com publish"
             exit 0
           fi
-          # The project's .npmrc maps @loshu89:registry to GH Packages, which
-          # overrides the --registry flag on every npm call. Temporarily move
-          # it aside so npm publish actually talks to npmjs.com. Restore on
-          # exit (success or failure) so subsequent steps see the original.
+          # Two sources of GH-Packages routing need to be neutralized:
+          #  1. The project's .npmrc maps @loshu89:registry to GH Packages.
+          #  2. setup-node wrote registry=https://npm.pkg.github.com to ~/.npmrc.
+          # The first is moved aside. The second is overridden via
+          # NPM_CONFIG_REGISTRY env var (which beats the user config).
           mv .npmrc .npmrc.bak
           trap 'mv .npmrc.bak .npmrc 2>/dev/null || true' EXIT
           for pkg in packages/cli packages/plugin packages/templates; do
             echo "Publishing $pkg..."
-            (cd "$pkg" && npm publish \
-              --access public \
-              --no-git-checks \
-              --tag latest \
-              --registry=https://registry.npmjs.org/ \
-              2>&1 | tail -10)
+            (cd "$pkg" && env \
+              NPM_CONFIG_REGISTRY=https://registry.npmjs.org/ \
+              NODE_AUTH_TOKEN="$NODE_AUTH_TOKEN" \
+              npm publish \
+                --access public \
+                --no-git-checks \
+                --tag latest \
+                2>&1 | tail -10)
           done
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
