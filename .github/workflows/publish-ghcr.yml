@@ -47,7 +47,19 @@ jobs:
             echo "NPM_TOKEN secret not configured, skipping npmjs.com publish"
             exit 0
           fi
-          pnpm -r --filter './packages/*' publish --access public --no-git-checks --tag latest --registry=https://registry.npmjs.org/
+          # Use plain `npm publish` per-package instead of `pnpm -r publish`:
+          # pnpm's workspace-level state from the previous GH Packages step
+          # marks v0.9.1 as 'already published' and skips the recursive run.
+          # Per-package npm publish bypasses that workspace cache.
+          for pkg in packages/cli packages/plugin packages/templates; do
+            echo "Publishing $pkg..."
+            (cd "$pkg" && npm publish \
+              --access public \
+              --no-git-checks \
+              --tag latest \
+              --registry=https://registry.npmjs.org/ \
+              2>&1 | tail -5)
+          done
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
