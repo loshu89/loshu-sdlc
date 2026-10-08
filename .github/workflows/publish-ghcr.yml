@@ -59,11 +59,14 @@ jobs:
               encoded=$(node -p "encodeURIComponent('$name')") && \
               tarball=$(npm pack 2>/dev/null | tr -d '\n') && \
               echo "  tarball: $tarball" && \
+              # The newer registry endpoint accepts ?access=public explicitly
+              # which is more reliable than relying on publishConfig in the
+              # tarball (some orgs default to "private" scope treatment).
               http_code=$(curl -sS -o /tmp/curl-body -w "%{http_code}" -X PUT \
                 -H "Authorization: Bearer $NODE_AUTH_TOKEN" \
-                -H "Content-Type: application/octet-stream" \
+                -H "Content-Type: application/json" \
                 --data-binary "@$tarball" \
-                "https://registry.npmjs.org/$encoded") && \
+                "https://registry.npmjs.org/$encoded/-/$tarball?access=public") && \
               echo "  http: $http_code" && \
               cat /tmp/curl-body && echo && \
               rm -f "$tarball" && \
