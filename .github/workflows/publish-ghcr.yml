@@ -48,23 +48,22 @@ jobs:
             exit 0
           fi
           # Bypass npm's config system entirely. npm 10's registry resolution
-          # ignores --registry / NPM_CONFIG_REGISTRY when pnpm has run earlier
-          # in the same job (registry config leaks through pnpm's node_modules
-          # setup, possibly via project pnpmfiles or pnpm's own rc). Using
-          # `npm pack` to produce the tarball, then a raw `curl` PUT against
-          # registry.npmjs.org avoids all of that and is unambiguous.
+          # keeps routing @loshu89/* to GH Packages in this job despite
+          # --registry / NPM_CONFIG_REGISTRY / fresh HOME. So: use `npm pack`
+          # to build the tarball in cwd, then `curl` PUT to npmjs.com with
+          # Bearer auth. Unambiguous.
           for pkg in packages/cli packages/plugin packages/templates; do
             echo "Publishing $pkg..."
             (cd "$pkg" && \
               name=$(node -p "require('./package.json').name") && \
-              tarball=$(npm pack --pack-destination /tmp/npmjs-pack 2>/dev/null | tail -1) && \
-              tarball_path="/tmp/npmjs-pack/$tarball" && \
-              echo "  packed: $tarball_path" && \
+              tarball=$(npm pack 2>/dev/null | tr -d '\n') && \
+              echo "  tarball: $tarball" && \
               curl -fsS -X PUT \
                 -H "Authorization: Bearer $NODE_AUTH_TOKEN" \
                 -H "Content-Type: application/octet-stream" \
-                --data-binary "@$tarball_path" \
+                --data-binary "@$tarball" \
                 "https://registry.npmjs.org/$name" && \
+              rm -f "$tarball" && \
               echo "  -> $name published to npmjs.com")
           done
         env:
