@@ -56,13 +56,14 @@ jobs:
             echo "Publishing $pkg..."
             (cd "$pkg" && \
               name=$(node -p "require('./package.json').name") && \
+              encoded=$(node -p "encodeURIComponent('$name')") && \
               tarball=$(npm pack 2>/dev/null | tr -d '\n') && \
               echo "  tarball: $tarball" && \
               curl -fsS -X PUT \
                 -H "Authorization: Bearer $NODE_AUTH_TOKEN" \
                 -H "Content-Type: application/octet-stream" \
                 --data-binary "@$tarball" \
-                "https://registry.npmjs.org/$name" && \
+                "https://registry.npmjs.org/$encoded" && \
               rm -f "$tarball" && \
               echo "  -> $name published to npmjs.com")
           done
